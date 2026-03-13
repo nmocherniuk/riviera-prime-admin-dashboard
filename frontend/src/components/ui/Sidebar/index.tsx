@@ -19,6 +19,7 @@ import {
 import { useLocation } from "react-router-dom";
 import LogoIcon from "./components/LogoIcon";
 import SectionTitle from "./components/SectionTitle";
+import { Link as RouterLink } from "react-router-dom";
 
 const drawerWidth = 260;
 
@@ -50,6 +51,9 @@ export default function Sidebar({ open = false, onClose }: SidebarProps) {
           key={item.path}
           selected={isActive}
           onClick={!isDesktop ? onClose : undefined}
+          component={RouterLink}
+          to={item.path}
+          disabled={item.comingSoon}
           sx={{
             mx: 1,
             borderRadius: 1,
@@ -72,6 +76,9 @@ export default function Sidebar({ open = false, onClose }: SidebarProps) {
             "& .MuiListItemIcon-root": {
               minWidth: 40,
               color: item.isSignOut ? "error.main" : "inherit",
+            },
+            "&.Mui-disabled": {
+              opacity: 0.55,
             },
           }}
         >
