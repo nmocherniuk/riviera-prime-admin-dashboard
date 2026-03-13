@@ -9,6 +9,7 @@ import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import BookingsPage from "./pages/Bookings/BookingsPage";
 import DriversPage from "./pages/Drivers/DriversPage";
 import FleetPage from "./pages/Fleet/FleetPage";
+import PricingPage from "./pages/Pricing/PricingPage";
 import {
   BookingsDateProvider,
   useBookingsDate,
@@ -76,6 +77,7 @@ function App() {
               <Route path="/bookings" element={<BookingsPage />} />
               <Route path="/drivers" element={<DriversPage />} />
               <Route path="/fleet" element={<FleetPage />} />
+              <Route path="/pricing" element={<PricingPage />} />
               <Route path="*" element={<Navigate to="/bookings" replace />} />
             </Routes>
           </Box>
