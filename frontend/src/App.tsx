@@ -6,6 +6,7 @@ import { Box, AppBar, IconButton, Toolbar } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useState } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import DashboardPage from "./pages/Dashboard/DashboardPage";
 import BookingsPage from "./pages/Bookings/BookingsPage";
 import DriversPage from "./pages/Drivers/DriversPage";
 import FleetPage from "./pages/Fleet/FleetPage";
@@ -73,12 +74,12 @@ function App() {
             }}
           >
             <Routes>
-              <Route path="/" element={<Navigate to="/bookings" replace />} />
+              <Route path="/" element={<DashboardPage />} />
               <Route path="/bookings" element={<BookingsPage />} />
               <Route path="/drivers" element={<DriversPage />} />
               <Route path="/fleet" element={<FleetPage />} />
               <Route path="/pricing" element={<PricingPage />} />
-              <Route path="*" element={<Navigate to="/bookings" replace />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Box>
         </Box>
