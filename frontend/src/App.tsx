@@ -7,6 +7,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import { useState } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import BookingsPage from "./pages/Bookings/BookingsPage";
+import DriversPage from "./pages/Drivers/DriversPage";
 import {
   BookingsDateProvider,
   useBookingsDate,
@@ -63,6 +64,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Navigate to="/bookings" replace />} />
               <Route path="/bookings" element={<BookingsPage />} />
+              <Route path="/drivers" element={<DriversPage />} />
               <Route path="*" element={<Navigate to="/bookings" replace />} />
             </Routes>
           </Box>
