@@ -6,7 +6,9 @@ import { useMemo, useState, useRef, useCallback } from "react";
 import BookingStats from "./components/BookingStats";
 import BookingsFilters from "./components/BookingsFilters";
 import BookingsCalendar from "./components/BookingsCalendar";
+import BookingManagementModal from "./components/BookingManagementModal";
 import { toDateKey, getWeekStart, getDateLabel } from "./utils/dateUtils";
+import type { Booking } from "./data/dummyBookings";
 import {
   useBookingsList,
   useScrollSyncWeekStrip,
@@ -20,6 +22,10 @@ const INITIAL_WEEKS_AFTER = 4;
 export default function BookingsPage() {
   const { selectedDate, setSelectedDate } = useBookingsDate();
   const [view, setView] = useState<BookingsViewMode>("week");
+  const [bookingModal, setBookingModal] = useState<{ open: boolean; booking: Booking | null }>({
+    open: false,
+    booking: null,
+  });
   const [weeksToShow, setWeeksToShow] = useState(INITIAL_WEEKS_AFTER);
   const [listAnchor, setListAnchor] = useState<Date>(() =>
     getWeekStart(new Date()),
@@ -70,7 +76,7 @@ export default function BookingsPage() {
         maxWidth={false}
         sx={{ px: { xs: 2, md: 3 }, display: { xs: "none", md: "block" } }}
       >
-        <BookingsHeader />
+        <BookingsHeader onNewBooking={() => setBookingModal({ open: true, booking: null })} />
 
         <Box sx={{ mt: 2 }}>
           <BookingStats items={stats} />
@@ -210,6 +216,12 @@ export default function BookingsPage() {
           </Stack>
         </Container>
       </Box>
+
+      <BookingManagementModal
+        open={bookingModal.open}
+        onClose={() => setBookingModal({ open: false, booking: null })}
+        booking={bookingModal.booking}
+      />
     </Box>
   );
 }

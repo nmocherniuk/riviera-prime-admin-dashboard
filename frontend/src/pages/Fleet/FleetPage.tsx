@@ -4,6 +4,7 @@ import FleetHeader from "./components/FleetHeader";
 import FleetStats from "./components/FleetStats";
 import FleetToolbar from "./components/FleetToolbar";
 import FleetTable from "./components/FleetTable";
+import FleetManagementModal from "./components/FleetManagementModal";
 import { DUMMY_FLEET } from "./data/dummyFleet";
 import type { FleetVehicle } from "./data/dummyFleet";
 
@@ -26,6 +27,10 @@ function buildFleetList(): FleetVehicle[] {
 
 export default function FleetPage() {
   const [page, setPage] = useState(1);
+  const [fleetModal, setFleetModal] = useState<{ open: boolean; vehicle: FleetVehicle | null }>({
+    open: false,
+    vehicle: null,
+  });
   const allVehicles = useMemo(buildFleetList, []);
   const vehicles = useMemo(
     () =>
@@ -36,7 +41,7 @@ export default function FleetPage() {
   return (
     <Box sx={{ minHeight: "100%", pb: 3, overflowX: "hidden" }}>
       <Container maxWidth={false} sx={{ px: { xs: 1.5, sm: 2, md: 3 }, maxWidth: "100%" }}>
-        <FleetHeader />
+        <FleetHeader onAddFleet={() => setFleetModal({ open: true, vehicle: null })} />
         <Box sx={{ mt: 2 }}>
           <FleetStats />
         </Box>
@@ -50,6 +55,11 @@ export default function FleetPage() {
             onPageChange={setPage}
           />
         </Box>
+        <FleetManagementModal
+          open={fleetModal.open}
+          onClose={() => setFleetModal({ open: false, vehicle: null })}
+          vehicle={fleetModal.vehicle}
+        />
       </Container>
     </Box>
   );

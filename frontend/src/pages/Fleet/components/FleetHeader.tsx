@@ -1,7 +1,9 @@
 import { Box, Button, Typography } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 
-export default function FleetHeader() {
+type Props = { onAddFleet?: () => void };
+
+export default function FleetHeader({ onAddFleet }: Props) {
   return (
     <Box
       sx={{
@@ -36,6 +38,7 @@ export default function FleetHeader() {
         variant="contained"
         startIcon={<AddIcon />}
         fullWidth={false}
+        onClick={onAddFleet}
         sx={{
           width: { xs: "100%", sm: "auto" },
           bgcolor: "primary.main",

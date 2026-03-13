@@ -1,7 +1,9 @@
 import { Box, Button, Typography } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 
-export default function BookingsHeader() {
+type Props = { onNewBooking?: () => void };
+
+export default function BookingsHeader({ onNewBooking }: Props) {
   return (
     <Box
       sx={{
@@ -42,6 +44,7 @@ export default function BookingsHeader() {
         <Button
           variant="contained"
           startIcon={<AddIcon />}
+          onClick={onNewBooking}
           sx={{
             bgcolor: "primary.main",
             color: "common.black",
