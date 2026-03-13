@@ -19,19 +19,22 @@ const statusColors: Record<
   OFFLINE: { bg: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" },
 };
 
-type Props = { driver: Driver };
+type Props = { driver: Driver; onClick?: () => void };
 
-export default function DriverCard({ driver: d }: Props) {
+export default function DriverCard({ driver: d, onClick }: Props) {
   const statusStyle = statusColors[d.status];
   return (
     <Paper
       elevation={0}
+      onClick={onClick}
       sx={{
         p: 2,
         borderRadius: 2,
         border: 1,
         borderColor: "divider",
         bgcolor: "background.paper",
+        cursor: onClick ? "pointer" : "default",
+        "&:hover": onClick ? { bgcolor: "rgba(255,255,255,0.03)" } : undefined,
       }}
     >
       <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 1 }}>
@@ -62,7 +65,15 @@ export default function DriverCard({ driver: d }: Props) {
             </Typography>
           </Box>
         </Box>
-        <IconButton size="small" sx={{ color: "text.secondary", flexShrink: 0 }} aria-label="actions">
+        <IconButton
+          size="small"
+          sx={{ color: "text.secondary", flexShrink: 0 }}
+          aria-label="actions"
+          onClick={(e) => {
+            e.stopPropagation();
+            onClick?.();
+          }}
+        >
           <MoreVertIcon />
         </IconButton>
       </Box>

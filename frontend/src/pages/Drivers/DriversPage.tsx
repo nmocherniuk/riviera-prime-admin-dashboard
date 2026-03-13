@@ -4,6 +4,7 @@ import DriversHeader from "./components/DriversHeader";
 import DriversStats from "./components/DriversStats";
 import DriversToolbar from "./components/DriversToolbar";
 import DriversTable from "./components/DriversTable";
+import DriverManagementModal from "./components/DriverManagementModal";
 import { DUMMY_DRIVERS } from "./data/dummyDrivers";
 import type { Driver } from "./data/dummyDrivers";
 
@@ -26,6 +27,10 @@ function buildDriversList(): Driver[] {
 
 export default function DriversPage() {
   const [page, setPage] = useState(1);
+  const [driverModal, setDriverModal] = useState<{ open: boolean; driver: Driver | null }>({
+    open: false,
+    driver: null,
+  });
   const allDrivers = useMemo(buildDriversList, []);
   const drivers = useMemo(
     () =>
@@ -36,7 +41,7 @@ export default function DriversPage() {
   return (
     <Box sx={{ minHeight: "100%", pb: 3, overflowX: "hidden" }}>
       <Container maxWidth={false} sx={{ px: { xs: 1.5, sm: 2, md: 3 }, maxWidth: "100%" }}>
-        <DriversHeader />
+        <DriversHeader onAddDriver={() => setDriverModal({ open: true, driver: null })} />
         <Box sx={{ mt: 2 }}>
           <DriversStats />
         </Box>
@@ -48,8 +53,14 @@ export default function DriversPage() {
             drivers={drivers}
             page={page}
             onPageChange={setPage}
+            onDriverClick={(driver) => setDriverModal({ open: true, driver })}
           />
         </Box>
+        <DriverManagementModal
+          open={driverModal.open}
+          onClose={() => setDriverModal({ open: false, driver: null })}
+          driver={driverModal.driver}
+        />
       </Container>
     </Box>
   );

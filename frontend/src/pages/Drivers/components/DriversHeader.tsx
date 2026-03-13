@@ -1,7 +1,9 @@
 import { Box, Button, Typography } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 
-export default function DriversHeader() {
+type Props = { onAddDriver?: () => void };
+
+export default function DriversHeader({ onAddDriver }: Props) {
   return (
     <Box
       sx={{
@@ -36,6 +38,7 @@ export default function DriversHeader() {
         variant="contained"
         startIcon={<AddIcon />}
         fullWidth={false}
+        onClick={onAddDriver}
         sx={{
           width: { xs: "100%", sm: "auto" },
           bgcolor: "primary.main",

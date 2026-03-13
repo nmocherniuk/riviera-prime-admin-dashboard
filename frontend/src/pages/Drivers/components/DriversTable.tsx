@@ -34,12 +34,14 @@ type Props = {
   drivers: Driver[];
   page: number;
   onPageChange: (page: number) => void;
+  onDriverClick?: (driver: Driver) => void;
 };
 
 export default function DriversTable({
   drivers,
   page,
   onPageChange,
+  onDriverClick,
 }: Props) {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
@@ -123,7 +125,7 @@ export default function DriversTable({
         </Box>
         <Box sx={{ px: { xs: 1.5, md: 2 }, py: 2, display: "flex", flexDirection: "column", gap: 2 }}>
           {drivers.map((d) => (
-            <DriverCard key={d.id} driver={d} />
+            <DriverCard key={d.id} driver={d} onClick={() => onDriverClick?.(d)} />
           ))}
         </Box>
         {paginationBar}
@@ -197,7 +199,9 @@ export default function DriversTable({
             return (
               <TableRow
                 key={d.id}
+                onClick={() => onDriverClick?.(d)}
                 sx={{
+                  cursor: onDriverClick ? "pointer" : "default",
                   "&:hover": { bgcolor: "rgba(255,255,255,0.03)" },
                 }}
               >
@@ -259,8 +263,13 @@ export default function DriversTable({
                     {d.todayShift}
                   </Typography>
                 </TableCell>
-                <TableCell>
-                  <IconButton size="small" sx={{ color: "text.secondary" }} aria-label="actions">
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  <IconButton
+                    size="small"
+                    sx={{ color: "text.secondary" }}
+                    aria-label="actions"
+                    onClick={() => onDriverClick?.(d)}
+                  >
                     <MoreVertIcon />
                   </IconButton>
                 </TableCell>
