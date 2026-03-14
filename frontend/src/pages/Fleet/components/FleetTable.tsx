@@ -1,6 +1,11 @@
+import { useState } from "react";
 import {
   Box,
   IconButton,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
   Paper,
   Table,
   TableBody,
@@ -13,6 +18,8 @@ import {
 } from "@mui/material";
 import Chip from "@mui/material/Chip";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import type { FleetVehicle, FleetClass, FleetStatus } from "../data/dummyFleet";
 import FleetCard from "./FleetCard";
@@ -37,17 +44,39 @@ type Props = {
   vehicles: FleetVehicle[];
   page: number;
   onPageChange: (page: number) => void;
-  onVehicleClick?: (vehicle: FleetVehicle) => void;
+  onVehicleEdit?: (vehicle: FleetVehicle) => void;
+  onVehicleDelete?: (vehicle: FleetVehicle) => void;
 };
 
 export default function FleetTable({
   vehicles,
   page,
   onPageChange,
-  onVehicleClick,
+  onVehicleEdit,
+  onVehicleDelete,
 }: Props) {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
+  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+  const [selectedVehicle, setSelectedVehicle] = useState<FleetVehicle | null>(null);
+
+  const openMenu = (e: React.MouseEvent<HTMLElement>, vehicle: FleetVehicle) => {
+    e.stopPropagation();
+    setMenuAnchor(e.currentTarget);
+    setSelectedVehicle(vehicle);
+  };
+  const closeMenu = () => {
+    setMenuAnchor(null);
+    setSelectedVehicle(null);
+  };
+  const handleEdit = () => {
+    if (selectedVehicle) onVehicleEdit?.(selectedVehicle);
+    closeMenu();
+  };
+  const handleDelete = () => {
+    if (selectedVehicle) onVehicleDelete?.(selectedVehicle);
+    closeMenu();
+  };
   const from = (page - 1) * ROWS_PER_PAGE + 1;
   const to = (page - 1) * ROWS_PER_PAGE + vehicles.length;
   const hasNext = page * ROWS_PER_PAGE < TOTAL_FLEET;
@@ -131,7 +160,8 @@ export default function FleetTable({
             <FleetCard
               key={v.id}
               vehicle={v}
-              {...(onVehicleClick ? { onClick: () => onVehicleClick(v) } : {})}
+              {...(onVehicleEdit ? { onEdit: () => onVehicleEdit(v) } : {})}
+              {...(onVehicleDelete ? { onDelete: () => onVehicleDelete(v) } : {})}
             />
           ))}
         </Box>
@@ -268,7 +298,7 @@ export default function FleetTable({
                       size="small"
                       sx={{ color: "text.secondary" }}
                       aria-label="actions"
-                      onClick={() => onVehicleClick?.(v)}
+                      onClick={(e) => openMenu(e, v)}
                     >
                       <MoreVertIcon />
                     </IconButton>
@@ -280,6 +310,27 @@ export default function FleetTable({
         </Table>
       </Box>
       {paginationBar}
+      <Menu
+        anchorEl={menuAnchor}
+        open={Boolean(menuAnchor)}
+        onClose={closeMenu}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        slotProps={{ paper: { sx: { minWidth: 160, borderRadius: 2 } } }}
+      >
+        <MenuItem onClick={handleEdit}>
+          <ListItemIcon>
+            <EditIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Edit</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={handleDelete} sx={{ color: "error.main" }}>
+          <ListItemIcon sx={{ color: "error.main" }}>
+            <DeleteIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Delete</ListItemText>
+        </MenuItem>
+      </Menu>
     </Paper>
   );
 }

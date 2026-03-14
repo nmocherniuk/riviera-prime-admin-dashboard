@@ -2,27 +2,28 @@ import { Box, Container } from "@mui/material";
 import { useState, useCallback } from "react";
 import PricingHeader from "./components/PricingHeader";
 import PricingTable from "./components/PricingTable";
+import PricingEditModal from "./components/PricingEditModal";
 import { buildPricingList } from "./data/pricingData";
 import type { VehiclePricing } from "./data/pricingData";
 
 export default function PricingPage() {
   const [rows, setRows] = useState<VehiclePricing[]>(() => buildPricingList());
+  const [editRow, setEditRow] = useState<VehiclePricing | null>(null);
 
-  const onPerHourChange = useCallback((vehicleId: string, value: string) => {
-    setRows((prev) =>
-      prev.map((r) =>
-        r.vehicle.id === vehicleId ? { ...r, perHour: value } : r,
-      ),
-    );
+  const onEditRow = useCallback((row: VehiclePricing) => {
+    setEditRow(row);
   }, []);
 
-  const onPerKmChange = useCallback((vehicleId: string, value: string) => {
-    setRows((prev) =>
-      prev.map((r) =>
-        r.vehicle.id === vehicleId ? { ...r, perKm: value } : r,
-      ),
-    );
-  }, []);
+  const onSaveEdit = useCallback(
+    (vehicleId: string, perHour: string, perKm: string) => {
+      setRows((prev) =>
+        prev.map((r) =>
+          r.vehicle.id === vehicleId ? { ...r, perHour, perKm } : r,
+        ),
+      );
+    },
+    [],
+  );
 
   return (
     <Box sx={{ minHeight: "100%", pb: 3, overflowX: "hidden" }}>
@@ -32,12 +33,14 @@ export default function PricingPage() {
       >
         <PricingHeader />
         <Box sx={{ mt: 2 }}>
-          <PricingTable
-            rows={rows}
-            onPerHourChange={onPerHourChange}
-            onPerKmChange={onPerKmChange}
-          />
+          <PricingTable rows={rows} onEditRow={onEditRow} />
         </Box>
+        <PricingEditModal
+          open={!!editRow}
+          onClose={() => setEditRow(null)}
+          row={editRow}
+          onSave={onSaveEdit}
+        />
       </Container>
     </Box>
   );

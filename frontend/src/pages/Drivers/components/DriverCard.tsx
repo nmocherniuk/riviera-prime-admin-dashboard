@@ -1,12 +1,19 @@
+import { useState } from "react";
 import {
   Avatar,
   Box,
   IconButton,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
   Paper,
   Typography,
 } from "@mui/material";
 import Chip from "@mui/material/Chip";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import PersonIcon from "@mui/icons-material/Person";
 import type { Driver, DriverStatus } from "../data/dummyDrivers";
 
@@ -19,22 +26,39 @@ const statusColors: Record<
   OFFLINE: { bg: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" },
 };
 
-type Props = { driver: Driver; onClick?: () => void };
+type Props = {
+  driver: Driver;
+  onEdit?: () => void;
+  onDelete?: () => void;
+};
 
-export default function DriverCard({ driver: d, onClick }: Props) {
+export default function DriverCard({ driver: d, onEdit, onDelete }: Props) {
   const statusStyle = statusColors[d.status];
+  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+
+  const openMenu = (e: React.MouseEvent<HTMLElement>) => {
+    e.stopPropagation();
+    setMenuAnchor(e.currentTarget);
+  };
+  const closeMenu = () => setMenuAnchor(null);
+  const handleEdit = () => {
+    onEdit?.();
+    closeMenu();
+  };
+  const handleDelete = () => {
+    onDelete?.();
+    closeMenu();
+  };
+
   return (
     <Paper
       elevation={0}
-      onClick={onClick}
       sx={{
         p: 2,
         borderRadius: 2,
         border: 1,
         borderColor: "divider",
         bgcolor: "background.paper",
-        cursor: onClick ? "pointer" : "default",
-        "&:hover": onClick ? { bgcolor: "rgba(255,255,255,0.03)" } : undefined,
       }}
     >
       <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 1 }}>
@@ -69,14 +93,32 @@ export default function DriverCard({ driver: d, onClick }: Props) {
           size="small"
           sx={{ color: "text.secondary", flexShrink: 0 }}
           aria-label="actions"
-          onClick={(e) => {
-            e.stopPropagation();
-            onClick?.();
-          }}
+          onClick={openMenu}
         >
           <MoreVertIcon />
         </IconButton>
       </Box>
+      <Menu
+        anchorEl={menuAnchor}
+        open={Boolean(menuAnchor)}
+        onClose={closeMenu}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        slotProps={{ paper: { sx: { minWidth: 160, borderRadius: 2 } } }}
+      >
+        <MenuItem onClick={handleEdit}>
+          <ListItemIcon>
+            <EditIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Edit</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={handleDelete} sx={{ color: "error.main" }}>
+          <ListItemIcon sx={{ color: "error.main" }}>
+            <DeleteIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Delete</ListItemText>
+        </MenuItem>
+      </Menu>
       <Box
         sx={{
           display: "flex",

@@ -45,7 +45,6 @@ export default function BookingsMobileView({
       ref={scrollRef}
       sx={{
         overflowY: "auto",
-        maxHeight: { xs: "calc(100vh - 180px)", md: "calc(100vh - 220px)" },
         px: { xs: 2, md: 3 },
         display: { xs: "block", md: "none" },
       }}

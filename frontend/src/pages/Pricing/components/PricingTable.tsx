@@ -1,18 +1,19 @@
 import {
   Box,
+  IconButton,
   Paper,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableRow,
-  TextField,
   Typography,
   useMediaQuery,
   useTheme,
 } from "@mui/material";
 import Chip from "@mui/material/Chip";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 import type { FleetClass } from "../../Fleet/data/dummyFleet";
 import type { VehiclePricing } from "../data/pricingData";
 
@@ -22,26 +23,12 @@ const classColors: Record<FleetClass, { bg: string; color: string }> = {
   Van: { bg: "rgba(59, 130, 246, 0.2)", color: "#3b82f6" },
 };
 
-const textFieldSx = {
-  "& .MuiOutlinedInput-root": {
-    borderRadius: 2,
-    bgcolor: "rgba(255,255,255,0.04)",
-    "&:hover": { bgcolor: "rgba(255,255,255,0.06)" },
-    "&.Mui-focused": { bgcolor: "rgba(255,255,255,0.06)" },
-  },
-};
-
 type Props = {
   rows: VehiclePricing[];
-  onPerHourChange: (vehicleId: string, value: string) => void;
-  onPerKmChange: (vehicleId: string, value: string) => void;
+  onEditRow?: (row: VehiclePricing) => void;
 };
 
-export default function PricingTable({
-  rows,
-  onPerHourChange,
-  onPerKmChange,
-}: Props) {
+export default function PricingTable({ rows, onEditRow }: Props) {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
 
@@ -84,61 +71,57 @@ export default function PricingTable({
                   bgcolor: "rgba(255,255,255,0.02)",
                 }}
               >
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5 }}>
-                  <Box
-                    sx={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 2,
-                      bgcolor: "rgba(255,255,255,0.08)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "text.secondary",
-                    }}
-                  >
-                    <DirectionsCarIcon fontSize="small" />
-                  </Box>
-                  <Box>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "text.primary" }}>
-                      {row.vehicle.vehicleName}
-                    </Typography>
-                    <Chip
-                      label={row.vehicle.class}
-                      size="small"
+                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1.5, mb: 1.5 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                    <Box
                       sx={{
-                        mt: 0.5,
-                        bgcolor: classStyle.bg,
-                        color: classStyle.color,
-                        fontWeight: 600,
-                        fontSize: "0.7rem",
+                        width: 40,
+                        height: 40,
+                        borderRadius: 2,
+                        bgcolor: "rgba(255,255,255,0.08)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "text.secondary",
                       }}
-                    />
+                    >
+                      <DirectionsCarIcon fontSize="small" />
+                    </Box>
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "text.primary" }}>
+                        {row.vehicle.vehicleName}
+                      </Typography>
+                      <Chip
+                        label={row.vehicle.class}
+                        size="small"
+                        sx={{
+                          mt: 0.5,
+                          bgcolor: classStyle.bg,
+                          color: classStyle.color,
+                          fontWeight: 600,
+                          fontSize: "0.7rem",
+                        }}
+                      />
+                    </Box>
                   </Box>
+                  {onEditRow && (
+                    <IconButton
+                      size="small"
+                      sx={{ color: "text.secondary" }}
+                      aria-label="actions"
+                      onClick={() => onEditRow(row)}
+                    >
+                      <MoreVertIcon />
+                    </IconButton>
+                  )}
                 </Box>
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="Per hour"
-                    placeholder="0"
-                    type="number"
-                    value={row.perHour}
-                    onChange={(e) => onPerHourChange(row.vehicle.id, e.target.value)}
-                    InputProps={{ inputProps: { min: 0, step: 0.01 } }}
-                    sx={textFieldSx}
-                  />
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="Per KM"
-                    placeholder="0"
-                    type="number"
-                    value={row.perKm}
-                    onChange={(e) => onPerKmChange(row.vehicle.id, e.target.value)}
-                    InputProps={{ inputProps: { min: 0, step: 0.01 } }}
-                    sx={textFieldSx}
-                  />
+                <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                    Per hour: <strong style={{ color: "inherit" }}>{row.perHour}</strong>
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                    Per KM: <strong style={{ color: "inherit" }}>{row.perKm}</strong>
+                  </Typography>
                 </Box>
               </Paper>
             );
@@ -219,6 +202,18 @@ export default function PricingTable({
               >
                 Price per KM
               </TableCell>
+              <TableCell
+                sx={{
+                  fontWeight: 700,
+                  color: "text.secondary",
+                  textTransform: "uppercase",
+                  letterSpacing: 0.8,
+                  py: 1.5,
+                  width: 56,
+                }}
+              >
+                Actions
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -267,33 +262,27 @@ export default function PricingTable({
                       }}
                     />
                   </TableCell>
-                  <TableCell sx={{ py: 1.5 }}>
-                    <TextField
-                      size="small"
-                      placeholder="0"
-                      type="number"
-                      value={row.perHour}
-                      onChange={(e) => onPerHourChange(row.vehicle.id, e.target.value)}
-                      InputProps={{
-                        inputProps: { min: 0, step: 0.01 },
-                        sx: { width: 120 },
-                      }}
-                      sx={textFieldSx}
-                    />
+                  <TableCell>
+                    <Typography variant="body2" sx={{ color: "text.primary" }}>
+                      {row.perHour}
+                    </Typography>
                   </TableCell>
-                  <TableCell sx={{ py: 1.5 }}>
-                    <TextField
-                      size="small"
-                      placeholder="0"
-                      type="number"
-                      value={row.perKm}
-                      onChange={(e) => onPerKmChange(row.vehicle.id, e.target.value)}
-                      InputProps={{
-                        inputProps: { min: 0, step: 0.01 },
-                        sx: { width: 120 },
-                      }}
-                      sx={textFieldSx}
-                    />
+                  <TableCell>
+                    <Typography variant="body2" sx={{ color: "text.primary" }}>
+                      {row.perKm}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    {onEditRow && (
+                      <IconButton
+                        size="small"
+                        sx={{ color: "text.secondary" }}
+                        aria-label="actions"
+                        onClick={() => onEditRow(row)}
+                      >
+                        <MoreVertIcon />
+                      </IconButton>
+                    )}
                   </TableCell>
                 </TableRow>
               );

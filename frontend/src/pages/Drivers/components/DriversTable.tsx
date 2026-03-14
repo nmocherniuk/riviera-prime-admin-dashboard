@@ -1,7 +1,12 @@
+import { useState } from "react";
 import {
   Avatar,
   Box,
   IconButton,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
   Paper,
   Table,
   TableBody,
@@ -14,6 +19,8 @@ import {
 } from "@mui/material";
 import Chip from "@mui/material/Chip";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import PersonIcon from "@mui/icons-material/Person";
 import type { Driver, DriverStatus } from "../data/dummyDrivers";
 import DriverCard from "./DriverCard";
@@ -37,17 +44,39 @@ type Props = {
   drivers: Driver[];
   page: number;
   onPageChange: (page: number) => void;
-  onDriverClick?: (driver: Driver) => void;
+  onDriverEdit?: (driver: Driver) => void;
+  onDriverDelete?: (driver: Driver) => void;
 };
 
 export default function DriversTable({
   drivers,
   page,
   onPageChange,
-  onDriverClick,
+  onDriverEdit,
+  onDriverDelete,
 }: Props) {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
+  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+  const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
+
+  const openMenu = (e: React.MouseEvent<HTMLElement>, driver: Driver) => {
+    e.stopPropagation();
+    setMenuAnchor(e.currentTarget);
+    setSelectedDriver(driver);
+  };
+  const closeMenu = () => {
+    setMenuAnchor(null);
+    setSelectedDriver(null);
+  };
+  const handleEdit = () => {
+    if (selectedDriver) onDriverEdit?.(selectedDriver);
+    closeMenu();
+  };
+  const handleDelete = () => {
+    if (selectedDriver) onDriverDelete?.(selectedDriver);
+    closeMenu();
+  };
   const from = (page - 1) * ROWS_PER_PAGE + 1;
   const to = (page - 1) * ROWS_PER_PAGE + drivers.length;
   const hasNext = page * ROWS_PER_PAGE < TOTAL_DRIVERS;
@@ -128,7 +157,12 @@ export default function DriversTable({
         </Box>
         <Box sx={{ px: { xs: 1.5, md: 2 }, py: 2, display: "flex", flexDirection: "column", gap: 2 }}>
           {drivers.map((d) => (
-            <DriverCard key={d.id} driver={d} onClick={() => onDriverClick?.(d)} />
+            <DriverCard
+              key={d.id}
+              driver={d}
+              onEdit={onDriverEdit ? () => onDriverEdit(d) : undefined}
+              onDelete={onDriverDelete ? () => onDriverDelete(d) : undefined}
+            />
           ))}
         </Box>
         {paginationBar}
@@ -193,11 +227,7 @@ export default function DriversTable({
               return (
                 <TableRow
                   key={d.id}
-                  onClick={() => onDriverClick?.(d)}
-                  sx={{
-                    cursor: onDriverClick ? "pointer" : "default",
-                    "&:hover": { bgcolor: "rgba(255,255,255,0.03)" },
-                  }}
+                  sx={{ "&:hover": { bgcolor: "rgba(255,255,255,0.03)" } }}
                 >
                   <TableCell sx={{ py: 2 }}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
@@ -252,12 +282,12 @@ export default function DriversTable({
                       {d.earning}
                     </Typography>
                   </TableCell>
-                  <TableCell onClick={(e) => e.stopPropagation()}>
+                  <TableCell>
                     <IconButton
                       size="small"
                       sx={{ color: "text.secondary" }}
                       aria-label="actions"
-                      onClick={() => onDriverClick?.(d)}
+                      onClick={(e) => openMenu(e, d)}
                     >
                       <MoreVertIcon />
                     </IconButton>
@@ -269,6 +299,27 @@ export default function DriversTable({
         </Table>
       </Box>
       {paginationBar}
+      <Menu
+        anchorEl={menuAnchor}
+        open={Boolean(menuAnchor)}
+        onClose={closeMenu}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        slotProps={{ paper: { sx: { minWidth: 160, borderRadius: 2 } } }}
+      >
+        <MenuItem onClick={handleEdit}>
+          <ListItemIcon>
+            <EditIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Edit</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={handleDelete} sx={{ color: "error.main" }}>
+          <ListItemIcon sx={{ color: "error.main" }}>
+            <DeleteIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Delete</ListItemText>
+        </MenuItem>
+      </Menu>
     </Paper>
   );
 }

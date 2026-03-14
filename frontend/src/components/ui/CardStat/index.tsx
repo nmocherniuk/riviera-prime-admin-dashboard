@@ -1,4 +1,4 @@
-import { Paper, Typography } from "@mui/material";
+import { Box, Paper, Stack, Typography } from "@mui/material";
 
 export type Stat = {
   label: string;
@@ -12,6 +12,10 @@ const paperSx = {
   border: 1,
   borderColor: "divider",
   bgcolor: "background.paper",
+  display: "flex",
+  flexDirection: "row",
+  alignItems: "center",
+  gap: 2,
 };
 
 export default function CardStat({ stat }: { stat: Stat }) {
@@ -19,39 +23,41 @@ export default function CardStat({ stat }: { stat: Stat }) {
   return (
     <Paper elevation={0} sx={paperSx}>
       {Icon && (
-        <Icon
-          sx={{
-            color: "primary.main",
-            fontSize: { xs: 24, md: 28 },
-            mb: 1,
-            opacity: 0.9,
-          }}
-        />
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", width: 52, height: 52, borderRadius: 2, bgcolor: "rgba(255,255,255,0.1)" }}>
+          <Icon
+            sx={{
+              color: "primary.main",
+              fontSize: { xs: 24, md: 28 },
+              opacity: 0.9,
+            }}
+          />
+        </Box>
       )}
-      <Typography
-        variant="caption"
-        sx={{
-          display: "block",
-          color: "text.secondary",
-          textTransform: "uppercase",
-          letterSpacing: 0.8,
-          fontWeight: 700,
-          fontSize: { xs: "0.7rem", md: "inherit" },
-        }}
-      >
-        {stat.label}
-      </Typography>
-      <Typography
-        variant="h5"
-        sx={{
-          mt: 0.5,
-          fontWeight: 800,
-          color: "text.primary",
-          fontSize: { xs: "1.1rem", sm: "1.25rem", md: "1.5rem" },
-        }}
-      >
-        {stat.value}
-      </Typography>
+      <Stack direction="column">
+        <Typography
+          variant="caption"
+          sx={{
+            display: "block",
+            color: "text.secondary",
+            textTransform: "uppercase",
+            letterSpacing: 0.8,
+            fontWeight: 700,
+            fontSize: { xs: "0.7rem", md: "inherit" },
+          }}
+        >
+          {stat.label}
+        </Typography>
+        <Typography
+          variant="h5"
+          sx={{
+            fontWeight: 800,
+            color: "text.primary",
+            fontSize: { xs: "1.1rem", sm: "1.25rem", md: "1.5rem" },
+          }}
+        >
+          {stat.value}
+        </Typography>
+      </Stack>
     </Paper>
   );
 }

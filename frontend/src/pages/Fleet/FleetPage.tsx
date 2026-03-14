@@ -5,6 +5,7 @@ import FleetStats from "./components/FleetStats";
 import FleetToolbar from "./components/FleetToolbar";
 import FleetTable from "./components/FleetTable";
 import FleetManagementModal from "./components/FleetManagementModal";
+import ConfirmDeleteDialog from "../../components/ui/ConfirmDeleteDialog";
 import { DUMMY_FLEET } from "./data/dummyFleet";
 import type { FleetVehicle } from "./data/dummyFleet";
 
@@ -27,16 +28,32 @@ function buildFleetList(): FleetVehicle[] {
 
 export default function FleetPage() {
   const [page, setPage] = useState(1);
+  const [allVehicles, setAllVehicles] = useState<FleetVehicle[]>(() => buildFleetList());
   const [fleetModal, setFleetModal] = useState<{ open: boolean; vehicle: FleetVehicle | null }>({
     open: false,
     vehicle: null,
   });
-  const allVehicles = useMemo(buildFleetList, []);
+  const [vehicleToDelete, setVehicleToDelete] = useState<FleetVehicle | null>(null);
   const vehicles = useMemo(
     () =>
       allVehicles.slice((page - 1) * ROWS_PER_PAGE, page * ROWS_PER_PAGE),
     [allVehicles, page]
   );
+
+  const handleVehicleDelete = (vehicle: FleetVehicle) => {
+    setAllVehicles((prev) => prev.filter((v) => v.id !== vehicle.id));
+  };
+
+  const handleDeleteClick = (vehicle: FleetVehicle) => {
+    setVehicleToDelete(vehicle);
+  };
+
+  const handleConfirmDelete = () => {
+    if (vehicleToDelete) {
+      handleVehicleDelete(vehicleToDelete);
+      setVehicleToDelete(null);
+    }
+  };
 
   return (
     <Box sx={{ minHeight: "100%", pb: 3, overflowX: "hidden" }}>
@@ -53,13 +70,21 @@ export default function FleetPage() {
             vehicles={vehicles}
             page={page}
             onPageChange={setPage}
-            onVehicleClick={(v) => setFleetModal({ open: true, vehicle: v })}
+            onVehicleEdit={(v) => setFleetModal({ open: true, vehicle: v })}
+            onVehicleDelete={handleDeleteClick}
           />
         </Box>
         <FleetManagementModal
           open={fleetModal.open}
           onClose={() => setFleetModal({ open: false, vehicle: null })}
           vehicle={fleetModal.vehicle}
+        />
+        <ConfirmDeleteDialog
+          open={!!vehicleToDelete}
+          onClose={() => setVehicleToDelete(null)}
+          onConfirm={handleConfirmDelete}
+          title="Видалити авто?"
+          message="Цю дію не можна скасувати. Запис буде видалено назавжди."
         />
       </Container>
     </Box>

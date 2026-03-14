@@ -1,6 +1,18 @@
-import { Box, IconButton, Paper, Typography } from "@mui/material";
+import { useState } from "react";
+import {
+  Box,
+  IconButton,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
+  Paper,
+  Typography,
+} from "@mui/material";
 import Chip from "@mui/material/Chip";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import type { FleetVehicle, FleetClass, FleetStatus } from "../data/dummyFleet";
 
@@ -17,12 +29,29 @@ const statusColors: Record<FleetStatus, { bg: string; color: string }> = {
 
 type Props = {
   vehicle: FleetVehicle;
-  onClick?: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
 };
 
-export default function FleetCard({ vehicle: v, onClick }: Props) {
+export default function FleetCard({ vehicle: v, onEdit, onDelete }: Props) {
   const classStyle = classColors[v.class];
   const statusStyle = statusColors[v.status];
+  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+
+  const openMenu = (e: React.MouseEvent<HTMLElement>) => {
+    e.stopPropagation();
+    setMenuAnchor(e.currentTarget);
+  };
+  const closeMenu = () => setMenuAnchor(null);
+  const handleEdit = () => {
+    onEdit?.();
+    closeMenu();
+  };
+  const handleDelete = () => {
+    onDelete?.();
+    closeMenu();
+  };
+
   return (
     <Paper
       elevation={0}
@@ -32,11 +61,9 @@ export default function FleetCard({ vehicle: v, onClick }: Props) {
         border: 1,
         borderColor: "divider",
         bgcolor: "background.paper",
-        cursor: onClick ? "pointer" : undefined,
         textAlign: "left",
         width: "100%",
       }}
-      onClick={onClick}
     >
       <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 1 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0 }}>
@@ -71,14 +98,32 @@ export default function FleetCard({ vehicle: v, onClick }: Props) {
           size="small"
           sx={{ color: "text.secondary", flexShrink: 0 }}
           aria-label="actions"
-          onClick={(e) => {
-            e.stopPropagation();
-            onClick?.();
-          }}
+          onClick={openMenu}
         >
           <MoreVertIcon />
         </IconButton>
       </Box>
+      <Menu
+        anchorEl={menuAnchor}
+        open={Boolean(menuAnchor)}
+        onClose={closeMenu}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        slotProps={{ paper: { sx: { minWidth: 160, borderRadius: 2 } } }}
+      >
+        <MenuItem onClick={handleEdit}>
+          <ListItemIcon>
+            <EditIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Edit</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={handleDelete} sx={{ color: "error.main" }}>
+          <ListItemIcon sx={{ color: "error.main" }}>
+            <DeleteIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Delete</ListItemText>
+        </MenuItem>
+      </Menu>
       <Box
         sx={{
           display: "flex",

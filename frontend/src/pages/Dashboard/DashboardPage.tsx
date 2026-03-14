@@ -3,6 +3,7 @@ import DashboardStatCards from "./components/DashboardStatCards";
 
 import WeeklyRevenueCard from "./components/WeeklyRevenueCard";
 import ChartPlaceholderCard from "./components/ChartPlaceholderCard";
+import DashboardHeader from "./components/DashboardHeader";
 
 export default function DashboardPage() {
   return (
@@ -11,6 +12,8 @@ export default function DashboardPage() {
         maxWidth={false}
         sx={{ px: { xs: 1.5, sm: 2, md: 3 }, maxWidth: "100%" }}
       >
+        <DashboardHeader />
+
         <Box sx={{ mt: 2 }}>
           <DashboardStatCards />
         </Box>

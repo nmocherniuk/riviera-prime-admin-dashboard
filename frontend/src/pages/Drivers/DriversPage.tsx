@@ -5,6 +5,7 @@ import DriversStats from "./components/DriversStats";
 import DriversToolbar from "./components/DriversToolbar";
 import DriversTable from "./components/DriversTable";
 import DriverManagementModal from "./components/DriverManagementModal";
+import ConfirmDeleteDialog from "../../components/ui/ConfirmDeleteDialog";
 import { DUMMY_DRIVERS } from "./data/dummyDrivers";
 import type { Driver } from "./data/dummyDrivers";
 
@@ -27,16 +28,32 @@ function buildDriversList(): Driver[] {
 
 export default function DriversPage() {
   const [page, setPage] = useState(1);
+  const [allDrivers, setAllDrivers] = useState<Driver[]>(() => buildDriversList());
   const [driverModal, setDriverModal] = useState<{ open: boolean; driver: Driver | null }>({
     open: false,
     driver: null,
   });
-  const allDrivers = useMemo(buildDriversList, []);
+  const [driverToDelete, setDriverToDelete] = useState<Driver | null>(null);
   const drivers = useMemo(
     () =>
       allDrivers.slice((page - 1) * ROWS_PER_PAGE, page * ROWS_PER_PAGE),
     [allDrivers, page]
   );
+
+  const handleDriverDelete = (driver: Driver) => {
+    setAllDrivers((prev) => prev.filter((d) => d.id !== driver.id));
+  };
+
+  const handleDeleteClick = (driver: Driver) => {
+    setDriverToDelete(driver);
+  };
+
+  const handleConfirmDelete = () => {
+    if (driverToDelete) {
+      handleDriverDelete(driverToDelete);
+      setDriverToDelete(null);
+    }
+  };
 
   return (
     <Box sx={{ minHeight: "100%", pb: 3, overflowX: "hidden" }}>
@@ -53,13 +70,21 @@ export default function DriversPage() {
             drivers={drivers}
             page={page}
             onPageChange={setPage}
-            onDriverClick={(driver) => setDriverModal({ open: true, driver })}
+            onDriverEdit={(driver) => setDriverModal({ open: true, driver })}
+            onDriverDelete={handleDeleteClick}
           />
         </Box>
         <DriverManagementModal
           open={driverModal.open}
           onClose={() => setDriverModal({ open: false, driver: null })}
           driver={driverModal.driver}
+        />
+        <ConfirmDeleteDialog
+          open={!!driverToDelete}
+          onClose={() => setDriverToDelete(null)}
+          onConfirm={handleConfirmDelete}
+          title="Видалити водія?"
+          message="Цю дію не можна скасувати. Запис буде видалено назавжди."
         />
       </Container>
     </Box>

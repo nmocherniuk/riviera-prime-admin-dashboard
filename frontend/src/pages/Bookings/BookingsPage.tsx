@@ -1,4 +1,8 @@
 import { Box } from "@mui/material";
+import EventIcon from "@mui/icons-material/Event";
+import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
+import ScheduleIcon from "@mui/icons-material/Schedule";
+import PeopleIcon from "@mui/icons-material/People";
 import { useBookingsDate } from "./store/BookingsDateContext";
 import { useMemo, useState, useRef, useEffect } from "react";
 import BookingManagementModal from "./components/BookingManagementModal";
@@ -73,10 +77,9 @@ export default function BookingsPage() {
 
   const stats = useMemo(
     () => [
-      { label: "Total Bookings", value: "1,284" },
-      { label: "Revenue (MTD)", value: "$84,250" },
-      { label: "Pending", value: "42" },
-      { label: "Active Drivers", value: "18 / 24" },
+      { label: "Total Bookings", value: "1,284", icon: EventIcon },
+      { label: "Pending", value: "42", icon: ScheduleIcon },
+      { label: "Active Drivers", value: "18 / 24", icon: PeopleIcon },
     ],
     [],
   );
