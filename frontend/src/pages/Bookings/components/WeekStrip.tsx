@@ -20,9 +20,6 @@ export default function WeekStrip({ selectedDate, onChangeDate }: Props) {
     return { days: arr, weekStart: start };
   }, [selectedDate]);
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
   const touchStartX = useRef<number | null>(null);
 
   const changeWeek = (deltaWeeks: number) => {
@@ -56,7 +53,8 @@ export default function WeekStrip({ selectedDate, onChangeDate }: Props) {
         display: "flex",
         alignItems: "center",
         gap: 1,
-        mt: 2,
+        mb: 1,
+        px: 2
       }}
     >
       <Box
@@ -71,7 +69,6 @@ export default function WeekStrip({ selectedDate, onChangeDate }: Props) {
         onTouchEnd={handleTouchEnd}
       >
         {days.map((day) => {
-          const isToday = day.getTime() === today.getTime();
           const isSelected = day.toDateString() === selectedDate.toDateString();
 
           return (
@@ -86,11 +83,7 @@ export default function WeekStrip({ selectedDate, onChangeDate }: Props) {
                 px: 1,
                 py: 0.75,
                 textAlign: "center",
-                bgcolor: isSelected
-                  ? "primary.main"
-                  : isToday
-                    ? "rgba(212,175,53,0.18)"
-                    : "transparent",
+                bgcolor: isSelected ? "primary.main" : "transparent",
                 color: isSelected ? "common.black" : "text.secondary",
                 border: isSelected
                   ? "none"

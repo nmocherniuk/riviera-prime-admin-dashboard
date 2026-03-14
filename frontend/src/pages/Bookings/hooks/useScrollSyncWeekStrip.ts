@@ -1,7 +1,7 @@
 import { useEffect, useCallback, type RefObject } from "react";
-import { toDateKey, getWeekStart } from "../utils/dateUtils";
+import { toDateKey } from "../utils/dateUtils";
 
-const SCROLL_TOP_THRESHOLD = 0;
+const SCROLL_TOP_THRESHOLD = 200;
 
 export type UseScrollSyncWeekStripParams = {
   scrollRef: RefObject<HTMLDivElement | null>;
@@ -39,12 +39,8 @@ export function useScrollSyncWeekStrip({
     }
     if (leadingKey) {
       const date = allDates.find((d) => toDateKey(d) === leadingKey);
-      if (date) {
-        const weekStart = getWeekStart(date);
-        const currentWeekStart = getWeekStart(selectedDate);
-        if (weekStart.getTime() !== currentWeekStart.getTime()) {
-          setSelectedDate(weekStart);
-        }
+      if (date && toDateKey(date) !== toDateKey(selectedDate)) {
+        setSelectedDate(new Date(date.getFullYear(), date.getMonth(), date.getDate()));
       }
     }
   }, [scrollRef, sectionRefs, allDates, selectedDate, setSelectedDate]);

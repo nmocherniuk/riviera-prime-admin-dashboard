@@ -15,7 +15,7 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import EditIcon from "@mui/icons-material/Edit";
 import { useState, useEffect } from "react";
-import type { Booking } from "../data/dummyBookings";
+import type { Booking } from "./BookingsCalendar/data/dummyBookings";
 
 export type BookingFormValues = {
   date: string;

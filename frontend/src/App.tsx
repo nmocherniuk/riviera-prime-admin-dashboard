@@ -14,16 +14,20 @@ import PricingPage from "./pages/Pricing/PricingPage";
 import {
   BookingsDateProvider,
   useBookingsDate,
-} from "./pages/Bookings/BookingsDateContext";
+} from "./pages/Bookings/store/BookingsDateContext";
 import WeekStrip from "./pages/Bookings/components/WeekStrip";
 import LoginPage from "./pages/Auth/LoginPage";
 
 const drawerWidth = 260;
 
 function WeekStripWithContext() {
-  const { selectedDate, setSelectedDate } = useBookingsDate();
+  const { selectedDate, setSelectedDate, scrollToDate } = useBookingsDate();
+  const handleDateChange = (date: Date) => {
+    setSelectedDate(date);
+    scrollToDate(date);
+  };
   return (
-    <WeekStrip selectedDate={selectedDate} onChangeDate={setSelectedDate} />
+    <WeekStrip selectedDate={selectedDate} onChangeDate={handleDateChange} />
   );
 }
 
@@ -42,13 +46,18 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <BookingsDateProvider>
-        <Box sx={{ display: "flex", minHeight: "100vh" }}>
+        <Box sx={{ display: "flex", minHeight: "100vh", }}>
           <AppBar
             position="fixed"
-            sx={{
+            elevation={0}
+            sx={(theme) => ({
               display: { xs: "block", md: "none" },
               ml: { md: `${drawerWidth}px` },
-            }}
+              backgroundColor: theme.palette.background.paper,
+              color: theme.palette.text.primary,
+              borderBottom: "1px solid",
+              borderBottomColor: theme.palette.divider,
+            })}
           >
             <Toolbar>
               <IconButton
@@ -70,7 +79,7 @@ function App() {
             component="main"
             sx={{
               flexGrow: 1,
-              mt: { xs: "130px", md: 0 },
+              mt: { xs: "120px", md: 0 },
             }}
           >
             <Routes>

@@ -7,8 +7,26 @@ import {
   TextField,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import type { BookingsFilterState } from "../constants/filters";
+import {
+  STATUS_FILTER_OPTIONS,
+  DRIVER_FILTER_OPTIONS,
+  VEHICLE_FILTER_OPTIONS,
+  PAYMENT_FILTER_OPTIONS,
+} from "../constants/filters";
 
-export default function BookingsFilters() {
+type BookingsFiltersProps = {
+  filters: BookingsFilterState;
+  onFilterChange: <K extends keyof BookingsFilterState>(
+    key: K,
+    value: BookingsFilterState[K]
+  ) => void;
+};
+
+export default function BookingsFilters({
+  filters,
+  onFilterChange,
+}: BookingsFiltersProps) {
   return (
     <Paper
       elevation={0}
@@ -30,33 +48,63 @@ export default function BookingsFilters() {
           },
         }}
       >
-        <Select size="small" defaultValue="all">
-          <MenuItem value="all">Status: All</MenuItem>
-          <MenuItem value="pending">Status: Pending</MenuItem>
-          <MenuItem value="confirmed">Status: Confirmed</MenuItem>
+        <Select
+          size="small"
+          value={filters.status}
+          onChange={(e) => onFilterChange("status", e.target.value)}
+          displayEmpty
+        >
+          {STATUS_FILTER_OPTIONS.map((opt) => (
+            <MenuItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </MenuItem>
+          ))}
         </Select>
 
-        <Select size="small" defaultValue="all">
-          <MenuItem value="all">Driver: All</MenuItem>
-          <MenuItem value="clara">Driver: Clara</MenuItem>
-          <MenuItem value="marcus">Driver: Marcus</MenuItem>
+        <Select
+          size="small"
+          value={filters.driver}
+          onChange={(e) => onFilterChange("driver", e.target.value)}
+          displayEmpty
+        >
+          {DRIVER_FILTER_OPTIONS.map((opt) => (
+            <MenuItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </MenuItem>
+          ))}
         </Select>
 
-        <Select size="small" defaultValue="all">
-          <MenuItem value="all">Vehicle: All</MenuItem>
-          <MenuItem value="sedan">Vehicle: Sedan</MenuItem>
-          <MenuItem value="van">Vehicle: Van</MenuItem>
+        <Select
+          size="small"
+          value={filters.vehicle}
+          onChange={(e) => onFilterChange("vehicle", e.target.value)}
+          displayEmpty
+        >
+          {VEHICLE_FILTER_OPTIONS.map((opt) => (
+            <MenuItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </MenuItem>
+          ))}
         </Select>
 
-        <Select size="small" defaultValue="all">
-          <MenuItem value="all">Payment: All</MenuItem>
-          <MenuItem value="paid">Payment: Paid</MenuItem>
-          <MenuItem value="unpaid">Payment: Unpaid</MenuItem>
+        <Select
+          size="small"
+          value={filters.payment}
+          onChange={(e) => onFilterChange("payment", e.target.value)}
+          displayEmpty
+        >
+          {PAYMENT_FILTER_OPTIONS.map((opt) => (
+            <MenuItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </MenuItem>
+          ))}
         </Select>
 
         <TextField
           size="small"
-          placeholder="Search client, id, or location"
+          placeholder="Пошук: клієнт, id або маршрут"
+          value={filters.search}
+          onChange={(e) => onFilterChange("search", e.target.value)}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">

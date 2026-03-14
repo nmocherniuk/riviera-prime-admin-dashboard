@@ -1,13 +1,15 @@
 import { useMemo } from "react";
 import { toDateKey, getWeekStart, getWeekdayIndex } from "../utils/dateUtils";
-import { DUMMY_BOOKINGS } from "../data/dummyBookings";
-import type { Booking } from "../data/dummyBookings";
+import { DUMMY_BOOKINGS } from "../components/BookingsCalendar/data/dummyBookings";
+import type { Booking } from "../components/BookingsCalendar/data/dummyBookings";
 
 const WEEKS_BEFORE = 2;
 
 export type UseBookingsListParams = {
   listAnchor: Date;
   weeksToShow: number;
+  /** Якщо передано, використовується замість DUMMY_BOOKINGS (наприклад відфільтровані букінги) */
+  bookings?: Booking[];
 };
 
 export type UseBookingsListResult = {
@@ -19,8 +21,10 @@ export type UseBookingsListResult = {
 export function useBookingsList({
   listAnchor,
   weeksToShow,
+  bookings: bookingsSource,
 }: UseBookingsListParams): UseBookingsListResult {
   return useMemo(() => {
+    const source = bookingsSource ?? DUMMY_BOOKINGS;
     const weekStart = getWeekStart(listAnchor);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -42,7 +46,7 @@ export function useBookingsList({
       anchorWeekDays.push(d);
     }
 
-    const bookingsForRange: Booking[] = DUMMY_BOOKINGS.map((b) => {
+    const bookingsForRange: Booking[] = source.map((b) => {
       const [y, m, day] = b.date.split("-").map(Number);
       const origDate = new Date(y, m - 1, day);
       const wd = getWeekdayIndex(origDate);
@@ -61,5 +65,5 @@ export function useBookingsList({
       byDate[dateKey] = onThisDate;
     }
     return { allDates: dates, bookingsByDate: byDate, todayKey: tKey };
-  }, [listAnchor, weeksToShow]);
+  }, [listAnchor, weeksToShow, bookingsSource]);
 }
