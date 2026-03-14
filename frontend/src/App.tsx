@@ -79,7 +79,7 @@ function App() {
             component="main"
             sx={{
               flexGrow: 1,
-              mt: { xs: "120px", md: 0 },
+              mt: { xs: location.pathname === "/bookings" ? "120px" : "80px", md: 0 },
             }}
           >
             <Routes>

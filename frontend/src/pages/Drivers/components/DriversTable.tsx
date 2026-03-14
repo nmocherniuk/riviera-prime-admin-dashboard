@@ -17,6 +17,9 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import PersonIcon from "@mui/icons-material/Person";
 import type { Driver, DriverStatus } from "../data/dummyDrivers";
 import DriverCard from "./DriverCard";
+import ArrowLeftIcon from "@mui/icons-material/ArrowLeft";
+import ArrowRightIcon from "@mui/icons-material/ArrowRight";
+
 
 const ROWS_PER_PAGE = 4;
 const TOTAL_DRIVERS = 28;
@@ -77,7 +80,7 @@ export default function DriversTable({
             "&.Mui-disabled": { color: "text.secondary" },
           }}
         >
-          ‹
+          <ArrowLeftIcon />
         </IconButton>
         <IconButton
           size="small"
@@ -90,7 +93,7 @@ export default function DriversTable({
             "&.Mui-disabled": { color: "text.secondary" },
           }}
         >
-          ›
+          <ArrowRightIcon />
         </IconButton>
       </Box>
     </Box>
@@ -158,126 +161,112 @@ export default function DriversTable({
         <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "text.primary" }}>
           Drivers
         </Typography>
-        <IconButton size="small" sx={{ color: "text.secondary" }} aria-label="table options">
-          <Box component="span" sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
-            <Box sx={{ width: 4, height: 4, borderRadius: "50%", bgcolor: "currentColor" }} />
-            <Box sx={{ width: 4, height: 4, borderRadius: "50%", bgcolor: "currentColor" }} />
-            <Box sx={{ width: 4, height: 4, borderRadius: "50%", bgcolor: "currentColor" }} />
-          </Box>
-        </IconButton>
       </Box>
       <Box sx={{ overflowX: "auto" }}>
         <Table size="medium" sx={{ minWidth: 720 }}>
-        <TableHead>
-          <TableRow sx={{ bgcolor: "rgba(255,255,255,0.04)" }}>
-            <TableCell sx={{ fontWeight: 700, color: "text.secondary", textTransform: "uppercase", letterSpacing: 0.8, py: 1.5 }}>
-              Driver Name
-            </TableCell>
-            <TableCell sx={{ fontWeight: 700, color: "text.secondary", textTransform: "uppercase", letterSpacing: 0.8, py: 1.5 }}>
-              Vehicle
-            </TableCell>
-            <TableCell sx={{ fontWeight: 700, color: "text.secondary", textTransform: "uppercase", letterSpacing: 0.8, py: 1.5 }}>
-              Status
-            </TableCell>
-            <TableCell sx={{ fontWeight: 700, color: "text.secondary", textTransform: "uppercase", letterSpacing: 0.8, py: 1.5 }}>
-              Rides
-            </TableCell>
-            <TableCell sx={{ fontWeight: 700, color: "text.secondary", textTransform: "uppercase", letterSpacing: 0.8, py: 1.5 }}>
-              Earning
-            </TableCell>
-            <TableCell sx={{ fontWeight: 700, color: "text.secondary", textTransform: "uppercase", letterSpacing: 0.8, py: 1.5 }}>
-              Today Shift
-            </TableCell>
-            <TableCell sx={{ fontWeight: 700, color: "text.secondary", textTransform: "uppercase", letterSpacing: 0.8, py: 1.5, width: 56 }}>
-              Actions
-            </TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {drivers.map((d) => {
-            const statusStyle = statusColors[d.status];
-            return (
-              <TableRow
-                key={d.id}
-                onClick={() => onDriverClick?.(d)}
-                sx={{
-                  cursor: onDriverClick ? "pointer" : "default",
-                  "&:hover": { bgcolor: "rgba(255,255,255,0.03)" },
-                }}
-              >
-                <TableCell sx={{ py: 2 }}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                    <Avatar
-                      sx={{
-                        width: 40,
-                        height: 40,
-                        bgcolor: "rgba(255,255,255,0.1)",
-                        color: "text.secondary",
-                      }}
-                    >
-                      <PersonIcon fontSize="small" />
-                    </Avatar>
-                    <Box>
-                      <Typography variant="body2" sx={{ fontWeight: 700, color: "text.primary" }}>
-                        {d.name}
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                        ID: {d.id}
-                      </Typography>
+          <TableHead>
+            <TableRow sx={{ bgcolor: "rgba(255,255,255,0.04)" }}>
+              <TableCell sx={{ fontWeight: 700, color: "text.secondary", textTransform: "uppercase", letterSpacing: 0.8, py: 1.5 }}>
+                Driver Name
+              </TableCell>
+              <TableCell sx={{ fontWeight: 700, color: "text.secondary", textTransform: "uppercase", letterSpacing: 0.8, py: 1.5 }}>
+                Vehicle
+              </TableCell>
+              <TableCell sx={{ fontWeight: 700, color: "text.secondary", textTransform: "uppercase", letterSpacing: 0.8, py: 1.5 }}>
+                Status
+              </TableCell>
+              <TableCell sx={{ fontWeight: 700, color: "text.secondary", textTransform: "uppercase", letterSpacing: 0.8, py: 1.5 }}>
+                Rides
+              </TableCell>
+              <TableCell sx={{ fontWeight: 700, color: "text.secondary", textTransform: "uppercase", letterSpacing: 0.8, py: 1.5 }}>
+                Earning
+              </TableCell>
+
+              <TableCell sx={{ fontWeight: 700, color: "text.secondary", textTransform: "uppercase", letterSpacing: 0.8, py: 1.5, width: 56 }}>
+                Actions
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {drivers.map((d) => {
+              const statusStyle = statusColors[d.status];
+              return (
+                <TableRow
+                  key={d.id}
+                  onClick={() => onDriverClick?.(d)}
+                  sx={{
+                    cursor: onDriverClick ? "pointer" : "default",
+                    "&:hover": { bgcolor: "rgba(255,255,255,0.03)" },
+                  }}
+                >
+                  <TableCell sx={{ py: 2 }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                      <Avatar
+                        sx={{
+                          width: 40,
+                          height: 40,
+                          bgcolor: "rgba(255,255,255,0.1)",
+                          color: "text.secondary",
+                        }}
+                      >
+                        <PersonIcon fontSize="small" />
+                      </Avatar>
+                      <Box>
+                        <Typography variant="body2" sx={{ fontWeight: 700, color: "text.primary" }}>
+                          {d.name}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                          ID: {d.id}
+                        </Typography>
+                      </Box>
                     </Box>
-                  </Box>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2" sx={{ color: "text.primary" }}>
-                    {d.vehicle}
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                    {d.vehicleColor} · {d.vehiclePlate}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Chip
-                    label={d.status}
-                    size="small"
-                    sx={{
-                      bgcolor: statusStyle.bg,
-                      color: statusStyle.color,
-                      fontWeight: 700,
-                      fontSize: "0.7rem",
-                      letterSpacing: 0.5,
-                    }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2" sx={{ color: "text.primary" }}>
-                    {d.rides}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2" sx={{ color: "text.primary" }}>
-                    {d.earning}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2" sx={{ color: "text.primary" }}>
-                    {d.todayShift}
-                  </Typography>
-                </TableCell>
-                <TableCell onClick={(e) => e.stopPropagation()}>
-                  <IconButton
-                    size="small"
-                    sx={{ color: "text.secondary" }}
-                    aria-label="actions"
-                    onClick={() => onDriverClick?.(d)}
-                  >
-                    <MoreVertIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" sx={{ color: "text.primary" }}>
+                      {d.vehicle}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                      {d.vehicleColor} · {d.vehiclePlate}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Chip
+                      label={d.status}
+                      size="small"
+                      sx={{
+                        bgcolor: statusStyle.bg,
+                        color: statusStyle.color,
+                        fontWeight: 700,
+                        fontSize: "0.7rem",
+                        letterSpacing: 0.5,
+                      }}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" sx={{ color: "text.primary" }}>
+                      {d.rides}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" sx={{ color: "text.primary" }}>
+                      {d.earning}
+                    </Typography>
+                  </TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    <IconButton
+                      size="small"
+                      sx={{ color: "text.secondary" }}
+                      aria-label="actions"
+                      onClick={() => onDriverClick?.(d)}
+                    >
+                      <MoreVertIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
       </Box>
       {paginationBar}
     </Paper>

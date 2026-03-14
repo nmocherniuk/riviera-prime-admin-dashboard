@@ -9,7 +9,6 @@ export type Driver = {
   status: DriverStatus;
   rides: number;
   earning: string;
-  todayShift: string;
 };
 
 export const DUMMY_DRIVERS: Driver[] = [
@@ -22,7 +21,6 @@ export const DUMMY_DRIVERS: Driver[] = [
     status: "AVAILABLE",
     rides: 123,
     earning: "$3,421.21",
-    todayShift: "08:00-18:00",
   },
   {
     id: "DRV-002",
@@ -33,7 +31,6 @@ export const DUMMY_DRIVERS: Driver[] = [
     status: "ON RIDE",
     rides: 98,
     earning: "$2,890.50",
-    todayShift: "OFF",
   },
   {
     id: "DRV-003",
@@ -44,7 +41,6 @@ export const DUMMY_DRIVERS: Driver[] = [
     status: "OFFLINE",
     rides: 156,
     earning: "$4,102.00",
-    todayShift: "NIGHT SHIFT",
   },
   {
     id: "DRV-004",
@@ -55,7 +51,6 @@ export const DUMMY_DRIVERS: Driver[] = [
     status: "AVAILABLE",
     rides: 87,
     earning: "$2,456.80",
-    todayShift: "06:00-14:00",
   },
   {
     id: "DRV-005",
@@ -66,6 +61,5 @@ export const DUMMY_DRIVERS: Driver[] = [
     status: "ON RIDE",
     rides: 201,
     earning: "$5,678.90",
-    todayShift: "10:00-22:00",
   },
 ];

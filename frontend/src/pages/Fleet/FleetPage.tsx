@@ -53,6 +53,7 @@ export default function FleetPage() {
             vehicles={vehicles}
             page={page}
             onPageChange={setPage}
+            onVehicleClick={(v) => setFleetModal({ open: true, vehicle: v })}
           />
         </Box>
         <FleetManagementModal

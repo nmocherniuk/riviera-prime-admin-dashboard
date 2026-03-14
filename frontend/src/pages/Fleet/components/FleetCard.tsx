@@ -15,9 +15,12 @@ const statusColors: Record<FleetStatus, { bg: string; color: string }> = {
   "ON TRIP": { bg: "rgba(249, 115, 22, 0.2)", color: "#f97316" },
 };
 
-type Props = { vehicle: FleetVehicle };
+type Props = {
+  vehicle: FleetVehicle;
+  onClick?: () => void;
+};
 
-export default function FleetCard({ vehicle: v }: Props) {
+export default function FleetCard({ vehicle: v, onClick }: Props) {
   const classStyle = classColors[v.class];
   const statusStyle = statusColors[v.status];
   return (
@@ -29,7 +32,11 @@ export default function FleetCard({ vehicle: v }: Props) {
         border: 1,
         borderColor: "divider",
         bgcolor: "background.paper",
+        cursor: onClick ? "pointer" : undefined,
+        textAlign: "left",
+        width: "100%",
       }}
+      onClick={onClick}
     >
       <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 1 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0 }}>
@@ -60,7 +67,15 @@ export default function FleetCard({ vehicle: v }: Props) {
             </Typography>
           </Box>
         </Box>
-        <IconButton size="small" sx={{ color: "text.secondary", flexShrink: 0 }} aria-label="actions">
+        <IconButton
+          size="small"
+          sx={{ color: "text.secondary", flexShrink: 0 }}
+          aria-label="actions"
+          onClick={(e) => {
+            e.stopPropagation();
+            onClick?.();
+          }}
+        >
           <MoreVertIcon />
         </IconButton>
       </Box>

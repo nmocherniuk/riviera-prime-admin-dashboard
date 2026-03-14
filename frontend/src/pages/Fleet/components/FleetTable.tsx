@@ -16,6 +16,8 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import type { FleetVehicle, FleetClass, FleetStatus } from "../data/dummyFleet";
 import FleetCard from "./FleetCard";
+import ArrowRightIcon from "@mui/icons-material/ArrowRight";
+import ArrowLeftIcon from "@mui/icons-material/ArrowLeft";
 
 const ROWS_PER_PAGE = 4;
 const TOTAL_FLEET = 28;
@@ -35,12 +37,14 @@ type Props = {
   vehicles: FleetVehicle[];
   page: number;
   onPageChange: (page: number) => void;
+  onVehicleClick?: (vehicle: FleetVehicle) => void;
 };
 
 export default function FleetTable({
   vehicles,
   page,
   onPageChange,
+  onVehicleClick,
 }: Props) {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
@@ -76,7 +80,7 @@ export default function FleetTable({
             "&.Mui-disabled": { color: "text.secondary" },
           }}
         >
-          ‹
+          <ArrowLeftIcon />
         </IconButton>
         <IconButton
           size="small"
@@ -89,7 +93,7 @@ export default function FleetTable({
             "&.Mui-disabled": { color: "text.secondary" },
           }}
         >
-          ›
+          <ArrowRightIcon />
         </IconButton>
       </Box>
     </Box>
@@ -124,7 +128,11 @@ export default function FleetTable({
         </Box>
         <Box sx={{ px: { xs: 1.5, md: 2 }, py: 2, display: "flex", flexDirection: "column", gap: 2 }}>
           {vehicles.map((v) => (
-            <FleetCard key={v.id} vehicle={v} />
+            <FleetCard
+              key={v.id}
+              vehicle={v}
+              {...(onVehicleClick ? { onClick: () => onVehicleClick(v) } : {})}
+            />
           ))}
         </Box>
         {paginationBar}
@@ -157,13 +165,6 @@ export default function FleetTable({
         <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "text.primary" }}>
           Fleet
         </Typography>
-        <IconButton size="small" sx={{ color: "text.secondary" }} aria-label="table options">
-          <Box component="span" sx={{ display: "flex", alignItems: "center", gap: 0.25 }}>
-            <Box sx={{ width: 4, height: 4, borderRadius: "50%", bgcolor: "currentColor" }} />
-            <Box sx={{ width: 4, height: 4, borderRadius: "50%", bgcolor: "currentColor" }} />
-            <Box sx={{ width: 4, height: 4, borderRadius: "50%", bgcolor: "currentColor" }} />
-          </Box>
-        </IconButton>
       </Box>
       <Box sx={{ overflowX: "auto" }}>
         <Table size="medium" sx={{ minWidth: 720 }}>
@@ -263,7 +264,12 @@ export default function FleetTable({
                     </Typography>
                   </TableCell>
                   <TableCell>
-                    <IconButton size="small" sx={{ color: "text.secondary" }} aria-label="actions">
+                    <IconButton
+                      size="small"
+                      sx={{ color: "text.secondary" }}
+                      aria-label="actions"
+                      onClick={() => onVehicleClick?.(v)}
+                    >
                       <MoreVertIcon />
                     </IconButton>
                   </TableCell>
