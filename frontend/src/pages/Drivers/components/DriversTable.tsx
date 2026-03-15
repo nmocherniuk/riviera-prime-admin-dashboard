@@ -44,6 +44,7 @@ type Props = {
   drivers: Driver[];
   page: number;
   onPageChange: (page: number) => void;
+  onDriverView?: (driver: Driver) => void;
   onDriverEdit?: (driver: Driver) => void;
   onDriverDelete?: (driver: Driver) => void;
 };
@@ -52,6 +53,7 @@ export default function DriversTable({
   drivers,
   page,
   onPageChange,
+  onDriverView,
   onDriverEdit,
   onDriverDelete,
 }: Props) {
@@ -160,6 +162,7 @@ export default function DriversTable({
             <DriverCard
               key={d.id}
               driver={d}
+              onView={onDriverView ? () => onDriverView(d) : undefined}
               onEdit={onDriverEdit ? () => onDriverEdit(d) : undefined}
               onDelete={onDriverDelete ? () => onDriverDelete(d) : undefined}
             />
@@ -227,7 +230,11 @@ export default function DriversTable({
               return (
                 <TableRow
                   key={d.id}
-                  sx={{ "&:hover": { bgcolor: "rgba(255,255,255,0.03)" } }}
+                  onClick={() => onDriverView?.(d)}
+                  sx={{
+                    cursor: onDriverView ? "pointer" : "default",
+                    "&:hover": { bgcolor: "rgba(255,255,255,0.03)" },
+                  }}
                 >
                   <TableCell sx={{ py: 2 }}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
@@ -282,7 +289,7 @@ export default function DriversTable({
                       {d.earning}
                     </Typography>
                   </TableCell>
-                  <TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
                     <IconButton
                       size="small"
                       sx={{ color: "text.secondary" }}

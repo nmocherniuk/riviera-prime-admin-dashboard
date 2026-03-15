@@ -28,11 +28,12 @@ const statusColors: Record<
 
 type Props = {
   driver: Driver;
+  onView?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
 };
 
-export default function DriverCard({ driver: d, onEdit, onDelete }: Props) {
+export default function DriverCard({ driver: d, onView, onEdit, onDelete }: Props) {
   const statusStyle = statusColors[d.status];
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
 
@@ -53,12 +54,15 @@ export default function DriverCard({ driver: d, onEdit, onDelete }: Props) {
   return (
     <Paper
       elevation={0}
+      onClick={onView}
       sx={{
         p: 2,
         borderRadius: 2,
         border: 1,
         borderColor: "divider",
         bgcolor: "background.paper",
+        cursor: onView ? "pointer" : undefined,
+        "&:hover": onView ? { bgcolor: "rgba(255,255,255,0.03)" } : undefined,
       }}
     >
       <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 1 }}>
@@ -148,9 +152,11 @@ export default function DriverCard({ driver: d, onEdit, onDelete }: Props) {
         <Typography variant="caption" sx={{ color: "text.secondary" }}>
           {d.earning}
         </Typography>
-        <Typography variant="caption" sx={{ color: "text.primary", fontWeight: 600 }}>
-          {d.todayShift}
-        </Typography>
+        {"todayShift" in d && (d as Driver & { todayShift?: string }).todayShift && (
+          <Typography variant="caption" sx={{ color: "text.primary", fontWeight: 600 }}>
+            {(d as Driver & { todayShift?: string }).todayShift}
+          </Typography>
+        )}
       </Box>
     </Paper>
   );

@@ -29,9 +29,10 @@ function buildDriversList(): Driver[] {
 export default function DriversPage() {
   const [page, setPage] = useState(1);
   const [allDrivers, setAllDrivers] = useState<Driver[]>(() => buildDriversList());
-  const [driverModal, setDriverModal] = useState<{ open: boolean; driver: Driver | null }>({
+  const [driverModal, setDriverModal] = useState<{ open: boolean; driver: Driver | null; readOnly?: boolean }>({
     open: false,
     driver: null,
+    readOnly: false,
   });
   const [driverToDelete, setDriverToDelete] = useState<Driver | null>(null);
   const drivers = useMemo(
@@ -58,7 +59,7 @@ export default function DriversPage() {
   return (
     <Box sx={{ minHeight: "100%", pb: 3, overflowX: "hidden" }}>
       <Container maxWidth={false} sx={{ px: { xs: 1.5, sm: 2, md: 3 }, maxWidth: "100%" }}>
-        <DriversHeader onAddDriver={() => setDriverModal({ open: true, driver: null })} />
+        <DriversHeader onAddDriver={() => setDriverModal({ open: true, driver: null, readOnly: false })} />
         <Box sx={{ mt: 2 }}>
           <DriversStats />
         </Box>
@@ -70,14 +71,16 @@ export default function DriversPage() {
             drivers={drivers}
             page={page}
             onPageChange={setPage}
-            onDriverEdit={(driver) => setDriverModal({ open: true, driver })}
+            onDriverView={(driver) => setDriverModal({ open: true, driver, readOnly: true })}
+            onDriverEdit={(driver) => setDriverModal({ open: true, driver, readOnly: false })}
             onDriverDelete={handleDeleteClick}
           />
         </Box>
         <DriverManagementModal
           open={driverModal.open}
-          onClose={() => setDriverModal({ open: false, driver: null })}
+          onClose={() => setDriverModal((prev) => ({ ...prev, open: false }))}
           driver={driverModal.driver}
+          readOnly={driverModal.readOnly}
         />
         <ConfirmDeleteDialog
           open={!!driverToDelete}

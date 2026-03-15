@@ -29,11 +29,12 @@ const statusColors: Record<FleetStatus, { bg: string; color: string }> = {
 
 type Props = {
   vehicle: FleetVehicle;
+  onView?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
 };
 
-export default function FleetCard({ vehicle: v, onEdit, onDelete }: Props) {
+export default function FleetCard({ vehicle: v, onView, onEdit, onDelete }: Props) {
   const classStyle = classColors[v.class];
   const statusStyle = statusColors[v.status];
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
@@ -55,6 +56,7 @@ export default function FleetCard({ vehicle: v, onEdit, onDelete }: Props) {
   return (
     <Paper
       elevation={0}
+      onClick={onView}
       sx={{
         p: 2,
         borderRadius: 2,
@@ -63,6 +65,8 @@ export default function FleetCard({ vehicle: v, onEdit, onDelete }: Props) {
         bgcolor: "background.paper",
         textAlign: "left",
         width: "100%",
+        cursor: onView ? "pointer" : undefined,
+        "&:hover": onView ? { bgcolor: "rgba(255,255,255,0.03)" } : undefined,
       }}
     >
       <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 1 }}>

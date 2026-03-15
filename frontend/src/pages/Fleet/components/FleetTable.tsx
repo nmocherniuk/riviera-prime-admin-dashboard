@@ -44,6 +44,7 @@ type Props = {
   vehicles: FleetVehicle[];
   page: number;
   onPageChange: (page: number) => void;
+  onVehicleView?: (vehicle: FleetVehicle) => void;
   onVehicleEdit?: (vehicle: FleetVehicle) => void;
   onVehicleDelete?: (vehicle: FleetVehicle) => void;
 };
@@ -52,6 +53,7 @@ export default function FleetTable({
   vehicles,
   page,
   onPageChange,
+  onVehicleView,
   onVehicleEdit,
   onVehicleDelete,
 }: Props) {
@@ -160,6 +162,7 @@ export default function FleetTable({
             <FleetCard
               key={v.id}
               vehicle={v}
+              {...(onVehicleView ? { onView: () => onVehicleView(v) } : {})}
               {...(onVehicleEdit ? { onEdit: () => onVehicleEdit(v) } : {})}
               {...(onVehicleDelete ? { onDelete: () => onVehicleDelete(v) } : {})}
             />
@@ -227,7 +230,11 @@ export default function FleetTable({
               return (
                 <TableRow
                   key={v.id}
-                  sx={{ "&:hover": { bgcolor: "rgba(255,255,255,0.03)" } }}
+                  onClick={() => onVehicleView?.(v)}
+                  sx={{
+                    cursor: onVehicleView ? "pointer" : "default",
+                    "&:hover": { bgcolor: "rgba(255,255,255,0.03)" },
+                  }}
                 >
                   <TableCell sx={{ py: 2 }}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
@@ -293,7 +300,7 @@ export default function FleetTable({
                       {v.nextService}
                     </Typography>
                   </TableCell>
-                  <TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
                     <IconButton
                       size="small"
                       sx={{ color: "text.secondary" }}

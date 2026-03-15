@@ -29,9 +29,10 @@ function buildFleetList(): FleetVehicle[] {
 export default function FleetPage() {
   const [page, setPage] = useState(1);
   const [allVehicles, setAllVehicles] = useState<FleetVehicle[]>(() => buildFleetList());
-  const [fleetModal, setFleetModal] = useState<{ open: boolean; vehicle: FleetVehicle | null }>({
+  const [fleetModal, setFleetModal] = useState<{ open: boolean; vehicle: FleetVehicle | null; readOnly?: boolean }>({
     open: false,
     vehicle: null,
+    readOnly: false,
   });
   const [vehicleToDelete, setVehicleToDelete] = useState<FleetVehicle | null>(null);
   const vehicles = useMemo(
@@ -58,7 +59,7 @@ export default function FleetPage() {
   return (
     <Box sx={{ minHeight: "100%", pb: 3, overflowX: "hidden" }}>
       <Container maxWidth={false} sx={{ px: { xs: 1.5, sm: 2, md: 3 }, maxWidth: "100%" }}>
-        <FleetHeader onAddFleet={() => setFleetModal({ open: true, vehicle: null })} />
+        <FleetHeader onAddFleet={() => setFleetModal({ open: true, vehicle: null, readOnly: false })} />
         <Box sx={{ mt: 2 }}>
           <FleetStats />
         </Box>
@@ -70,14 +71,16 @@ export default function FleetPage() {
             vehicles={vehicles}
             page={page}
             onPageChange={setPage}
-            onVehicleEdit={(v) => setFleetModal({ open: true, vehicle: v })}
+            onVehicleView={(v) => setFleetModal({ open: true, vehicle: v, readOnly: true })}
+            onVehicleEdit={(v) => setFleetModal({ open: true, vehicle: v, readOnly: false })}
             onVehicleDelete={handleDeleteClick}
           />
         </Box>
         <FleetManagementModal
           open={fleetModal.open}
-          onClose={() => setFleetModal({ open: false, vehicle: null })}
+          onClose={() => setFleetModal((prev) => ({ ...prev, open: false }))}
           vehicle={fleetModal.vehicle}
+          readOnly={fleetModal.readOnly}
         />
         <ConfirmDeleteDialog
           open={!!vehicleToDelete}

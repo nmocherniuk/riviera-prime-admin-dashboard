@@ -11,6 +11,7 @@ import BookingsPage from "./pages/Bookings/BookingsPage";
 import DriversPage from "./pages/Drivers/DriversPage";
 import FleetPage from "./pages/Fleet/FleetPage";
 import PricingPage from "./pages/Pricing/PricingPage";
+import PaymentsPage from "./pages/Payments/PaymentsPage";
 import {
   BookingsDateProvider,
   useBookingsDate,
@@ -88,6 +89,7 @@ function App() {
               <Route path="/drivers" element={<DriversPage />} />
               <Route path="/fleet" element={<FleetPage />} />
               <Route path="/pricing" element={<PricingPage />} />
+              <Route path="/payments" element={<PaymentsPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Box>
