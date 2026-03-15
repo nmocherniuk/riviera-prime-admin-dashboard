@@ -61,11 +61,12 @@ export default function BookingsPage() {
     registerScrollToDate((date: Date) => {
       const key = toDateKey(date);
       const el = sectionRefs.current[key];
-      if (el && scrollRef.current) {
-        const container = scrollRef.current;
-        const top = el.offsetTop;
-        container.scrollTo({ top: top - 130, behavior: "smooth" });
-      }
+      const container = scrollRef.current;
+      if (!el || !container) return;
+      const elRect = el.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      const offsetFromContentTop = elRect.top - containerRect.top + container.scrollTop;
+      container.scrollTo({ top: offsetFromContentTop - 23, behavior: "smooth" });
     });
   }, [registerScrollToDate]);
 
