@@ -1,56 +1,47 @@
 import { Box, Paper, Typography, ToggleButton, ToggleButtonGroup } from "@mui/material";
 import { useState } from "react";
+import ChartPlaceholderCard from "./ChartPlaceholderCard";
+import { Line } from "react-chartjs-2";
+import { theme } from "../../../theme/theme";
 
 type Period = "day" | "week" | "month";
 
 export default function WeeklyRevenueCard() {
   const [period, setPeriod] = useState<Period>("week");
 
+  const data = {
+    labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+    datasets: [
+      {
+        backgroundColor: theme.palette.primary.main,
+        borderColor: theme.palette.primary.main,
+        data: [0, 10, 5, 2, 20, 30, 45]
+      }
+    ]
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+      },
+      title: {
+        display: true,
+        text: 'Chart.js Line Chart'
+      }
+    }
+  };
+
   return (
-    <Paper
-      elevation={0}
-      sx={{
-        borderRadius: 3,
-        border: 1,
-        borderColor: "divider",
-        bgcolor: "background.paper",
-        overflow: "hidden",
-        p: 2,
-      }}
-    >
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: { xs: "column", sm: "row" },
-          flexWrap: "wrap",
-          alignItems: { xs: "flex-start", sm: "center" },
-          justifyContent: "space-between",
-          gap: 2,
-          mb: 2,
-        }}
-      >
-        <Box>
-          <Typography
-            variant="h6"
-            sx={{ fontWeight: 700, color: "text.primary", mb: 0.5 }}
-          >
-            Weekly Revenue Performance
-          </Typography>
-          <Box sx={{ display: "flex", alignItems: "baseline", gap: 1, flexWrap: "wrap" }}>
-            <Typography
-              variant="h4"
-              sx={{ fontWeight: 800, color: "text.primary", fontSize: { xs: "1.5rem", md: "2rem" } }}
-            >
-              $84,320
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{ fontWeight: 600, color: "#22c55e", fontSize: "0.875rem" }}
-            >
-              +15% vs last week
-            </Typography>
-          </Box>
-        </Box>
+
+
+    <ChartPlaceholderCard
+      title="Weekly Revenue Performance"
+      chartId="weekly-revenue-chart-container"
+      ariaLabel="Chart area for Weekly Revenue"
+      headerRightContent={
         <ToggleButtonGroup
           value={period}
           exclusive
@@ -85,20 +76,9 @@ export default function WeeklyRevenueCard() {
           <ToggleButton value="week">Week</ToggleButton>
           <ToggleButton value="month">Month</ToggleButton>
         </ToggleButtonGroup>
-      </Box>
-
-      {/* Placeholder for Chart.js – mount your chart here (e.g. id="weekly-revenue-chart-container") */}
-      <Box
-        sx={{
-          minHeight: 280,
-          borderRadius: 2,
-          bgcolor: "rgba(255,255,255,0.02)",
-          border: "1px dashed",
-          borderColor: "divider",
-        }}
-        aria-label="Chart area for Weekly Revenue"
-        id="weekly-revenue-chart-container"
-      />
-    </Paper>
+      }
+    >
+      <Line data={data} options={options} />
+    </ChartPlaceholderCard>
   );
 }

@@ -4,9 +4,12 @@ type Props = {
   title: string;
   chartId: string;
   ariaLabel?: string;
+  children?: React.ReactNode;
+  headerRightContent?: React.ReactNode;
 };
 
-export default function ChartPlaceholderCard({ title, chartId, ariaLabel }: Props) {
+export default function ChartPlaceholderCard({ title, chartId, ariaLabel, children, headerRightContent }: Props) {
+
   return (
     <Paper
       elevation={0}
@@ -19,12 +22,23 @@ export default function ChartPlaceholderCard({ title, chartId, ariaLabel }: Prop
         p: 2,
       }}
     >
-      <Typography
-        variant="h6"
-        sx={{ fontWeight: 700, color: "text.primary", mb: 2 }}
-      >
-        {title}
-      </Typography>
+      <Box sx={{
+        display: "flex",
+        flexDirection: { xs: "column", sm: "row" },
+        flexWrap: "wrap",
+        alignItems: { xs: "flex-start", sm: "center" },
+        justifyContent: "space-between",
+        width: "100%",
+        mb: 2
+      }}>
+        <Typography
+          variant="h6"
+          sx={{ fontWeight: 700, color: "text.primary" }}
+        >
+          {title}
+        </Typography>
+        {headerRightContent}
+      </Box>
       <Box
         sx={{
           minHeight: 280,
@@ -35,7 +49,9 @@ export default function ChartPlaceholderCard({ title, chartId, ariaLabel }: Prop
         }}
         aria-label={ariaLabel ?? `Chart area: ${title}`}
         id={chartId}
-      />
+      >
+        {children}
+      </Box>
     </Paper>
   );
 }
