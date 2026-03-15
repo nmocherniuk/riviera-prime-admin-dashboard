@@ -1,6 +1,6 @@
 import { Button } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import PageHeader from "../../../components/ui/PageHeader";
+import PageHeader from "../../../components/PageHeader";
 
 type Props = { onNewBooking?: () => void };
 

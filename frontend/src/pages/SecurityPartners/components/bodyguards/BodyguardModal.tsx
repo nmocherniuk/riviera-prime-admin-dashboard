@@ -1,8 +1,6 @@
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
-  IconButton,
   Typography,
   TextField,
   Grid,
@@ -17,6 +15,9 @@ import CloseIcon from "@mui/icons-material/Close";
 import EditIcon from "@mui/icons-material/Edit";
 import { useState, useEffect } from "react";
 import type { Bodyguard, BodyguardAvailabilityStatus } from "../../data/types";
+import { sectionLabelSx, modalTextFieldSx } from "../../../../components/ui/modalStyles";
+import DetailField from "../../../../components/DetailField";
+import ModalTitleBar from "../../../../components/ModalTitleBar";
 
 export type BodyguardFormValues = {
   name: string;
@@ -57,44 +58,6 @@ type Props = {
 };
 
 const AVAILABILITY_OPTIONS: BodyguardAvailabilityStatus[] = ["available", "on_assignment", "off_duty"];
-
-const sectionLabelSx = {
-  fontWeight: 700,
-  fontSize: "0.75rem",
-  letterSpacing: 1,
-  color: "text.secondary",
-  textTransform: "uppercase" as const,
-  mb: 1,
-  mt: 1.5,
-};
-
-const valueBoxSx = {
-  fontWeight: 600,
-  color: "text.primary",
-  py: 1,
-  px: 1.25,
-  borderRadius: 2,
-  border: 1,
-  borderColor: "divider",
-  bgcolor: "rgba(255,255,255,0.04)",
-  fontSize: "0.875rem",
-};
-
-const fieldLabelSx = {
-  fontSize: "0.75rem",
-  color: "text.secondary",
-  mb: 0.5,
-  display: "block",
-};
-
-const textFieldSx = {
-  "& .MuiOutlinedInput-root": {
-    borderRadius: 2,
-    bgcolor: "rgba(255,255,255,0.04)",
-    "&:hover": { bgcolor: "rgba(255,255,255,0.06)" },
-    "&.Mui-focused": { bgcolor: "rgba(255,255,255,0.06)" },
-  },
-};
 
 export default function BodyguardModal({
   open,
@@ -137,68 +100,53 @@ export default function BodyguardModal({
         },
       }}
     >
-      <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: 1, borderColor: "divider", py: 1.5, px: { xs: 2, sm: 3 } }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <InfoOutlinedIcon sx={{ color: "text.secondary", fontSize: 20 }} />
-          <Typography component="span" variant="h6" sx={{ fontWeight: 700, color: "text.primary" }}>
-            {readOnly ? "Bodyguard details" : bodyguard ? "Edit bodyguard" : "Add bodyguard"}
-          </Typography>
-        </Box>
-        <IconButton onClick={onClose} aria-label="close" sx={{ color: "text.secondary", "&:hover": { color: "text.primary" } }}>
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
+      <ModalTitleBar
+        title={
+          <>
+            <InfoOutlinedIcon sx={{ color: "text.secondary", fontSize: 20 }} />
+            <Typography component="span" variant="h6" sx={{ fontWeight: 700, color: "text.primary" }}>
+              {readOnly ? "Bodyguard details" : bodyguard ? "Edit bodyguard" : "Add bodyguard"}
+            </Typography>
+          </>
+        }
+        onClose={onClose}
+      />
       <DialogContent sx={{ px: { xs: 2, sm: 3 }, overflowY: "auto" }}>
         <Typography sx={sectionLabelSx}>Bodyguard information</Typography>
         <Grid container spacing={1.5}>
           <Grid size={{ xs: 12, md: 6 }}>
             {readOnly ? (
-              <>
-                <Typography sx={fieldLabelSx}>Name</Typography>
-                <Typography variant="body2" sx={valueBoxSx}>{formValues.name || "—"}</Typography>
-              </>
+              <DetailField label="Name" value={formValues.name} />
             ) : (
-              <TextField fullWidth size="small" label="Name" value={formValues.name} onChange={handleChange("name")} sx={textFieldSx} />
+              <TextField fullWidth size="small" label="Name" value={formValues.name} onChange={handleChange("name")} sx={modalTextFieldSx} />
             )}
           </Grid>
           <Grid size={{ xs: 12, md: 6 }}>
             {readOnly ? (
-              <>
-                <Typography sx={fieldLabelSx}>License / certification</Typography>
-                <Typography variant="body2" sx={valueBoxSx}>{formValues.licenseCertification || "—"}</Typography>
-              </>
+              <DetailField label="License / certification" value={formValues.licenseCertification} />
             ) : (
-              <TextField fullWidth size="small" label="License / certification" value={formValues.licenseCertification} onChange={handleChange("licenseCertification")} sx={textFieldSx} />
+              <TextField fullWidth size="small" label="License / certification" value={formValues.licenseCertification} onChange={handleChange("licenseCertification")} sx={modalTextFieldSx} />
             )}
           </Grid>
           <Grid size={{ xs: 12, md: 6 }}>
             {readOnly ? (
-              <>
-                <Typography sx={fieldLabelSx}>Experience</Typography>
-                <Typography variant="body2" sx={valueBoxSx}>{formValues.experience || "—"}</Typography>
-              </>
+              <DetailField label="Experience" value={formValues.experience} />
             ) : (
-              <TextField fullWidth size="small" label="Experience" placeholder="e.g. 5 years" value={formValues.experience} onChange={handleChange("experience")} sx={textFieldSx} />
+              <TextField fullWidth size="small" label="Experience" placeholder="e.g. 5 years" value={formValues.experience} onChange={handleChange("experience")} sx={modalTextFieldSx} />
             )}
           </Grid>
           <Grid size={{ xs: 12, md: 6 }}>
             {readOnly ? (
-              <>
-                <Typography sx={fieldLabelSx}>Languages</Typography>
-                <Typography variant="body2" sx={valueBoxSx}>{formValues.languages || "—"}</Typography>
-              </>
+              <DetailField label="Languages" value={formValues.languages} />
             ) : (
-              <TextField fullWidth size="small" label="Languages" placeholder="e.g. English, French" value={formValues.languages} onChange={handleChange("languages")} sx={textFieldSx} />
+              <TextField fullWidth size="small" label="Languages" placeholder="e.g. English, French" value={formValues.languages} onChange={handleChange("languages")} sx={modalTextFieldSx} />
             )}
           </Grid>
           <Grid size={{ xs: 12, md: 6 }}>
             {readOnly ? (
-              <>
-                <Typography sx={fieldLabelSx}>Availability status</Typography>
-                <Typography variant="body2" sx={valueBoxSx}>{formValues.availabilityStatus.replace("_", " ")}</Typography>
-              </>
+              <DetailField label="Availability status" value={formValues.availabilityStatus.replace("_", " ")} emptyAsDash={false} />
             ) : (
-              <TextField fullWidth size="small" select label="Availability status" value={formValues.availabilityStatus} onChange={handleChange("availabilityStatus")} sx={textFieldSx}>
+              <TextField fullWidth size="small" select label="Availability status" value={formValues.availabilityStatus} onChange={handleChange("availabilityStatus")} sx={modalTextFieldSx}>
                 {AVAILABILITY_OPTIONS.map((opt) => (
                   <MenuItem key={opt} value={opt}>{opt.replace("_", " ")}</MenuItem>
                 ))}
@@ -207,12 +155,9 @@ export default function BodyguardModal({
           </Grid>
           <Grid size={{ xs: 12 }}>
             {readOnly ? (
-              <>
-                <Typography sx={fieldLabelSx}>Notes</Typography>
-                <Typography variant="body2" sx={valueBoxSx}>{formValues.notes || "—"}</Typography>
-              </>
+              <DetailField label="Notes" value={formValues.notes} />
             ) : (
-              <TextField fullWidth size="small" label="Notes" multiline rows={2} value={formValues.notes} onChange={handleChange("notes")} sx={textFieldSx} />
+              <TextField fullWidth size="small" label="Notes" multiline rows={2} value={formValues.notes} onChange={handleChange("notes")} sx={modalTextFieldSx} />
             )}
           </Grid>
         </Grid>

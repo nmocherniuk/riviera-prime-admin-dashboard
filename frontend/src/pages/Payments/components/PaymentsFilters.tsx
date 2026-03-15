@@ -1,7 +1,7 @@
 import { Box, TextField } from "@mui/material";
-import SearchField from "../../../components/ui/SearchField";
-import FilterPaper from "../../../components/ui/FilterPaper";
-import FormSelect from "../../../components/ui/FormSelect";
+import SearchField from "../../../components/SearchField";
+import FilterPaper from "../../../components/FilterPaper";
+import FormSelect from "../../../components/FormSelect";
 import type { PaymentsFilterState } from "../constants/filters";
 import {
   PAYMENT_STATUS_OPTIONS,

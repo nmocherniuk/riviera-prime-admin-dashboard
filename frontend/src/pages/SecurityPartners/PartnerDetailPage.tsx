@@ -3,12 +3,12 @@ import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import PageHeader from "../../components/ui/PageHeader";
+import PageHeader from "../../components/PageHeader";
 import BodyguardsTable from "./components/bodyguards/BodyguardsTable";
 import BodyguardModal from "./components/bodyguards/BodyguardModal";
-import ConfirmDeleteDialog from "../../components/ui/ConfirmDeleteDialog";
+import ConfirmDeleteDialog from "../../components/ConfirmDeleteDialog";
 import { DUMMY_PARTNERS, DUMMY_BODYGUARDS } from "./data/dummyPartners";
-import type { Partner, Bodyguard } from "./data/types";
+import type { Bodyguard } from "./data/types";
 import type { BodyguardFormValues } from "./components/bodyguards/BodyguardModal";
 
 export default function PartnerDetailPage() {

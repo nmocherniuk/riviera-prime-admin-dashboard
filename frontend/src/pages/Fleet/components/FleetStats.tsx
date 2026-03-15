@@ -2,7 +2,7 @@ import { Box } from "@mui/material";
 import BuildCircleIcon from "@mui/icons-material/BuildCircle";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import LocalTaxiIcon from "@mui/icons-material/LocalTaxi";
-import CardStat from "../../../components/ui/CardStat";
+import CardStat from "../../../components/CardStat";
 
 const stats = [
   { label: "Available", value: "32", icon: DirectionsCarIcon },

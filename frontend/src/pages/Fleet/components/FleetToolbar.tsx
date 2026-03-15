@@ -1,8 +1,8 @@
 import { Box, Button } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
-import SearchField from "../../../components/ui/SearchField";
-import FilterPaper from "../../../components/ui/FilterPaper";
+import SearchField from "../../../components/SearchField";
+import FilterPaper from "../../../components/FilterPaper";
 
 const outlineButtonSx = {
   flex: 1,

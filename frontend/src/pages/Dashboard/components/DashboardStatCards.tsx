@@ -3,7 +3,7 @@ import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import PeopleIcon from "@mui/icons-material/People";
 import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
-import CardStat from "../../../components/ui/CardStat";
+import CardStat from "../../../components/CardStat";
 
 const stats = [
   { label: "Today's Rides", value: "42", icon: DirectionsCarIcon },

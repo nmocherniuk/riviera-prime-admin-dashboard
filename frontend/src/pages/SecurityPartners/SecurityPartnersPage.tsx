@@ -6,7 +6,7 @@ import SecurityPartnersStats from "./components/SecurityPartnersStats";
 import SecurityPartnersToolbar from "./components/SecurityPartnersToolbar";
 import PartnersTable from "./components/PartnersTable";
 import PartnerManagementModal from "./components/PartnerManagementModal";
-import ConfirmDeleteDialog from "../../components/ui/ConfirmDeleteDialog";
+import ConfirmDeleteDialog from "../../components/ConfirmDeleteDialog";
 import { DUMMY_PARTNERS } from "./data/dummyPartners";
 import type { Partner } from "./data/types";
 import type { PartnerFormValues } from "./components/PartnerManagementModal";

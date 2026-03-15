@@ -8,7 +8,7 @@ import PaymentsHeader from "./components/PaymentsHeader";
 import PaymentsFilters from "./components/PaymentsFilters";
 import PaymentsTable from "./components/PaymentsTable";
 import PaymentDetailModal from "./components/PaymentDetailModal";
-import CardStat from "../../components/ui/CardStat";
+import CardStat from "../../components/CardStat";
 import { DUMMY_PAYMENTS } from "./data/dummyPayments";
 import type { Payment } from "./data/dummyPayments";
 import { DEFAULT_PAYMENTS_FILTERS } from "./constants/filters";
@@ -73,9 +73,9 @@ export default function PaymentsPage() {
           <PaymentsTable
             payments={filteredPayments}
             onPaymentClick={setSelectedPayment}
-            onCapture={() => {}}
-            onRefund={() => {}}
-            onResendLink={() => {}}
+            onCapture={() => { }}
+            onRefund={() => { }}
+            onResendLink={() => { }}
           />
         </Box>
 

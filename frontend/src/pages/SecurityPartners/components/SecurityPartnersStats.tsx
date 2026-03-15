@@ -3,7 +3,7 @@ import BusinessIcon from "@mui/icons-material/Business";
 import PersonOffIcon from "@mui/icons-material/PersonOff";
 import GroupIcon from "@mui/icons-material/Group";
 import AssignmentIcon from "@mui/icons-material/Assignment";
-import CardStat from "../../../components/ui/CardStat";
+import CardStat from "../../../components/CardStat";
 
 const stats = [
   { label: "Active Partners", value: "9", icon: BusinessIcon },

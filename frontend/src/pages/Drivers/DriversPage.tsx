@@ -5,7 +5,7 @@ import DriversStats from "./components/DriversStats";
 import DriversToolbar from "./components/DriversToolbar";
 import DriversTable from "./components/DriversTable";
 import DriverManagementModal from "./components/DriverManagementModal";
-import ConfirmDeleteDialog from "../../components/ui/ConfirmDeleteDialog";
+import ConfirmDeleteDialog from "../../components/ConfirmDeleteDialog";
 import { DUMMY_DRIVERS } from "./data/dummyDrivers";
 import type { Driver } from "./data/dummyDrivers";
 

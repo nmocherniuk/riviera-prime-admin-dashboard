@@ -1,7 +1,7 @@
 import "./App.css";
 import { ThemeProvider } from "@mui/material/styles";
 import { theme } from "./theme/theme";
-import Sidebar from "./components/ui/Sidebar";
+import Sidebar from "./components/Sidebar/Sidebar";
 import { Box, AppBar, IconButton, Toolbar } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useState } from "react";

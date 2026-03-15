@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import CardStat from "../../../components/ui/CardStat";
+import CardStat from "../../../components/CardStat";
 
 type Stat = {
   label: string;

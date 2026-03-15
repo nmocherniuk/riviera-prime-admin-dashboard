@@ -1,8 +1,6 @@
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
-  IconButton,
   Typography,
   TextField,
   Grid,
@@ -16,6 +14,9 @@ import CloseIcon from "@mui/icons-material/Close";
 import EditIcon from "@mui/icons-material/Edit";
 import { useState, useEffect } from "react";
 import type { Driver } from "../data/dummyDrivers";
+import { sectionLabelSx, valueBoxSx, modalTextFieldSx } from "../../../components/ui/modalStyles";
+import DetailField from "../../../components/DetailField";
+import ModalTitleBar from "../../../components/ModalTitleBar";
 
 export type DriverFormValues = {
   name: string;
@@ -62,35 +63,6 @@ type Props = {
   onSave?: (driverId: string, values: DriverFormValues) => void;
 };
 
-const sectionLabelSx = {
-  fontWeight: 700,
-  fontSize: "0.75rem",
-  letterSpacing: 1,
-  color: "text.secondary",
-  textTransform: "uppercase" as const,
-  mb: 1,
-  mt: 1.5,
-};
-
-const valueBoxSx = {
-  fontWeight: 600,
-  color: "text.primary",
-  py: 1,
-  px: 1.25,
-  borderRadius: 2,
-  border: 1,
-  borderColor: "divider",
-  bgcolor: "rgba(255,255,255,0.04)",
-  fontSize: "0.875rem",
-};
-
-const fieldLabelSx = {
-  fontSize: "0.75rem",
-  color: "text.secondary",
-  mb: 0.5,
-  display: "block",
-};
-
 export default function DriverManagementModal({
   open,
   onClose,
@@ -118,15 +90,6 @@ export default function DriverManagementModal({
     }
   };
 
-  const textFieldSx = {
-    "& .MuiOutlinedInput-root": {
-      borderRadius: 2,
-      bgcolor: "rgba(255,255,255,0.04)",
-      "&:hover": { bgcolor: "rgba(255,255,255,0.06)" },
-      "&.Mui-focused": { bgcolor: "rgba(255,255,255,0.06)" },
-    },
-  };
-
   return (
     <Dialog
       open={open}
@@ -144,31 +107,17 @@ export default function DriverManagementModal({
         },
       }}
     >
-      <DialogTitle
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          borderBottom: 1,
-          borderColor: "divider",
-          py: 1.5,
-          px: { xs: 2, sm: 3 },
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <InfoOutlinedIcon sx={{ color: "text.secondary", fontSize: 20 }} />
-          <Typography component="span" variant="h6" sx={{ fontWeight: 700, color: "text.primary" }}>
-            {readOnly ? "Driver details" : "Driver Management"}
-          </Typography>
-        </Box>
-        <IconButton
-          onClick={onClose}
-          aria-label="close"
-          sx={{ color: "text.secondary", "&:hover": { color: "text.primary" } }}
-        >
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
+      <ModalTitleBar
+        title={
+          <>
+            <InfoOutlinedIcon sx={{ color: "text.secondary", fontSize: 20 }} />
+            <Typography component="span" variant="h6" sx={{ fontWeight: 700, color: "text.primary" }}>
+              {readOnly ? "Driver details" : "Driver Management"}
+            </Typography>
+          </>
+        }
+        onClose={onClose}
+      />
 
       <DialogContent sx={{ px: { xs: 2, sm: 3 }, overflowY: "auto" }}>
         <Typography sx={sectionLabelSx}>Driver ID</Typography>
@@ -180,42 +129,30 @@ export default function DriverManagementModal({
         <Grid container spacing={1.5}>
           <Grid size={{ xs: 12, md: 6 }}>
             {readOnly ? (
-              <>
-                <Typography sx={fieldLabelSx}>Name</Typography>
-                <Typography variant="body2" sx={valueBoxSx}>{formValues.name || "—"}</Typography>
-              </>
+              <DetailField label="Name" value={formValues.name} />
             ) : (
-              <TextField fullWidth size="small" label="Name" placeholder="Enter name" value={formValues.name} onChange={handleChange("name")} sx={textFieldSx} />
+              <TextField fullWidth size="small" label="Name" placeholder="Enter name" value={formValues.name} onChange={handleChange("name")} sx={modalTextFieldSx} />
             )}
           </Grid>
           <Grid size={{ xs: 12, md: 6 }}>
             {readOnly ? (
-              <>
-                <Typography sx={fieldLabelSx}>Surname</Typography>
-                <Typography variant="body2" sx={valueBoxSx}>{formValues.surname || "—"}</Typography>
-              </>
+              <DetailField label="Surname" value={formValues.surname} />
             ) : (
-              <TextField fullWidth size="small" label="Surname" placeholder="Enter surname" value={formValues.surname} onChange={handleChange("surname")} sx={textFieldSx} />
+              <TextField fullWidth size="small" label="Surname" placeholder="Enter surname" value={formValues.surname} onChange={handleChange("surname")} sx={modalTextFieldSx} />
             )}
           </Grid>
           <Grid size={{ xs: 12, md: 6 }}>
             {readOnly ? (
-              <>
-                <Typography sx={fieldLabelSx}>Phone</Typography>
-                <Typography variant="body2" sx={valueBoxSx}>{formValues.phone || "—"}</Typography>
-              </>
+              <DetailField label="Phone" value={formValues.phone} />
             ) : (
-              <TextField fullWidth size="small" label="Phone" placeholder="Enter phone number" value={formValues.phone} onChange={handleChange("phone")} sx={textFieldSx} />
+              <TextField fullWidth size="small" label="Phone" placeholder="Enter phone number" value={formValues.phone} onChange={handleChange("phone")} sx={modalTextFieldSx} />
             )}
           </Grid>
           <Grid size={{ xs: 12, md: 6 }}>
             {readOnly ? (
-              <>
-                <Typography sx={fieldLabelSx}>Email</Typography>
-                <Typography variant="body2" sx={valueBoxSx}>{formValues.email || "—"}</Typography>
-              </>
+              <DetailField label="Email" value={formValues.email} />
             ) : (
-              <TextField fullWidth size="small" label="Email" placeholder="Enter email address" value={formValues.email} onChange={handleChange("email")} sx={textFieldSx} />
+              <TextField fullWidth size="small" label="Email" placeholder="Enter email address" value={formValues.email} onChange={handleChange("email")} sx={modalTextFieldSx} />
             )}
           </Grid>
         </Grid>
@@ -224,22 +161,16 @@ export default function DriverManagementModal({
         <Grid container spacing={1.5}>
           <Grid size={{ xs: 12, md: 6 }}>
             {readOnly ? (
-              <>
-                <Typography sx={fieldLabelSx}>Type</Typography>
-                <Typography variant="body2" sx={valueBoxSx}>{formValues.vehicleType || "—"}</Typography>
-              </>
+              <DetailField label="Type" value={formValues.vehicleType} />
             ) : (
-              <TextField fullWidth size="small" label="Type" placeholder="Enter vehicle type" value={formValues.vehicleType} onChange={handleChange("vehicleType")} sx={textFieldSx} />
+              <TextField fullWidth size="small" label="Type" placeholder="Enter vehicle type" value={formValues.vehicleType} onChange={handleChange("vehicleType")} sx={modalTextFieldSx} />
             )}
           </Grid>
           <Grid size={{ xs: 12, md: 6 }}>
             {readOnly ? (
-              <>
-                <Typography sx={fieldLabelSx}>Vehicle</Typography>
-                <Typography variant="body2" sx={valueBoxSx}>{formValues.vehicle || "—"}</Typography>
-              </>
+              <DetailField label="Vehicle" value={formValues.vehicle} />
             ) : (
-              <TextField fullWidth size="small" label="Vehicle" placeholder="Enter vehicle model" value={formValues.vehicle} onChange={handleChange("vehicle")} sx={textFieldSx} />
+              <TextField fullWidth size="small" label="Vehicle" placeholder="Enter vehicle model" value={formValues.vehicle} onChange={handleChange("vehicle")} sx={modalTextFieldSx} />
             )}
           </Grid>
         </Grid>
@@ -248,22 +179,16 @@ export default function DriverManagementModal({
         <Grid container spacing={1.5}>
           <Grid size={{ xs: 12, md: 6 }}>
             {readOnly ? (
-              <>
-                <Typography sx={fieldLabelSx}>Per hour</Typography>
-                <Typography variant="body2" sx={valueBoxSx}>{formValues.perHour || "—"}</Typography>
-              </>
+              <DetailField label="Per hour" value={formValues.perHour} />
             ) : (
-              <TextField fullWidth size="small" label="Per hour" placeholder="Enter rate per hour" value={formValues.perHour} onChange={handleChange("perHour")} sx={textFieldSx} />
+              <TextField fullWidth size="small" label="Per hour" placeholder="Enter rate per hour" value={formValues.perHour} onChange={handleChange("perHour")} sx={modalTextFieldSx} />
             )}
           </Grid>
           <Grid size={{ xs: 12, md: 6 }}>
             {readOnly ? (
-              <>
-                <Typography sx={fieldLabelSx}>Per KM</Typography>
-                <Typography variant="body2" sx={valueBoxSx}>{formValues.perKm || "—"}</Typography>
-              </>
+              <DetailField label="Per KM" value={formValues.perKm} />
             ) : (
-              <TextField fullWidth size="small" label="Per KM" placeholder="Enter rate per KM" value={formValues.perKm} onChange={handleChange("perKm")} sx={textFieldSx} />
+              <TextField fullWidth size="small" label="Per KM" placeholder="Enter rate per KM" value={formValues.perKm} onChange={handleChange("perKm")} sx={modalTextFieldSx} />
             )}
           </Grid>
         </Grid>

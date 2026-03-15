@@ -5,7 +5,7 @@ import FleetStats from "./components/FleetStats";
 import FleetToolbar from "./components/FleetToolbar";
 import FleetTable from "./components/FleetTable";
 import FleetManagementModal from "./components/FleetManagementModal";
-import ConfirmDeleteDialog from "../../components/ui/ConfirmDeleteDialog";
+import ConfirmDeleteDialog from "../../components/ConfirmDeleteDialog";
 import { DUMMY_FLEET } from "./data/dummyFleet";
 import type { FleetVehicle } from "./data/dummyFleet";
 
