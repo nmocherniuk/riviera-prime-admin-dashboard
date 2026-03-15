@@ -9,7 +9,7 @@ const stats = [
   { label: "Today's Rides", value: "42", icon: DirectionsCarIcon },
   { label: "Today's Revenue", value: "€12,450", icon: AttachMoneyIcon },
   { label: "Active Drivers", value: "18", icon: PeopleIcon },
-  { label: "Pending Confirmations", value: "5", icon: NotificationsActiveIcon },
+  { label: "Awaiting Confirmation", value: "5", icon: NotificationsActiveIcon },
 ];
 
 export default function DashboardStatCards() {

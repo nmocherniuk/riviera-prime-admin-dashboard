@@ -1,13 +1,15 @@
 import { Box } from "@mui/material";
-import SecurityIcon from "@mui/icons-material/Security";
 import BusinessIcon from "@mui/icons-material/Business";
 import PersonOffIcon from "@mui/icons-material/PersonOff";
+import GroupIcon from "@mui/icons-material/Group";
+import AssignmentIcon from "@mui/icons-material/Assignment";
 import CardStat from "../../../components/ui/CardStat";
 
 const stats = [
-  { label: "Total Partners", value: "12", icon: SecurityIcon },
   { label: "Active Partners", value: "9", icon: BusinessIcon },
-  { label: "Inactive", value: "3", icon: PersonOffIcon },
+  { label: "Inactive Partners", value: "3", icon: PersonOffIcon },
+  { label: "Bodyguards Available", value: "28", icon: GroupIcon },
+  { label: "On Assignment", value: "5", icon: AssignmentIcon },
 ];
 
 export default function SecurityPartnersStats() {
@@ -15,7 +17,7 @@ export default function SecurityPartnersStats() {
     <Box
       sx={{
         display: "grid",
-        gridTemplateColumns: { xs: "1fr", sm: "repeat(3, minmax(0, 1fr))" },
+        gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))", md: "repeat(4, minmax(0, 1fr))" },
         gap: 2,
       }}
     >

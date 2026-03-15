@@ -1,7 +1,7 @@
 import { Box } from "@mui/material";
 import EventIcon from "@mui/icons-material/Event";
-import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import ScheduleIcon from "@mui/icons-material/Schedule";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import PeopleIcon from "@mui/icons-material/People";
 import { useBookingsDate } from "./store/BookingsDateContext";
 import { useMemo, useState, useRef, useEffect } from "react";
@@ -78,9 +78,10 @@ export default function BookingsPage() {
 
   const stats = useMemo(
     () => [
-      { label: "Total Bookings", value: "1,284", icon: EventIcon },
+      { label: "Today's Bookings", value: "24", icon: EventIcon },
       { label: "Pending", value: "42", icon: ScheduleIcon },
-      { label: "Active Drivers", value: "18 / 24", icon: PeopleIcon },
+      { label: "Completed Today", value: "18", icon: CheckCircleIcon },
+      { label: "Drivers Available", value: "18 / 24", icon: PeopleIcon },
     ],
     [],
   );

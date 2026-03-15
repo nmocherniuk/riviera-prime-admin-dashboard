@@ -27,9 +27,9 @@ export default function PaymentsPage() {
   const stats = useMemo(
     () => [
       { label: "Today Revenue", value: "£1,240", icon: AttachMoneyIcon },
-      { label: "Pending Payments", value: "12", icon: ScheduleIcon },
-      { label: "Authorized Payments", value: "3", icon: CreditCardIcon },
-      { label: "Failed Payments", value: "2", icon: ErrorOutlineIcon },
+      { label: "Pending", value: "12", icon: ScheduleIcon },
+      { label: "To Capture", value: "3", icon: CreditCardIcon },
+      { label: "Failed", value: "2", icon: ErrorOutlineIcon },
     ],
     []
   );
