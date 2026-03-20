@@ -6,20 +6,22 @@ import { Box, AppBar, IconButton, Toolbar } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useState } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import DashboardPage from "./pages/Dashboard/DashboardPage";
-import BookingsPage from "./pages/Bookings/BookingsPage";
-import DriversPage from "./pages/Drivers/DriversPage";
-import FleetPage from "./pages/Fleet/FleetPage";
-import PricingPage from "./pages/Pricing/PricingPage";
-import PaymentsPage from "./pages/Payments/PaymentsPage";
-import SecurityPartnersPage from "./pages/SecurityPartners/SecurityPartnersPage";
-import PartnerDetailPage from "./pages/SecurityPartners/PartnerDetailPage";
+import WeekStrip from "./features/Bookings/components/WeekStrip";
+import LoginPage from "./pages/LoginPage";
 import {
   BookingsDateProvider,
   useBookingsDate,
-} from "./pages/Bookings/store/BookingsDateContext";
-import WeekStrip from "./pages/Bookings/components/WeekStrip";
-import LoginPage from "./pages/Auth/LoginPage";
+} from "./features/Bookings/store/BookingsDateContext";
+import DashboardPage from "./pages/DashboardPage";
+import BookingsPage from "./pages/BookingsPage";
+import FleetPage from "./pages/FleetPage";
+import PricingPage from "./pages/PricingPage";
+import PaymentsPage from "./pages/PaymentsPage";
+import SecurityOrganizationsPage from "./pages/SecurityOrganizationsPage";
+import SecurityOrganizationPage from "./pages/SecurityOrganizationPage";
+import DriverOrganizationsPage from "./pages/DriverOrganizationsPage";
+import DriverOrganizationDetailPage from "./pages/DriversPage";
+import DriversPage from "./pages/DriversPage";
 
 const drawerWidth = 260;
 
@@ -49,7 +51,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <BookingsDateProvider>
-        <Box sx={{ display: "flex", minHeight: "100vh", }}>
+        <Box sx={{ display: "flex", minHeight: "100vh" }}>
           <AppBar
             position="fixed"
             elevation={0}
@@ -82,18 +84,34 @@ function App() {
             component="main"
             sx={{
               flexGrow: 1,
-              mt: { xs: location.pathname === "/bookings" ? "120px" : "80px", md: 0 },
+              mt: {
+                xs: location.pathname === "/bookings" ? "120px" : "80px",
+                md: 0,
+              },
             }}
           >
             <Routes>
               <Route path="/" element={<DashboardPage />} />
               <Route path="/bookings" element={<BookingsPage />} />
-              <Route path="/drivers" element={<DriversPage />} />
+              <Route
+                path="/drivers-partners"
+                element={<DriverOrganizationsPage />}
+              />
+              <Route
+                path="/drivers-partners/:organizationId"
+                element={<DriversPage />}
+              />
               <Route path="/fleet" element={<FleetPage />} />
               <Route path="/pricing" element={<PricingPage />} />
               <Route path="/payments" element={<PaymentsPage />} />
-              <Route path="/security-partners" element={<SecurityPartnersPage />} />
-              <Route path="/security-partners/:partnerId" element={<PartnerDetailPage />} />
+              <Route
+                path="/security-partners"
+                element={<SecurityOrganizationsPage />}
+              />
+              <Route
+                path="/security-partners/:partnerId"
+                element={<SecurityOrganizationPage />}
+              />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Box>

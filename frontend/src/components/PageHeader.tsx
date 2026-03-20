@@ -1,6 +1,15 @@
-import { Box, Typography, type SxProps, type Theme } from "@mui/material";
+import {
+  Box,
+  Button,
+  Typography,
+  type SxProps,
+  type Theme,
+} from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 type PageHeaderProps = {
+  withBack?: { label: string; path: string };
   title: string;
   subtitle?: string;
   action?: React.ReactNode;
@@ -20,6 +29,17 @@ const defaultSubtitleSx: SxProps<Theme> = {
   mt: 0.25,
 };
 
+const backButtonSx = {
+  width: { xs: "100%", sm: "auto" },
+  bgcolor: "transparent",
+  color: "text.secondary",
+  textTransform: "none",
+  fontWeight: 700,
+  borderRadius: 2,
+  px: 2,
+  py: 1.25,
+};
+
 export default function PageHeader({
   title,
   subtitle,
@@ -27,7 +47,9 @@ export default function PageHeader({
   titleSx,
   subtitleSx,
   sx,
+  withBack,
 }: PageHeaderProps) {
+  const navigate = useNavigate();
   return (
     <Box
       sx={{
@@ -40,6 +62,15 @@ export default function PageHeader({
         ...(sx as object),
       }}
     >
+      {withBack && (
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate(withBack.path)}
+          sx={backButtonSx}
+        >
+          {withBack.label}
+        </Button>
+      )}
       <Box>
         <Typography
           variant="h5"
@@ -48,6 +79,7 @@ export default function PageHeader({
             ...defaultTitleSx,
             fontSize: { xs: "1.25rem", sm: "1.5rem", md: "1.75rem" },
             ...(titleSx as object),
+            ...(withBack && { textAlign: "center" }),
           }}
         >
           {title}
@@ -55,7 +87,11 @@ export default function PageHeader({
         {subtitle && (
           <Typography
             variant="body2"
-            sx={{ ...defaultSubtitleSx, ...(subtitleSx as object) }}
+            sx={{
+              ...defaultSubtitleSx,
+              ...(subtitleSx as object),
+              ...(withBack && { textAlign: "center" }),
+            }}
           >
             {subtitle}
           </Typography>

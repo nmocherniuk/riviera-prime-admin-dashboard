@@ -16,6 +16,7 @@ import {
   sidebarSecurityItems,
   sidebarFinancialItems,
   sidebarBottomItems,
+  sidebarDriversItems,
 } from "./sidebarItems";
 import { useLocation } from "react-router-dom";
 import LogoIcon from "./components/LogoIcon";
@@ -143,8 +144,6 @@ export default function Sidebar({ open = false, onClose }: SidebarProps) {
         </Box>
       </Box>
 
-      <Divider sx={{ borderColor: "divider", mx: 2, bgcolor: "transparent" }} />
-
       <SectionTitle>Main Menu</SectionTitle>
       <List disablePadding sx={{ px: 0, bgcolor: "background.paper" }}>
         {renderListItems(sidebarMenuItems)}
@@ -154,7 +153,16 @@ export default function Sidebar({ open = false, onClose }: SidebarProps) {
         sx={{ borderColor: "divider", mx: 2, my: 1, bgcolor: "transparent" }}
       />
 
-      <SectionTitle>Security / Partners</SectionTitle>
+      <SectionTitle>Chauffeur Services</SectionTitle>
+      <List disablePadding sx={{ px: 0, bgcolor: "background.paper" }}>
+        {renderListItems(sidebarDriversItems)}
+      </List>
+
+      <Divider
+        sx={{ borderColor: "divider", mx: 2, my: 1, bgcolor: "transparent" }}
+      />
+
+      <SectionTitle>Security Services</SectionTitle>
       <List disablePadding sx={{ px: 0, bgcolor: "background.paper" }}>
         {renderListItems(sidebarSecurityItems)}
       </List>
@@ -167,16 +175,9 @@ export default function Sidebar({ open = false, onClose }: SidebarProps) {
       <List disablePadding sx={{ px: 0, bgcolor: "background.paper" }}>
         {renderListItems(sidebarFinancialItems)}
       </List>
-
       <Divider
-        sx={{
-          borderColor: "divider",
-          bgcolor: "background.paper",
-          mx: 2,
-          my: 1,
-        }}
+        sx={{ borderColor: "divider", mx: 2, my: 1, bgcolor: "transparent" }}
       />
-
       <List
         disablePadding
         sx={{
