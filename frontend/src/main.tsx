@@ -3,6 +3,7 @@ import { Chart as ChartJS, LinearScale, LineElement, PointElement, CategoryScale
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import "./index.css";
+import "./api/interceptors";
 import App from "./App.tsx";
 
 ChartJS.register(LinearScale, LineElement, PointElement, CategoryScale, Tooltip);

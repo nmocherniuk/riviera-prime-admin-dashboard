@@ -5,11 +5,40 @@ import {
   TextField,
   Typography,
   useTheme,
+  Alert,
 } from "@mui/material";
 import { formContainerSx, formTextFieldSx } from "../components/ui/formStyles";
+import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { loginRequest } from "../api/auth";
+import { useAuthStore } from "../store/authStore";
 
 export default function LoginPage() {
   const theme = useTheme();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from =
+    (location.state as { from?: string } | null)?.from ?? "/";
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      const { data } = await loginRequest(email, password);
+      useAuthStore.getState().setAccessToken(data.accessToken);
+      navigate(from, { replace: true });
+    } catch {
+      setError("Invalid email or password.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Box
@@ -21,12 +50,16 @@ export default function LoginPage() {
         justifyContent: "center",
       }}
     >
-      <Container maxWidth="md" >
+      <Container maxWidth="md">
         <Box sx={formContainerSx()}>
-          <Box sx={{
-            px: { xs: 3, md: 5 },
-            py: { xs: 4, md: 3 },
-          }}>
+          <Box
+            component="form"
+            onSubmit={handleSubmit}
+            sx={{
+              px: { xs: 3, md: 5 },
+              py: { xs: 4, md: 3 },
+            }}
+          >
             <Box sx={{ mb: 3 }}>
               <Typography
                 variant="subtitle2"
@@ -51,7 +84,20 @@ export default function LoginPage() {
                 Connectez-vous à votre compte
               </Typography>
             </Box>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: { xs: 2, md: 2.5 } }}>
+
+            {error && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error}
+              </Alert>
+            )}
+
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: { xs: 2, md: 2.5 },
+              }}
+            >
               <Box>
                 <Typography
                   variant="caption"
@@ -69,6 +115,10 @@ export default function LoginPage() {
                   size="small"
                   placeholder="Enter email"
                   type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={loading}
                   sx={formTextFieldSx(theme)}
                 />
               </Box>
@@ -91,6 +141,10 @@ export default function LoginPage() {
                   size="small"
                   placeholder="Enter password"
                   type="password"
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
                   sx={formTextFieldSx(theme)}
                 />
               </Box>
@@ -98,6 +152,7 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 fullWidth
+                disabled={loading}
                 sx={{
                   mt: 1.5,
                   borderRadius: 2,
@@ -111,23 +166,23 @@ export default function LoginPage() {
                   },
                 }}
               >
-                Login
+                {loading ? "Signing in…" : "Login"}
               </Button>
             </Box>
           </Box>
-          <Box sx={{
-            flexGrow: 1,
-            display: { xs: "none", md: "block" },
-            position: "relative",
-            minHeight: 500,
-            borderRadius: 2,
-            backgroundImage:
-              "url('pierre-blache.jpg')",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }} />
+          <Box
+            sx={{
+              flexGrow: 1,
+              display: { xs: "none", md: "block" },
+              position: "relative",
+              minHeight: 500,
+              borderRadius: 2,
+              backgroundImage: "url('pierre-blache.jpg')",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          />
         </Box>
-
       </Container>
     </Box>
   );

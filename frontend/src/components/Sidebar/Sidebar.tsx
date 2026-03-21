@@ -10,7 +10,7 @@ import {
   useTheme,
   Divider,
 } from "@mui/material";
-import { alpha } from "@mui/material/styles";
+import { alpha, type Theme } from "@mui/material/styles";
 import {
   sidebarMenuItems,
   sidebarSecurityItems,
@@ -18,10 +18,11 @@ import {
   sidebarBottomItems,
   sidebarDriversItems,
 } from "./sidebarItems";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate, Link as RouterLink } from "react-router-dom";
 import LogoIcon from "./components/LogoIcon";
 import SectionTitle from "./components/SectionTitle";
-import { Link as RouterLink } from "react-router-dom";
+import { api } from "../../api/api";
+import { useAuthStore } from "../../store/authStore";
 
 const drawerWidth = 260;
 
@@ -34,6 +35,18 @@ export default function Sidebar({ open = false, onClose }: SidebarProps) {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    try {
+      await api.post("/auth/logout");
+    } catch {
+      /* ignore */
+    }
+    useAuthStore.getState().logout();
+    navigate("/login", { replace: true });
+    if (!isDesktop) onClose?.();
+  };
 
   const renderListItems = (
     items: Array<{
@@ -46,9 +59,64 @@ export default function Sidebar({ open = false, onClose }: SidebarProps) {
   ) =>
     items.map((item) => {
       const Icon = item.icon;
-      const isActive =
-        pathname === item.path ||
+      const isActive = item.isSignOut
+        ? false
+        : pathname === item.path ||
         (item.path !== "/" && pathname.startsWith(item.path + "/"));
+
+      const itemSx = {
+        mx: 1,
+        borderRadius: 1,
+        color: "secondary.main",
+        mb: 0.5,
+        "&.Mui-selected": {
+          bgcolor: (t: Theme) => alpha(t.palette.primary.main, 0.2),
+          color: "primary.main",
+          "&:hover": (t: Theme) => ({
+            bgcolor: alpha(t.palette.primary.main, 0.3),
+            color: t.palette.primary.main,
+          }),
+          "& .MuiListItemIcon-root": {
+            color: "primary.main",
+          },
+        },
+        "&:hover": (t: Theme) => ({
+          color: t.palette.text.primary,
+        }),
+        "& .MuiListItemIcon-root": {
+          minWidth: 40,
+          color: item.isSignOut ? "error.main" : "inherit",
+        },
+        "&.Mui-disabled": {
+          opacity: 0.55,
+        },
+      };
+
+      if (item.isSignOut) {
+        return (
+          <ListItemButton
+            key={item.path}
+            component="button"
+            type="button"
+            selected={false}
+            onClick={() => void handleSignOut()}
+            sx={itemSx}
+          >
+            <ListItemIcon
+              sx={{ color: item.isSignOut ? "error.main" : "inherit" }}
+            >
+              <Icon />
+            </ListItemIcon>
+            <ListItemText
+              primary={item.label}
+              primaryTypographyProps={{
+                fontWeight: 500,
+                color: "error.main",
+              }}
+            />
+          </ListItemButton>
+        );
+      }
 
       return (
         <ListItemButton
@@ -58,33 +126,7 @@ export default function Sidebar({ open = false, onClose }: SidebarProps) {
           component={RouterLink}
           to={item.path}
           disabled={item.comingSoon}
-          sx={{
-            mx: 1,
-            borderRadius: 1,
-            color: "secondary.main",
-            mb: 0.5,
-            "&.Mui-selected": {
-              bgcolor: (theme) => alpha(theme.palette.primary.main, 0.2),
-              color: "primary.main",
-              "&:hover": (theme) => ({
-                bgcolor: alpha(theme.palette.primary.main, 0.3),
-                color: theme.palette.primary.main,
-              }),
-              "& .MuiListItemIcon-root": {
-                color: "primary.main",
-              },
-            },
-            "&:hover": (theme) => ({
-              color: theme.palette.text.primary,
-            }),
-            "& .MuiListItemIcon-root": {
-              minWidth: 40,
-              color: item.isSignOut ? "error.main" : "inherit",
-            },
-            "&.Mui-disabled": {
-              opacity: 0.55,
-            },
-          }}
+          sx={itemSx}
         >
           <ListItemIcon
             sx={{ color: item.isSignOut ? "error.main" : "inherit" }}
