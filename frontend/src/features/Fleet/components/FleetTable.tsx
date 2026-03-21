@@ -1,33 +1,21 @@
 import { useState } from "react";
 import {
   Box,
-  IconButton,
-  ListItemIcon,
-  ListItemText,
-  Menu,
-  MenuItem,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
+
   Typography,
-  useMediaQuery,
-  useTheme,
+
 } from "@mui/material";
 import Chip from "@mui/material/Chip";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import type { FleetVehicle, FleetClass, FleetStatus } from "../data/dummyFleet";
-import FleetCard from "./FleetCard";
-import ArrowRightIcon from "@mui/icons-material/ArrowRight";
-import ArrowLeftIcon from "@mui/icons-material/ArrowLeft";
 
-const ROWS_PER_PAGE = 4;
-const TOTAL_FLEET = 28;
+import { GenericTable } from "../../../components/GenericTable";
+import EntityActionsMenu from "../../../components/EntityActionsMenu";
+import FleetCard from "./FleetCard";
+
+
 
 const classColors: Record<FleetClass, { bg: string; color: string }> = {
   Comfort: { bg: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.9)" },
@@ -42,23 +30,17 @@ const statusColors: Record<FleetStatus, { bg: string; color: string }> = {
 
 type Props = {
   vehicles: FleetVehicle[];
-  page: number;
-  onPageChange: (page: number) => void;
-  onVehicleView?: (vehicle: FleetVehicle) => void;
-  onVehicleEdit?: (vehicle: FleetVehicle) => void;
-  onVehicleDelete?: (vehicle: FleetVehicle) => void;
+  onVehicleView: (vehicle: FleetVehicle) => void;
+  onVehicleEdit: (vehicle: FleetVehicle) => void;
+  onVehicleDelete: (vehicle: FleetVehicle) => void;
 };
 
 export default function FleetTable({
   vehicles,
-  page,
-  onPageChange,
   onVehicleView,
   onVehicleEdit,
   onVehicleDelete,
 }: Props) {
-  const theme = useTheme();
-  const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<FleetVehicle | null>(null);
 
@@ -71,273 +53,138 @@ export default function FleetTable({
     setMenuAnchor(null);
     setSelectedVehicle(null);
   };
-  const handleEdit = () => {
-    if (selectedVehicle) onVehicleEdit?.(selectedVehicle);
-    closeMenu();
-  };
-  const handleDelete = () => {
-    if (selectedVehicle) onVehicleDelete?.(selectedVehicle);
-    closeMenu();
-  };
-  const from = (page - 1) * ROWS_PER_PAGE + 1;
-  const to = (page - 1) * ROWS_PER_PAGE + vehicles.length;
-  const hasNext = page * ROWS_PER_PAGE < TOTAL_FLEET;
-  const hasPrev = page > 1;
 
-  const paginationBar = (
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        px: { xs: 1.5, md: 2 },
-        py: 1.5,
-        borderTop: 1,
-        borderColor: "divider",
-      }}
-    >
-      <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 600 }}>
-        SHOWING {from}-{to} OF {TOTAL_FLEET} FLEET
-      </Typography>
-      <Box sx={{ display: "flex", gap: 0.5 }}>
-        <IconButton
-          size="small"
-          disabled={!hasPrev}
-          onClick={() => onPageChange(page - 1)}
-          sx={{
-            bgcolor: "rgba(255,255,255,0.06)",
-            color: "text.primary",
-            "&:hover": { bgcolor: "rgba(255,255,255,0.1)" },
-            "&.Mui-disabled": { color: "text.secondary" },
-          }}
-        >
-          <ArrowLeftIcon />
-        </IconButton>
-        <IconButton
-          size="small"
-          disabled={!hasNext}
-          onClick={() => onPageChange(page + 1)}
-          sx={{
-            bgcolor: "rgba(255,255,255,0.06)",
-            color: "text.primary",
-            "&:hover": { bgcolor: "rgba(255,255,255,0.1)" },
-            "&.Mui-disabled": { color: "text.secondary" },
-          }}
-        >
-          <ArrowRightIcon />
-        </IconButton>
-      </Box>
-    </Box>
-  );
-
-  if (!isDesktop) {
-    return (
-      <Paper
-        elevation={0}
-        sx={{
-          borderRadius: { xs: 2, md: 3 },
-          border: 1,
-          borderColor: "divider",
-          bgcolor: "background.paper",
-          overflow: "hidden",
-        }}
-      >
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            px: { xs: 1.5, md: 2 },
-            py: 1.5,
-            borderBottom: 1,
-            borderColor: "divider",
-          }}
-        >
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "text.primary" }}>
-            Fleet
-          </Typography>
+  const columns = [
+    {
+      key: "vehicle",
+      label: "Vehicle",
+      render: (v: FleetVehicle) => (
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <Box
+            sx={{
+              width: 40,
+              height: 40,
+              borderRadius: 2,
+              bgcolor: "rgba(255,255,255,0.08)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "text.secondary",
+            }}
+          >
+            <DirectionsCarIcon fontSize="small" />
+          </Box>
+          <Box>
+            <Typography variant="body2" sx={{ fontWeight: 700, color: "text.primary" }}>
+              {v.vehicleName}
+            </Typography>
+            <Typography variant="caption" sx={{ color: "text.secondary" }}>
+              {v.yearColor}
+            </Typography>
+            <Typography variant="caption" sx={{ color: "text.secondary", display: "block" }}>
+              ID: {v.id}
+            </Typography>
+          </Box>
         </Box>
-        <Box sx={{ px: { xs: 1.5, md: 2 }, py: 2, display: "flex", flexDirection: "column", gap: 2 }}>
-          {vehicles.map((v) => (
-            <FleetCard
-              key={v.id}
-              vehicle={v}
-              {...(onVehicleView ? { onView: () => onVehicleView(v) } : {})}
-              {...(onVehicleEdit ? { onEdit: () => onVehicleEdit(v) } : {})}
-              {...(onVehicleDelete ? { onDelete: () => onVehicleDelete(v) } : {})}
-            />
-          ))}
-        </Box>
-        {paginationBar}
-      </Paper>
-    );
-  }
+      )
+    },
+    {
+      key: "licensePlate",
+      label: "License Plate",
+      render: (v: FleetVehicle) => (
+        <Typography variant="body2" sx={{ color: "text.primary" }}>
+          {v.licensePlate}
+        </Typography>
+      )
+    },
+    {
+      key: "class",
+      label: "Class",
+      render: (v: FleetVehicle) => (
+        <Chip
+          label={v.class}
+          size="small"
+          sx={{
+            bgcolor: classColors[v.class].bg,
+            color: classColors[v.class].color,
+            fontWeight: 700,
+            fontSize: "0.7rem",
+          }}
+        />
+      )
+    },
+    {
+      key: "status",
+      label: "Status",
+      render: (v: FleetVehicle) => (
+        <Chip
+          label={v.status}
+          size="small"
+          sx={{
+            bgcolor: statusColors[v.status].bg,
+            color: statusColors[v.status].color,
+            fontWeight: 700,
+            fontSize: "0.7rem",
+            letterSpacing: 0.5,
+          }}
+        />
+      )
+    },
+    {
+      key: "actions",
+      label: "Next Service",
+      render: (v: FleetVehicle) => (
+        <Typography variant="body2" sx={{ color: "text.primary" }}>
+          {v.nextService}
+        </Typography>
+      )
+    }
+  ]
 
   return (
-    <Paper
-      elevation={0}
-      sx={{
-        borderRadius: 3,
-        border: 1,
-        borderColor: "divider",
-        bgcolor: "background.paper",
-        overflow: "hidden",
-      }}
-    >
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          px: 2,
-          py: 1.5,
-          borderBottom: 1,
-          borderColor: "divider",
+    <>
+      <GenericTable
+        title="Fleet"
+        withPagination={{
+          pageSize: 6,
         }}
-      >
-        <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "text.primary" }}>
-          Fleet
-        </Typography>
-      </Box>
-      <Box sx={{ overflowX: "auto" }}>
-        <Table size="medium" sx={{ minWidth: 720 }}>
-          <TableHead>
-            <TableRow sx={{ bgcolor: "rgba(255,255,255,0.04)" }}>
-              <TableCell sx={{ fontWeight: 700, color: "text.secondary", textTransform: "uppercase", letterSpacing: 0.8, py: 1.5 }}>
-                Vehicle
-              </TableCell>
-              <TableCell sx={{ fontWeight: 700, color: "text.secondary", textTransform: "uppercase", letterSpacing: 0.8, py: 1.5 }}>
-                License Plate
-              </TableCell>
-              <TableCell sx={{ fontWeight: 700, color: "text.secondary", textTransform: "uppercase", letterSpacing: 0.8, py: 1.5 }}>
-                Class
-              </TableCell>
-              <TableCell sx={{ fontWeight: 700, color: "text.secondary", textTransform: "uppercase", letterSpacing: 0.8, py: 1.5 }}>
-                Status
-              </TableCell>
-              <TableCell sx={{ fontWeight: 700, color: "text.secondary", textTransform: "uppercase", letterSpacing: 0.8, py: 1.5 }}>
-                Next Service
-              </TableCell>
-              <TableCell sx={{ fontWeight: 700, color: "text.secondary", textTransform: "uppercase", letterSpacing: 0.8, py: 1.5, width: 56 }}>
-                Actions
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {vehicles.map((v) => {
-              const classStyle = classColors[v.class];
-              const statusStyle = statusColors[v.status];
-              return (
-                <TableRow
-                  key={v.id}
-                  onClick={() => onVehicleView?.(v)}
-                  sx={{
-                    cursor: onVehicleView ? "pointer" : "default",
-                    "&:hover": { bgcolor: "rgba(255,255,255,0.03)" },
-                  }}
-                >
-                  <TableCell sx={{ py: 2 }}>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                      <Box
-                        sx={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: 2,
-                          bgcolor: "rgba(255,255,255,0.08)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "text.secondary",
-                        }}
-                      >
-                        <DirectionsCarIcon fontSize="small" />
-                      </Box>
-                      <Box>
-                        <Typography variant="body2" sx={{ fontWeight: 700, color: "text.primary" }}>
-                          {v.vehicleName}
-                        </Typography>
-                        <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                          {v.yearColor}
-                        </Typography>
-                        <Typography variant="caption" sx={{ color: "text.secondary", display: "block" }}>
-                          ID: {v.id}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2" sx={{ color: "text.primary" }}>
-                      {v.licensePlate}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={v.class}
-                      size="small"
-                      sx={{
-                        bgcolor: classStyle.bg,
-                        color: classStyle.color,
-                        fontWeight: 700,
-                        fontSize: "0.7rem",
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={v.status}
-                      size="small"
-                      sx={{
-                        bgcolor: statusStyle.bg,
-                        color: statusStyle.color,
-                        fontWeight: 700,
-                        fontSize: "0.7rem",
-                        letterSpacing: 0.5,
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2" sx={{ color: "text.primary" }}>
-                      {v.nextService}
-                    </Typography>
-                  </TableCell>
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    <IconButton
-                      size="small"
-                      sx={{ color: "text.secondary" }}
-                      aria-label="actions"
-                      onClick={(e) => openMenu(e, v)}
-                    >
-                      <MoreVertIcon />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </Box>
-      {paginationBar}
-      <Menu
+        columns={columns}
+        data={vehicles}
+        onRowClick={onVehicleView}
+        actions={openMenu}
+        renderMobileCard={(v) => (
+          <FleetCard
+            key={v.id}
+            vehicle={v}
+            onView={() => onVehicleView(v)}
+            onEdit={() => onVehicleEdit(v)}
+            onDelete={() => onVehicleDelete(v)}
+          />
+        )}
+      />
+      <EntityActionsMenu
         anchorEl={menuAnchor}
         open={Boolean(menuAnchor)}
         onClose={closeMenu}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        transformOrigin={{ vertical: "top", horizontal: "right" }}
-        slotProps={{ paper: { sx: { minWidth: 160, borderRadius: 2 } } }}
-      >
-        <MenuItem onClick={handleEdit}>
-          <ListItemIcon>
-            <EditIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>Edit</ListItemText>
-        </MenuItem>
-        <MenuItem onClick={handleDelete} sx={{ color: "error.main" }}>
-          <ListItemIcon sx={{ color: "error.main" }}>
-            <DeleteIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>Delete</ListItemText>
-        </MenuItem>
-      </Menu>
-    </Paper>
+        menuPaperSx={{ minWidth: 200, borderRadius: 2 }}
+        actions={[
+          {
+            label: "Edit",
+            icon: <EditIcon fontSize="small" />,
+            disabled: !selectedVehicle,
+            onClick: () =>
+              selectedVehicle && onVehicleEdit?.(selectedVehicle),
+          },
+          {
+            label: "Delete",
+            icon: <DeleteIcon fontSize="small" />,
+            disabled: !selectedVehicle,
+            color: "error.main",
+            onClick: () =>
+              selectedVehicle && onVehicleDelete?.(selectedVehicle),
+          },
+        ]}
+      />
+    </>
   );
 }

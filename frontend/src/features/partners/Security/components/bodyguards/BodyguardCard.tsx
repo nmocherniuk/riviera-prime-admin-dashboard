@@ -16,9 +16,9 @@ const statusColors: Record<BodyguardAvailabilityStatus, { bg: string; color: str
 
 type Props = {
   bodyguard: Bodyguard;
-  onView?: () => void;
-  onEdit?: () => void;
-  onDelete?: () => void;
+  onView: (b: Bodyguard) => void;
+  onEdit: (b: Bodyguard) => void;
+  onDelete: (b: Bodyguard) => void;
 };
 
 export default function BodyguardCard({ bodyguard: b, onView, onEdit, onDelete }: Props) {
@@ -28,7 +28,7 @@ export default function BodyguardCard({ bodyguard: b, onView, onEdit, onDelete }
   return (
     <Paper
       elevation={0}
-      onClick={onView}
+      onClick={() => onView(b)}
       sx={{
         p: 2,
         borderRadius: 2,
@@ -37,8 +37,8 @@ export default function BodyguardCard({ bodyguard: b, onView, onEdit, onDelete }
         bgcolor: "background.paper",
         textAlign: "left",
         width: "100%",
-        cursor: onView ? "pointer" : undefined,
-        "&:hover": onView ? { bgcolor: "rgba(255,255,255,0.03)" } : undefined,
+        cursor: "pointer",
+        "&:hover": { bgcolor: "rgba(255,255,255,0.03)" },
       }}
     >
       <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 1 }}>
@@ -57,15 +57,15 @@ export default function BodyguardCard({ bodyguard: b, onView, onEdit, onDelete }
         </IconButton>
       </Box>
       <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={() => setMenuAnchor(null)} anchorOrigin={{ vertical: "bottom", horizontal: "right" }} transformOrigin={{ vertical: "top", horizontal: "right" }} slotProps={{ paper: { sx: { minWidth: 160, borderRadius: 2 } } }}>
-        <MenuItem onClick={() => { onView?.(); setMenuAnchor(null); }}>
+        <MenuItem onClick={() => { onView(b); setMenuAnchor(null); }}>
           <ListItemIcon><VisibilityIcon fontSize="small" /></ListItemIcon>
           <ListItemText>View details</ListItemText>
         </MenuItem>
-        <MenuItem onClick={() => { onEdit?.(); setMenuAnchor(null); }}>
+        <MenuItem onClick={() => { onEdit(b); setMenuAnchor(null); }}>
           <ListItemIcon><EditIcon fontSize="small" /></ListItemIcon>
           <ListItemText>Edit</ListItemText>
         </MenuItem>
-        <MenuItem onClick={() => { onDelete?.(); setMenuAnchor(null); }} sx={{ color: "error.main" }}>
+        <MenuItem onClick={() => { onDelete(b); setMenuAnchor(null); }} sx={{ color: "error.main" }}>
           <ListItemIcon sx={{ color: "error.main" }}><DeleteIcon fontSize="small" /></ListItemIcon>
           <ListItemText>Delete</ListItemText>
         </MenuItem>

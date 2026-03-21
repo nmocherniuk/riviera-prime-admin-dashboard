@@ -1,13 +1,8 @@
 import {
-  Dialog,
-  DialogContent,
   Typography,
   TextField,
   Grid,
-  Box,
   Button,
-  useMediaQuery,
-  useTheme,
 } from "@mui/material";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import CloseIcon from "@mui/icons-material/Close";
@@ -16,7 +11,7 @@ import { useState, useEffect } from "react";
 import type { Booking } from "./BookingsCalendar/data/dummyBookings";
 import { sectionLabelSx, modalTextFieldSx } from "../../../components/ui/modalStyles";
 import DetailField from "../../../components/DetailField";
-import ModalTitleBar from "../../../components/ModalTitleBar";
+import BaseModal from "../../../components/BaseModal";
 
 export type BookingFormValues = {
   date: string;
@@ -58,9 +53,6 @@ export default function BookingManagementModal({
   booking,
   onSave,
 }: Props) {
-  const theme = useTheme();
-  const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
-
   const [formValues, setFormValues] = useState<BookingFormValues>(defaultFormValues);
 
   useEffect(() => {
@@ -77,115 +69,20 @@ export default function BookingManagementModal({
   };
 
   return (
-    <Dialog
+    <BaseModal
       open={open}
       onClose={onClose}
-      fullScreen={fullScreen}
-      fullWidth
       maxWidth="sm"
-      PaperProps={{
-        sx: {
-          bgcolor: "background.paper",
-          border: 1,
-          borderColor: "divider",
-          borderRadius: fullScreen ? 0 : 3,
-          maxHeight: fullScreen ? "100%" : "90vh",
-        },
-      }}
-    >
-      <ModalTitleBar
-        title={
-          <>
-            <InfoOutlinedIcon sx={{ color: "text.secondary", fontSize: 20 }} />
-            <Typography variant="h6" sx={{ fontWeight: 700, color: "text.primary" }}>
-              {booking ? "Edit Booking" : "New Booking"}
-            </Typography>
-          </>
-        }
-        onClose={onClose}
-      />
-
-      <DialogContent sx={{ px: { xs: 2, sm: 3 }, py: 2, overflowY: "auto" }}>
-        <DetailField label="Booking ID" value={booking ? `#${booking.id}` : "—"} emptyAsDash={false} />
-
-        <Typography sx={sectionLabelSx}>Booking Details</Typography>
-        <Grid container spacing={2}>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <TextField
-              fullWidth
-              size="small"
-              label="Date"
-              placeholder="YYYY-MM-DD"
-              type="date"
-              value={formValues.date}
-              onChange={handleChange("date")}
-              InputLabelProps={{ shrink: true }}
-              sx={modalTextFieldSx}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <TextField
-              fullWidth
-              size="small"
-              label="Start time"
-              placeholder="HH:mm"
-              type="time"
-              value={formValues.startTime}
-              onChange={handleChange("startTime")}
-              InputLabelProps={{ shrink: true }}
-              sx={modalTextFieldSx}
-            />
-          </Grid>
-          <Grid size={{ xs: 12 }}>
-            <TextField
-              fullWidth
-              size="small"
-              label="Duration"
-              placeholder="e.g. 1hr, 1hr 30min"
-              value={formValues.duration}
-              onChange={handleChange("duration")}
-              sx={modalTextFieldSx}
-            />
-          </Grid>
-        </Grid>
-
-        <Typography sx={sectionLabelSx}>Client & Route</Typography>
-        <Grid container spacing={2}>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <TextField
-              fullWidth
-              size="small"
-              label="Client name"
-              placeholder="Enter client name"
-              value={formValues.clientName}
-              onChange={handleChange("clientName")}
-              sx={modalTextFieldSx}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <TextField
-              fullWidth
-              size="small"
-              label="Route"
-              placeholder="Enter pickup and destination"
-              value={formValues.route}
-              onChange={handleChange("route")}
-              sx={modalTextFieldSx}
-            />
-          </Grid>
-        </Grid>
-
-        <Box
-          sx={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 1.5,
-            mt: 3,
-            pt: 2,
-            borderTop: 1,
-            borderColor: "divider",
-          }}
-        >
+      title={
+        <>
+          <InfoOutlinedIcon sx={{ color: "text.secondary", fontSize: 20 }} />
+          <Typography variant="h6" sx={{ fontWeight: 700, color: "text.primary" }}>
+            {booking ? "Edit Booking" : "New Booking"}
+          </Typography>
+        </>
+      }
+      actions={
+        <>
           <Button
             variant="contained"
             color="primary"
@@ -218,8 +115,77 @@ export default function BookingManagementModal({
           >
             Cancel
           </Button>
-        </Box>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <DetailField label="Booking ID" value={booking ? `#${booking.id}` : "—"} emptyAsDash={false} />
+
+      <Typography sx={sectionLabelSx}>Booking Details</Typography>
+      <Grid container spacing={2}>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Date"
+            placeholder="YYYY-MM-DD"
+            type="date"
+            value={formValues.date}
+            onChange={handleChange("date")}
+            InputLabelProps={{ shrink: true }}
+            sx={modalTextFieldSx}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Start time"
+            placeholder="HH:mm"
+            type="time"
+            value={formValues.startTime}
+            onChange={handleChange("startTime")}
+            InputLabelProps={{ shrink: true }}
+            sx={modalTextFieldSx}
+          />
+        </Grid>
+        <Grid size={{ xs: 12 }}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Duration"
+            placeholder="e.g. 1hr, 1hr 30min"
+            value={formValues.duration}
+            onChange={handleChange("duration")}
+            sx={modalTextFieldSx}
+          />
+        </Grid>
+      </Grid>
+
+      <Typography sx={sectionLabelSx}>Client & Route</Typography>
+      <Grid container spacing={2}>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Client name"
+            placeholder="Enter client name"
+            value={formValues.clientName}
+            onChange={handleChange("clientName")}
+            sx={modalTextFieldSx}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Route"
+            placeholder="Enter pickup and destination"
+            value={formValues.route}
+            onChange={handleChange("route")}
+            sx={modalTextFieldSx}
+          />
+        </Grid>
+      </Grid>
+    </BaseModal>
   );
 }

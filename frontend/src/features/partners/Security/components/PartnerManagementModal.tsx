@@ -1,14 +1,9 @@
 import {
-  Dialog,
-  DialogContent,
   Typography,
   TextField,
   Grid,
-  Box,
   Button,
   MenuItem,
-  useMediaQuery,
-  useTheme,
 } from "@mui/material";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import CloseIcon from "@mui/icons-material/Close";
@@ -20,7 +15,7 @@ import {
   sectionLabelSx,
 } from "../../../../components/ui/modalStyles";
 import DetailField from "../../../../components/DetailField";
-import ModalTitleBar from "../../../../components/ModalTitleBar";
+import BaseModal from "../../../../components/BaseModal";
 
 export type PartnerFormValues = {
   companyName: string;
@@ -69,9 +64,6 @@ export default function PartnerManagementModal({
   readOnly = false,
   onSave,
 }: Props) {
-  const theme = useTheme();
-  const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
-
   const [formValues, setFormValues] =
     useState<PartnerFormValues>(defaultFormValues);
 
@@ -81,9 +73,9 @@ export default function PartnerManagementModal({
 
   const handleChange =
     (field: keyof PartnerFormValues) =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setFormValues((prev) => ({ ...prev, [field]: e.target.value }));
-    };
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormValues((prev) => ({ ...prev, [field]: e.target.value }));
+      };
 
   const handleSave = () => {
     onSave?.(partner?.id ?? null, formValues);
@@ -91,170 +83,29 @@ export default function PartnerManagementModal({
   };
 
   return (
-    <Dialog
+    <BaseModal
       open={open}
       onClose={onClose}
-      fullScreen={fullScreen}
-      fullWidth
       maxWidth="sm"
-      PaperProps={{
-        sx: {
-          bgcolor: "background.paper",
-          border: 1,
-          borderColor: "divider",
-          borderRadius: fullScreen ? 0 : 3,
-          maxHeight: fullScreen ? "100%" : "90vh",
-        },
-      }}
-    >
-      <ModalTitleBar
-        title={
-          <>
-            <InfoOutlinedIcon sx={{ color: "text.secondary", fontSize: 20 }} />
-            <Typography
-              component="span"
-              variant="h6"
-              sx={{ fontWeight: 700, color: "text.primary" }}
-            >
-              {readOnly
-                ? "Partner details"
-                : partner
-                  ? "Edit Partner"
-                  : "Add Partner"}
-            </Typography>
-          </>
-        }
-        onClose={onClose}
-      />
-
-      <DialogContent sx={{ px: { xs: 2, sm: 3 }, overflowY: "auto" }}>
-        <DetailField
-          label="Partner ID"
-          value={partner ? `#${partner.id}` : "—"}
-          emptyAsDash={false}
-        />
-
-        <Typography sx={sectionLabelSx}>Company & contact</Typography>
-        <Grid container spacing={1.5}>
-          <Grid size={{ xs: 12, md: 6 }}>
-            {readOnly ? (
-              <DetailField
-                label="Company name"
-                value={formValues.companyName}
-              />
-            ) : (
-              <TextField
-                fullWidth
-                size="small"
-                label="Company name"
-                value={formValues.companyName}
-                onChange={handleChange("companyName")}
-                sx={modalTextFieldSx}
-              />
-            )}
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            {readOnly ? (
-              <DetailField
-                label="Contact person"
-                value={formValues.contactPerson}
-              />
-            ) : (
-              <TextField
-                fullWidth
-                size="small"
-                label="Contact person"
-                value={formValues.contactPerson}
-                onChange={handleChange("contactPerson")}
-                sx={modalTextFieldSx}
-              />
-            )}
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            {readOnly ? (
-              <DetailField label="Email" value={formValues.email} />
-            ) : (
-              <TextField
-                fullWidth
-                size="small"
-                type="email"
-                label="Email"
-                value={formValues.email}
-                onChange={handleChange("email")}
-                sx={modalTextFieldSx}
-              />
-            )}
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            {readOnly ? (
-              <DetailField label="Phone" value={formValues.phone} />
-            ) : (
-              <TextField
-                fullWidth
-                size="small"
-                label="Phone"
-                value={formValues.phone}
-                onChange={handleChange("phone")}
-                sx={modalTextFieldSx}
-              />
-            )}
-          </Grid>
-          <Grid size={{ xs: 12 }}>
-            {readOnly ? (
-              <DetailField
-                label="Location / service area"
-                value={formValues.locationServiceArea}
-              />
-            ) : (
-              <TextField
-                fullWidth
-                size="small"
-                label="Location / service area"
-                value={formValues.locationServiceArea}
-                onChange={handleChange("locationServiceArea")}
-                sx={modalTextFieldSx}
-              />
-            )}
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            {readOnly ? (
-              <DetailField
-                label="Status"
-                value={formValues.status}
-                emptyAsDash={false}
-              />
-            ) : (
-              <TextField
-                fullWidth
-                size="small"
-                select
-                label="Status"
-                value={formValues.status}
-                onChange={handleChange("status")}
-                sx={modalTextFieldSx}
-              >
-                {PARTNER_STATUSES.map((s) => (
-                  <MenuItem key={s} value={s}>
-                    {s}
-                  </MenuItem>
-                ))}
-              </TextField>
-            )}
-          </Grid>
-        </Grid>
-
-        {!readOnly && (
-          <Box
-            sx={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 1.5,
-              mt: 2.5,
-              pt: 2,
-              borderTop: 1,
-              borderColor: "divider",
-            }}
+      title={
+        <>
+          <InfoOutlinedIcon sx={{ color: "text.secondary", fontSize: 20 }} />
+          <Typography
+            component="span"
+            variant="h6"
+            sx={{ fontWeight: 700, color: "text.primary" }}
           >
+            {readOnly
+              ? "Partner details"
+              : partner
+                ? "Edit Partner"
+                : "Add Partner"}
+          </Typography>
+        </>
+      }
+      actions={
+        !readOnly ? (
+          <>
             <Button
               variant="contained"
               color="primary"
@@ -287,9 +138,126 @@ export default function PartnerManagementModal({
             >
               Cancel
             </Button>
-          </Box>
-        )}
-      </DialogContent>
-    </Dialog>
+          </>
+        ) : undefined
+      }
+    >
+
+      <Typography sx={sectionLabelSx}>Company</Typography>
+      <DetailField
+        label="Partner ID"
+        value={partner ? `#${partner.id}` : "—"}
+        emptyAsDash={false}
+      />
+
+      <Typography sx={sectionLabelSx}>Contact</Typography>
+      <Grid container spacing={1.5}>
+        <Grid size={{ xs: 12, md: 6 }}>
+          {readOnly ? (
+            <DetailField
+              label="Company name"
+              value={formValues.companyName}
+            />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              label="Company name"
+              value={formValues.companyName}
+              onChange={handleChange("companyName")}
+              sx={modalTextFieldSx}
+            />
+          )}
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          {readOnly ? (
+            <DetailField
+              label="Contact person"
+              value={formValues.contactPerson}
+            />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              label="Contact person"
+              value={formValues.contactPerson}
+              onChange={handleChange("contactPerson")}
+              sx={modalTextFieldSx}
+            />
+          )}
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          {readOnly ? (
+            <DetailField label="Email" value={formValues.email} />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              type="email"
+              label="Email"
+              value={formValues.email}
+              onChange={handleChange("email")}
+              sx={modalTextFieldSx}
+            />
+          )}
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          {readOnly ? (
+            <DetailField label="Phone" value={formValues.phone} />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              label="Phone"
+              value={formValues.phone}
+              onChange={handleChange("phone")}
+              sx={modalTextFieldSx}
+            />
+          )}
+        </Grid>
+        <Grid size={{ xs: 12 }}>
+          {readOnly ? (
+            <DetailField
+              label="Location / service area"
+              value={formValues.locationServiceArea}
+            />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              label="Location / service area"
+              value={formValues.locationServiceArea}
+              onChange={handleChange("locationServiceArea")}
+              sx={modalTextFieldSx}
+            />
+          )}
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          {readOnly ? (
+            <DetailField
+              label="Status"
+              value={formValues.status}
+              emptyAsDash={false}
+            />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              select
+              label="Status"
+              value={formValues.status}
+              onChange={handleChange("status")}
+              sx={modalTextFieldSx}
+            >
+              {PARTNER_STATUSES.map((s) => (
+                <MenuItem key={s} value={s}>
+                  {s}
+                </MenuItem>
+              ))}
+            </TextField>
+          )}
+        </Grid>
+      </Grid>
+    </BaseModal>
   );
 }

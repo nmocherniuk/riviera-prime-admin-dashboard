@@ -1,27 +1,14 @@
 import { useState } from "react";
 import {
   Box,
-  IconButton,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
   Typography,
-  useMediaQuery,
-  useTheme,
 } from "@mui/material";
 import Chip from "@mui/material/Chip";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import SecurityIcon from "@mui/icons-material/Security";
-import ArrowLeftIcon from "@mui/icons-material/ArrowLeft";
-import ArrowRightIcon from "@mui/icons-material/ArrowRight";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import EntityActionsMenu from "../../../../components/EntityActionsMenu";
-import useTablePaginationRange from "../../../../hooks/useTablePaginationRange";
 import type { Partner, PartnerStatus } from "../data/types";
 import PartnerCard from "./PartnerCard";
 import { GenericTable } from "../../../../components/GenericTable";
@@ -31,39 +18,23 @@ const statusColors: Record<PartnerStatus, { bg: string; color: string }> = {
   inactive: { bg: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" },
 };
 
-const headerCellSx = {
-  fontWeight: 700,
-  color: "text.secondary",
-  textTransform: "uppercase" as const,
-  letterSpacing: 0.8,
-  py: 1.5,
-};
 
 type Props = {
   partners: Partner[];
-  page: number;
-  totalCount: number;
-  onPageChange: (page: number) => void;
   onPartnerView?: (partner: Partner) => void;
   onPartnerEdit?: (partner: Partner) => void;
   onPartnerDelete?: (partner: Partner) => void;
   onViewBodyguards?: (partner: Partner) => void;
 };
 
-const ROWS_PER_PAGE = 4;
 
 export default function PartnersTable({
   partners,
-  page,
-  totalCount,
-  onPageChange,
   onPartnerView,
   onPartnerEdit,
   onPartnerDelete,
   onViewBodyguards,
 }: Props) {
-  const theme = useTheme();
-  const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
 
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null);
@@ -77,62 +48,6 @@ export default function PartnersTable({
     setMenuAnchor(null);
     setSelectedPartner(null);
   };
-
-  if (!isDesktop) {
-    return (
-      <Paper
-        elevation={0}
-        sx={{
-          borderRadius: { xs: 2, md: 3 },
-          border: 1,
-          borderColor: "divider",
-          bgcolor: "background.paper",
-          overflow: "hidden",
-        }}
-      >
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            px: { xs: 1.5, md: 2 },
-            py: 1.5,
-            borderBottom: 1,
-            borderColor: "divider",
-          }}
-        >
-          <Typography
-            variant="subtitle1"
-            sx={{ fontWeight: 700, color: "text.primary" }}
-          >
-            Partners
-          </Typography>
-        </Box>
-        <Box
-          sx={{
-            px: { xs: 1.5, md: 2 },
-            py: 2,
-            display: "flex",
-            flexDirection: "column",
-            gap: 2,
-          }}
-        >
-          {partners.map((p) => (
-            <PartnerCard
-              key={p.id}
-              partner={p}
-              onView={onPartnerView ? () => onPartnerView(p) : undefined}
-              onEdit={onPartnerEdit ? () => onPartnerEdit(p) : undefined}
-              onDelete={onPartnerDelete ? () => onPartnerDelete(p) : undefined}
-              onViewBodyguards={
-                onViewBodyguards ? () => onViewBodyguards(p) : undefined
-              }
-            />
-          ))}
-        </Box>
-      </Paper>
-    );
-  }
 
   const columns = [
     {
@@ -228,7 +143,10 @@ export default function PartnersTable({
         title="Organizations"
         data={partners}
         columns={columns}
-        onRowClick={onPartnerView}
+        withPagination={{
+          pageSize: 6,
+        }}
+        onRowClick={onViewBodyguards}
         actions={openMenu}
         renderMobileCard={(p) => <PartnerCard key={p.id} partner={p} />}
       />

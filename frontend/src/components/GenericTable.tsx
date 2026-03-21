@@ -19,7 +19,7 @@ import ArrowRightIcon from "@mui/icons-material/ArrowRight";
 import useTablePagination from "../hooks/useTablePaginationRange";
 import { useState } from "react";
 
-type Column<T> = {
+export type Column<T> = {
   key: string;
   label: string;
   render: (item: T) => React.ReactNode;

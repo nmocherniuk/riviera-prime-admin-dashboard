@@ -1,11 +1,5 @@
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Typography,
-} from "@mui/material";
+import { Button, Typography } from "@mui/material";
+import BaseModal from "./BaseModal";
 
 type Props = {
   open: boolean;
@@ -30,48 +24,45 @@ export default function ConfirmDeleteDialog({
   confirmLabel = defaultConfirmLabel,
 }: Props) {
   return (
-    <Dialog
+    <BaseModal
       open={open}
       onClose={onClose}
       maxWidth="xs"
-      fullWidth
-      PaperProps={{
-        sx: {
-          borderRadius: 2,
-          border: 1,
-          borderColor: "divider",
-          bgcolor: "background.paper",
-        },
-      }}
-    >
-      <DialogTitle sx={{ fontWeight: 700, color: "text.primary" }}>
-        {title}
-      </DialogTitle>
-      <DialogContent>
-        <Typography variant="body2" sx={{ color: "text.secondary" }}>
-          {message}
+      title={
+        <Typography
+          component="span"
+          variant="h6"
+          sx={{ fontWeight: 700, color: "text.primary" }}
+        >
+          {title}
         </Typography>
-      </DialogContent>
-      <DialogActions sx={{ px: 2, pb: 2, pt: 0, gap: 1 }}>
-        <Button
-          variant="outlined"
-          onClick={onClose}
-          sx={{ borderRadius: 2, textTransform: "none" }}
-        >
-          Скасувати
-        </Button>
-        <Button
-          variant="contained"
-          color="error"
-          onClick={() => {
-            onConfirm();
-            onClose();
-          }}
-          sx={{ borderRadius: 2, textTransform: "none" }}
-        >
-          {confirmLabel}
-        </Button>
-      </DialogActions>
-    </Dialog>
+      }
+      actions={
+        <>
+          <Button
+            variant="outlined"
+            onClick={onClose}
+            sx={{ borderRadius: 2, textTransform: "none" }}
+          >
+            Скасувати
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => {
+              onConfirm();
+              onClose();
+            }}
+            sx={{ borderRadius: 2, textTransform: "none" }}
+          >
+            {confirmLabel}
+          </Button>
+        </>
+      }
+    >
+      <Typography variant="body2" sx={{ color: "text.secondary" }}>
+        {message}
+      </Typography>
+    </BaseModal>
   );
 }

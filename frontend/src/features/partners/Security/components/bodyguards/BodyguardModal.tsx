@@ -1,14 +1,10 @@
 import {
-  Dialog,
-  DialogContent,
   Typography,
   TextField,
   Grid,
   Box,
   Button,
   MenuItem,
-  useMediaQuery,
-  useTheme,
 } from "@mui/material";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import CloseIcon from "@mui/icons-material/Close";
@@ -20,7 +16,7 @@ import {
   sectionLabelSx,
 } from "../../../../../components/ui/modalStyles";
 import DetailField from "../../../../../components/DetailField";
-import ModalTitleBar from "../../../../../components/ModalTitleBar";
+import BaseModal from "../../../../../components/BaseModal";
 
 export type BodyguardFormValues = {
   name: string;
@@ -73,8 +69,6 @@ export default function BodyguardModal({
   readOnly = false,
   onSave,
 }: Props) {
-  const theme = useTheme();
-  const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const [formValues, setFormValues] =
     useState<BodyguardFormValues>(defaultFormValues);
 
@@ -84,9 +78,9 @@ export default function BodyguardModal({
 
   const handleChange =
     (field: keyof BodyguardFormValues) =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setFormValues((prev) => ({ ...prev, [field]: e.target.value }));
-    };
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormValues((prev) => ({ ...prev, [field]: e.target.value }));
+      };
 
   const handleSave = () => {
     onSave?.(bodyguard?.id ?? null, formValues);
@@ -94,159 +88,29 @@ export default function BodyguardModal({
   };
 
   return (
-    <Dialog
+    <BaseModal
       open={open}
       onClose={onClose}
-      fullScreen={fullScreen}
-      fullWidth
       maxWidth="sm"
-      PaperProps={{
-        sx: {
-          bgcolor: "background.paper",
-          border: 1,
-          borderColor: "divider",
-          borderRadius: fullScreen ? 0 : 3,
-          maxHeight: fullScreen ? "100%" : "90vh",
-        },
-      }}
-    >
-      <ModalTitleBar
-        title={
-          <>
-            <InfoOutlinedIcon sx={{ color: "text.secondary", fontSize: 20 }} />
-            <Typography
-              component="span"
-              variant="h6"
-              sx={{ fontWeight: 700, color: "text.primary" }}
-            >
-              {readOnly
-                ? "Bodyguard details"
-                : bodyguard
-                  ? "Edit bodyguard"
-                  : "Add bodyguard"}
-            </Typography>
-          </>
-        }
-        onClose={onClose}
-      />
-      <DialogContent sx={{ px: { xs: 2, sm: 3 }, overflowY: "auto" }}>
-        <Typography sx={sectionLabelSx}>Bodyguard information</Typography>
-        <Grid container spacing={1.5}>
-          <Grid size={{ xs: 12, md: 6 }}>
-            {readOnly ? (
-              <DetailField label="Name" value={formValues.name} />
-            ) : (
-              <TextField
-                fullWidth
-                size="small"
-                label="Name"
-                value={formValues.name}
-                onChange={handleChange("name")}
-                sx={modalTextFieldSx}
-              />
-            )}
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            {readOnly ? (
-              <DetailField
-                label="License / certification"
-                value={formValues.licenseCertification}
-              />
-            ) : (
-              <TextField
-                fullWidth
-                size="small"
-                label="License / certification"
-                value={formValues.licenseCertification}
-                onChange={handleChange("licenseCertification")}
-                sx={modalTextFieldSx}
-              />
-            )}
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            {readOnly ? (
-              <DetailField label="Experience" value={formValues.experience} />
-            ) : (
-              <TextField
-                fullWidth
-                size="small"
-                label="Experience"
-                placeholder="e.g. 5 years"
-                value={formValues.experience}
-                onChange={handleChange("experience")}
-                sx={modalTextFieldSx}
-              />
-            )}
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            {readOnly ? (
-              <DetailField label="Languages" value={formValues.languages} />
-            ) : (
-              <TextField
-                fullWidth
-                size="small"
-                label="Languages"
-                placeholder="e.g. English, French"
-                value={formValues.languages}
-                onChange={handleChange("languages")}
-                sx={modalTextFieldSx}
-              />
-            )}
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            {readOnly ? (
-              <DetailField
-                label="Availability status"
-                value={formValues.availabilityStatus.replace("_", " ")}
-                emptyAsDash={false}
-              />
-            ) : (
-              <TextField
-                fullWidth
-                size="small"
-                select
-                label="Availability status"
-                value={formValues.availabilityStatus}
-                onChange={handleChange("availabilityStatus")}
-                sx={modalTextFieldSx}
-              >
-                {AVAILABILITY_OPTIONS.map((opt) => (
-                  <MenuItem key={opt} value={opt}>
-                    {opt.replace("_", " ")}
-                  </MenuItem>
-                ))}
-              </TextField>
-            )}
-          </Grid>
-          <Grid size={{ xs: 12 }}>
-            {readOnly ? (
-              <DetailField label="Notes" value={formValues.notes} />
-            ) : (
-              <TextField
-                fullWidth
-                size="small"
-                label="Notes"
-                multiline
-                rows={2}
-                value={formValues.notes}
-                onChange={handleChange("notes")}
-                sx={modalTextFieldSx}
-              />
-            )}
-          </Grid>
-        </Grid>
-        {!readOnly && (
-          <Box
-            sx={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 1.5,
-              mt: 2.5,
-              pt: 2,
-              borderTop: 1,
-              borderColor: "divider",
-            }}
+      title={
+        <>
+          <InfoOutlinedIcon sx={{ color: "text.secondary", fontSize: 20 }} />
+          <Typography
+            component="span"
+            variant="h6"
+            sx={{ fontWeight: 700, color: "text.primary" }}
           >
+            {readOnly
+              ? "Bodyguard details"
+              : bodyguard
+                ? "Edit bodyguard"
+                : "Add bodyguard"}
+          </Typography>
+        </>
+      }
+      actions={
+        !readOnly ? (
+          <>
             <Button
               variant="contained"
               color="primary"
@@ -279,9 +143,115 @@ export default function BodyguardModal({
             >
               Cancel
             </Button>
-          </Box>
-        )}
-      </DialogContent>
-    </Dialog>
+          </>
+        ) : undefined
+      }
+    >
+      <Typography sx={sectionLabelSx}>Bodyguard information</Typography>
+      <Grid container spacing={1.5}>
+        <Grid size={{ xs: 12, md: 6 }}>
+          {readOnly ? (
+            <DetailField label="Name" value={formValues.name} />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              label="Name"
+              value={formValues.name}
+              onChange={handleChange("name")}
+              sx={modalTextFieldSx}
+            />
+          )}
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          {readOnly ? (
+            <DetailField
+              label="License / certification"
+              value={formValues.licenseCertification}
+            />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              label="License / certification"
+              value={formValues.licenseCertification}
+              onChange={handleChange("licenseCertification")}
+              sx={modalTextFieldSx}
+            />
+          )}
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          {readOnly ? (
+            <DetailField label="Experience" value={formValues.experience} />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              label="Experience"
+              placeholder="e.g. 5 years"
+              value={formValues.experience}
+              onChange={handleChange("experience")}
+              sx={modalTextFieldSx}
+            />
+          )}
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          {readOnly ? (
+            <DetailField label="Languages" value={formValues.languages} />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              label="Languages"
+              placeholder="e.g. English, French"
+              value={formValues.languages}
+              onChange={handleChange("languages")}
+              sx={modalTextFieldSx}
+            />
+          )}
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          {readOnly ? (
+            <DetailField
+              label="Availability status"
+              value={formValues.availabilityStatus.replace("_", " ")}
+              emptyAsDash={false}
+            />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              select
+              label="Availability status"
+              value={formValues.availabilityStatus}
+              onChange={handleChange("availabilityStatus")}
+              sx={modalTextFieldSx}
+            >
+              {AVAILABILITY_OPTIONS.map((opt) => (
+                <MenuItem key={opt} value={opt}>
+                  {opt.replace("_", " ")}
+                </MenuItem>
+              ))}
+            </TextField>
+          )}
+        </Grid>
+        <Grid size={{ xs: 12 }}>
+          {readOnly ? (
+            <DetailField label="Notes" value={formValues.notes} />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              label="Notes"
+              multiline
+              rows={2}
+              value={formValues.notes}
+              onChange={handleChange("notes")}
+              sx={modalTextFieldSx}
+            />
+          )}
+        </Grid>
+      </Grid>
+    </BaseModal>
   );
 }

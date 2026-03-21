@@ -23,9 +23,6 @@ const statusColors: Record<
 
 type Props = {
   organizations: DriverOrganization[];
-  page: number;
-  totalCount: number;
-  onPageChange: (page: number) => void;
   onViewDrivers: (org: DriverOrganization) => void;
   onViewDetails: (org: DriverOrganization) => void;
   onEdit: (org: DriverOrganization) => void;

@@ -1,20 +1,16 @@
 import {
-  Dialog,
-  DialogContent,
   Typography,
   TextField,
   Grid,
   Box,
   Button,
-  useMediaQuery,
-  useTheme,
 } from "@mui/material";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import EditIcon from "@mui/icons-material/Edit";
 import { useState, useEffect } from "react";
 import type { Driver } from "../../data/dummyDrivers";
-import ModalTitleBar from "../../../../../components/ModalTitleBar";
+import BaseModal from "../../../../../components/BaseModal";
 import {
   modalTextFieldSx,
   sectionLabelSx,
@@ -74,9 +70,6 @@ export default function DriverManagementModal({
   readOnly = false,
   onSave,
 }: Props) {
-  const theme = useTheme();
-  const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
-
   const [formValues, setFormValues] =
     useState<DriverFormValues>(defaultFormValues);
 
@@ -86,9 +79,9 @@ export default function DriverManagementModal({
 
   const handleChange =
     (field: keyof DriverFormValues) =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setFormValues((prev) => ({ ...prev, [field]: e.target.value }));
-    };
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormValues((prev) => ({ ...prev, [field]: e.target.value }));
+      };
 
   const handleSave = () => {
     if (driver) {
@@ -98,192 +91,25 @@ export default function DriverManagementModal({
   };
 
   return (
-    <Dialog
+    <BaseModal
       open={open}
       onClose={onClose}
-      fullScreen={fullScreen}
-      fullWidth
       maxWidth="sm"
-      PaperProps={{
-        sx: {
-          bgcolor: "background.paper",
-          border: 1,
-          borderColor: "divider",
-          borderRadius: fullScreen ? 0 : 3,
-          maxHeight: fullScreen ? "100%" : "90vh",
-        },
-      }}
-    >
-      <ModalTitleBar
-        title={
-          <>
-            <InfoOutlinedIcon sx={{ color: "text.secondary", fontSize: 20 }} />
-            <Typography
-              component="span"
-              variant="h6"
-              sx={{ fontWeight: 700, color: "text.primary" }}
-            >
-              {readOnly ? "Driver details" : "Driver Management"}
-            </Typography>
-          </>
-        }
-        onClose={onClose}
-      />
-
-      <DialogContent sx={{ px: { xs: 2, sm: 3 }, overflowY: "auto" }}>
-        <Typography sx={sectionLabelSx}>Driver ID</Typography>
-        <Typography variant="body1" sx={valueBoxSx}>
-          #{driver?.id ?? "—"}
-        </Typography>
-
-        <Typography sx={sectionLabelSx}>
-          Driver (Personal Information)
-        </Typography>
-        <Grid container spacing={1.5}>
-          <Grid size={{ xs: 12, md: 6 }}>
-            {readOnly ? (
-              <DetailField label="Name" value={formValues.name} />
-            ) : (
-              <TextField
-                fullWidth
-                size="small"
-                label="Name"
-                placeholder="Enter name"
-                value={formValues.name}
-                onChange={handleChange("name")}
-                sx={modalTextFieldSx}
-              />
-            )}
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            {readOnly ? (
-              <DetailField label="Surname" value={formValues.surname} />
-            ) : (
-              <TextField
-                fullWidth
-                size="small"
-                label="Surname"
-                placeholder="Enter surname"
-                value={formValues.surname}
-                onChange={handleChange("surname")}
-                sx={modalTextFieldSx}
-              />
-            )}
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            {readOnly ? (
-              <DetailField label="Phone" value={formValues.phone} />
-            ) : (
-              <TextField
-                fullWidth
-                size="small"
-                label="Phone"
-                placeholder="Enter phone number"
-                value={formValues.phone}
-                onChange={handleChange("phone")}
-                sx={modalTextFieldSx}
-              />
-            )}
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            {readOnly ? (
-              <DetailField label="Email" value={formValues.email} />
-            ) : (
-              <TextField
-                fullWidth
-                size="small"
-                label="Email"
-                placeholder="Enter email address"
-                value={formValues.email}
-                onChange={handleChange("email")}
-                sx={modalTextFieldSx}
-              />
-            )}
-          </Grid>
-        </Grid>
-
-        <Typography sx={sectionLabelSx}>
-          Vehicle (Vehicle Information)
-        </Typography>
-        <Grid container spacing={1.5}>
-          <Grid size={{ xs: 12, md: 6 }}>
-            {readOnly ? (
-              <DetailField label="Type" value={formValues.vehicleType} />
-            ) : (
-              <TextField
-                fullWidth
-                size="small"
-                label="Type"
-                placeholder="Enter vehicle type"
-                value={formValues.vehicleType}
-                onChange={handleChange("vehicleType")}
-                sx={modalTextFieldSx}
-              />
-            )}
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            {readOnly ? (
-              <DetailField label="Vehicle" value={formValues.vehicle} />
-            ) : (
-              <TextField
-                fullWidth
-                size="small"
-                label="Vehicle"
-                placeholder="Enter vehicle model"
-                value={formValues.vehicle}
-                onChange={handleChange("vehicle")}
-                sx={modalTextFieldSx}
-              />
-            )}
-          </Grid>
-        </Grid>
-
-        <Typography sx={sectionLabelSx}>Earning (Earning Rates)</Typography>
-        <Grid container spacing={1.5}>
-          <Grid size={{ xs: 12, md: 6 }}>
-            {readOnly ? (
-              <DetailField label="Per hour" value={formValues.perHour} />
-            ) : (
-              <TextField
-                fullWidth
-                size="small"
-                label="Per hour"
-                placeholder="Enter rate per hour"
-                value={formValues.perHour}
-                onChange={handleChange("perHour")}
-                sx={modalTextFieldSx}
-              />
-            )}
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            {readOnly ? (
-              <DetailField label="Per KM" value={formValues.perKm} />
-            ) : (
-              <TextField
-                fullWidth
-                size="small"
-                label="Per KM"
-                placeholder="Enter rate per KM"
-                value={formValues.perKm}
-                onChange={handleChange("perKm")}
-                sx={modalTextFieldSx}
-              />
-            )}
-          </Grid>
-        </Grid>
-
-        {!readOnly && (
-          <Box
-            sx={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 1.5,
-              mt: 2.5,
-              pt: 2,
-              borderTop: 1,
-              borderColor: "divider",
-            }}
+      title={
+        <>
+          <InfoOutlinedIcon sx={{ color: "text.secondary", fontSize: 20 }} />
+          <Typography
+            component="span"
+            variant="h6"
+            sx={{ fontWeight: 700, color: "text.primary" }}
           >
+            {readOnly ? "Driver details" : "Driver Management"}
+          </Typography>
+        </>
+      }
+      actions={
+        !readOnly ? (
+          <>
             <Button
               variant="contained"
               color="primary"
@@ -316,9 +142,150 @@ export default function DriverManagementModal({
             >
               Cancel
             </Button>
-          </Box>
-        )}
-      </DialogContent>
-    </Dialog>
+          </>
+        ) : undefined
+      }
+    >
+      <Typography sx={sectionLabelSx}>Driver ID</Typography>
+      <Typography variant="body1" sx={valueBoxSx}>
+        #{driver?.id ?? "—"}
+      </Typography>
+
+      <Typography sx={sectionLabelSx}>
+        Driver (Personal Information)
+      </Typography>
+      <Grid container spacing={1.5}>
+        <Grid size={{ xs: 12, md: 6 }}>
+          {readOnly ? (
+            <DetailField label="Name" value={formValues.name} />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              label="Name"
+              placeholder="Enter name"
+              value={formValues.name}
+              onChange={handleChange("name")}
+              sx={modalTextFieldSx}
+            />
+          )}
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          {readOnly ? (
+            <DetailField label="Surname" value={formValues.surname} />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              label="Surname"
+              placeholder="Enter surname"
+              value={formValues.surname}
+              onChange={handleChange("surname")}
+              sx={modalTextFieldSx}
+            />
+          )}
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          {readOnly ? (
+            <DetailField label="Phone" value={formValues.phone} />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              label="Phone"
+              placeholder="Enter phone number"
+              value={formValues.phone}
+              onChange={handleChange("phone")}
+              sx={modalTextFieldSx}
+            />
+          )}
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          {readOnly ? (
+            <DetailField label="Email" value={formValues.email} />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              label="Email"
+              placeholder="Enter email address"
+              value={formValues.email}
+              onChange={handleChange("email")}
+              sx={modalTextFieldSx}
+            />
+          )}
+        </Grid>
+      </Grid>
+
+      <Typography sx={sectionLabelSx}>
+        Vehicle (Vehicle Information)
+      </Typography>
+      <Grid container spacing={1.5}>
+        <Grid size={{ xs: 12, md: 6 }}>
+          {readOnly ? (
+            <DetailField label="Type" value={formValues.vehicleType} />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              label="Type"
+              placeholder="Enter vehicle type"
+              value={formValues.vehicleType}
+              onChange={handleChange("vehicleType")}
+              sx={modalTextFieldSx}
+            />
+          )}
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          {readOnly ? (
+            <DetailField label="Vehicle" value={formValues.vehicle} />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              label="Vehicle"
+              placeholder="Enter vehicle model"
+              value={formValues.vehicle}
+              onChange={handleChange("vehicle")}
+              sx={modalTextFieldSx}
+            />
+          )}
+        </Grid>
+      </Grid>
+
+      <Typography sx={sectionLabelSx}>Earning (Earning Rates)</Typography>
+      <Grid container spacing={1.5}>
+        <Grid size={{ xs: 12, md: 6 }}>
+          {readOnly ? (
+            <DetailField label="Per hour" value={formValues.perHour} />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              label="Per hour"
+              placeholder="Enter rate per hour"
+              value={formValues.perHour}
+              onChange={handleChange("perHour")}
+              sx={modalTextFieldSx}
+            />
+          )}
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          {readOnly ? (
+            <DetailField label="Per KM" value={formValues.perKm} />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              label="Per KM"
+              placeholder="Enter rate per KM"
+              value={formValues.perKm}
+              onChange={handleChange("perKm")}
+              sx={modalTextFieldSx}
+            />
+          )}
+        </Grid>
+      </Grid>
+    </BaseModal>
   );
 }
