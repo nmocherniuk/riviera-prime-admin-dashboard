@@ -112,20 +112,6 @@ export default function BodyguardModal({
         !readOnly ? (
           <>
             <Button
-              variant="contained"
-              color="primary"
-              startIcon={<EditIcon />}
-              onClick={handleSave}
-              sx={{
-                borderRadius: 2,
-                textTransform: "none",
-                fontWeight: 700,
-                px: 2,
-              }}
-            >
-              {bodyguard ? "Save changes" : "Add bodyguard"}
-            </Button>
-            <Button
               variant="outlined"
               startIcon={<CloseIcon />}
               onClick={onClose}
@@ -142,6 +128,20 @@ export default function BodyguardModal({
               }}
             >
               Cancel
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<EditIcon />}
+              onClick={handleSave}
+              sx={{
+                borderRadius: 2,
+                textTransform: "none",
+                fontWeight: 700,
+                px: 2,
+              }}
+            >
+              {bodyguard ? "Save changes" : "Add bodyguard"}
             </Button>
           </>
         ) : undefined

@@ -94,11 +94,11 @@ export default function FleetManagementModal({
       actions={
         !readOnly ? (
           <>
-            <Button variant="contained" color="primary" startIcon={<EditIcon />} onClick={handleSave} sx={{ borderRadius: 2, textTransform: "none", fontWeight: 700, px: 2 }}>
-              {vehicle ? "Save Fleet" : "Add Fleet"}
-            </Button>
             <Button variant="outlined" startIcon={<CloseIcon />} onClick={onClose} sx={{ borderRadius: 2, textTransform: "none", fontWeight: 700, borderColor: "primary.main", color: "primary.main", "&:hover": { borderColor: "primary.dark", bgcolor: "rgba(212, 175, 53, 0.08)" } }}>
               Cancel
+            </Button>
+            <Button variant="contained" color="primary" startIcon={<EditIcon />} onClick={handleSave} sx={{ borderRadius: 2, textTransform: "none", fontWeight: 700, px: 2 }}>
+              {vehicle ? "Save Fleet" : "Add Fleet"}
             </Button>
           </>
         ) : undefined

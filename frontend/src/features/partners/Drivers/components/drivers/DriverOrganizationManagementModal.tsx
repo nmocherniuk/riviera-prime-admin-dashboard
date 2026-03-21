@@ -116,21 +116,6 @@ export default function DriverOrganizationManagementModal({
         !readOnly ? (
           <>
             <Button
-              variant="contained"
-              color="primary"
-              startIcon={<EditIcon />}
-              onClick={handleSave}
-              sx={{
-                borderRadius: 2,
-                textTransform: "none",
-                fontWeight: 700,
-                px: 2,
-              }}
-            >
-              Save changes
-            </Button>
-
-            <Button
               variant="outlined"
               startIcon={<CloseIcon />}
               onClick={onClose}
@@ -147,6 +132,20 @@ export default function DriverOrganizationManagementModal({
               }}
             >
               Cancel
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<EditIcon />}
+              onClick={handleSave}
+              sx={{
+                borderRadius: 2,
+                textTransform: "none",
+                fontWeight: 700,
+                px: 2,
+              }}
+            >
+              Save changes
             </Button>
           </>
         ) : undefined

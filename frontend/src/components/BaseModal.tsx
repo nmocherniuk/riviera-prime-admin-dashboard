@@ -67,8 +67,30 @@ export default function BaseModal({
               borderTop: 1,
               borderColor: "divider",
               display: "flex",
-              gap: 1.5,
               flexWrap: "wrap",
+              gap: 1.5,
+              flexDirection: {
+                xs: "column",
+                sm: "row",
+              },
+              justifyContent: {
+                xs: "stretch",
+                md: "flex-end",
+              },
+              "& > *": {
+                width: {
+                  xs: "100%",
+                  sm: "auto",
+                },
+                flex: {
+                  xs: "unset",
+                  sm: 1,
+                  md: "unset",
+                },
+                maxWidth: {
+                  md: "fit-content",
+                },
+              },
             }}
           >
             {actions}

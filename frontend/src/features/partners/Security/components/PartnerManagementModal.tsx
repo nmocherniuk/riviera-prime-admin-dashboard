@@ -107,20 +107,6 @@ export default function PartnerManagementModal({
         !readOnly ? (
           <>
             <Button
-              variant="contained"
-              color="primary"
-              startIcon={<EditIcon />}
-              onClick={handleSave}
-              sx={{
-                borderRadius: 2,
-                textTransform: "none",
-                fontWeight: 700,
-                px: 2,
-              }}
-            >
-              {partner ? "Save changes" : "Add Partner"}
-            </Button>
-            <Button
               variant="outlined"
               startIcon={<CloseIcon />}
               onClick={onClose}
@@ -137,6 +123,20 @@ export default function PartnerManagementModal({
               }}
             >
               Cancel
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<EditIcon />}
+              onClick={handleSave}
+              sx={{
+                borderRadius: 2,
+                textTransform: "none",
+                fontWeight: 700,
+                px: 2,
+              }}
+            >
+              {partner ? "Save changes" : "Add Partner"}
             </Button>
           </>
         ) : undefined

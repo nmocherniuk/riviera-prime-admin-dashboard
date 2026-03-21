@@ -84,20 +84,6 @@ export default function BookingManagementModal({
       actions={
         <>
           <Button
-            variant="contained"
-            color="primary"
-            startIcon={<EditIcon />}
-            onClick={handleSave}
-            sx={{
-              borderRadius: 2,
-              textTransform: "none",
-              fontWeight: 700,
-              px: 2,
-            }}
-          >
-            {booking ? "Save Booking" : "Create Booking"}
-          </Button>
-          <Button
             variant="outlined"
             startIcon={<CloseIcon />}
             onClick={onClose}
@@ -114,6 +100,20 @@ export default function BookingManagementModal({
             }}
           >
             Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<EditIcon />}
+            onClick={handleSave}
+            sx={{
+              borderRadius: 2,
+              textTransform: "none",
+              fontWeight: 700,
+              px: 2,
+            }}
+          >
+            {booking ? "Save Booking" : "Create Booking"}
           </Button>
         </>
       }
