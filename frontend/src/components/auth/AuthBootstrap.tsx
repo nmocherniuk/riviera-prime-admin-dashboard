@@ -1,11 +1,8 @@
 import { useEffect, useState } from "react";
 import { Box, CircularProgress } from "@mui/material";
-import { api } from "../../api/api";
+import { meRequest, refreshRequest } from "../../api/auth";
 import { useAuthStore } from "../../store/authStore";
 
-/**
- * Tries silent refresh when there is no access token in storage but refresh cookie may exist.
- */
 export default function AuthBootstrap({
   children,
 }: {
@@ -18,16 +15,18 @@ export default function AuthBootstrap({
 
     (async () => {
       try {
-        if (!useAuthStore.getState().accessToken) {
-          const { data } = await api.post<{ accessToken: string }>(
-            "/auth/refresh",
-          );
-          if (!cancelled) {
-            useAuthStore.getState().setAccessToken(data.accessToken);
-          }
+        const auth = useAuthStore.getState();
+        if (!auth.accessToken) {
+          const { data } = await refreshRequest();
+          if (!cancelled) auth.setAccessToken(data.accessToken);
+        }
+
+        if (useAuthStore.getState().accessToken) {
+          const me = await meRequest();
+          if (!cancelled) useAuthStore.getState().setUser(me.data.user);
         }
       } catch {
-        console.error("Failed to refresh access token");
+        useAuthStore.getState().logout();
       } finally {
         if (!cancelled) {
           setReady(true);

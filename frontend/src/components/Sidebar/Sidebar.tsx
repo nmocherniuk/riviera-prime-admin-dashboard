@@ -21,7 +21,7 @@ import {
 import { useLocation, useNavigate, Link as RouterLink } from "react-router-dom";
 import LogoIcon from "./components/LogoIcon";
 import SectionTitle from "./components/SectionTitle";
-import { api } from "../../api/api";
+import { logoutRequest } from "../../api/auth";
 import { useAuthStore } from "../../store/authStore";
 
 const drawerWidth = 260;
@@ -39,7 +39,7 @@ export default function Sidebar({ open = false, onClose }: SidebarProps) {
 
   const handleSignOut = async () => {
     try {
-      await api.post("/auth/logout");
+      await logoutRequest();
     } catch {
       /* ignore */
     }

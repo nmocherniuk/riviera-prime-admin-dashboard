@@ -1,4 +1,5 @@
 import { api } from "./api";
+import { refreshRequest, logoutRequest, meRequest } from "./auth";
 import { useAuthStore } from "../store/authStore";
 
 function isAuthRefreshRequest(url: string | undefined) {
@@ -21,7 +22,7 @@ api.interceptors.request.use((config) => {
 
 async function handleLogout() {
     try {
-        await api.post("/auth/logout");
+        await logoutRequest();
     } catch {
         console.error("Failed to logout");
     }
@@ -51,9 +52,15 @@ api.interceptors.response.use(
         original._retry = true;
 
         try {
-            const { data } = await api.post<{ accessToken: string }>("/auth/refresh");
+            const { data } = await refreshRequest();
 
             useAuthStore.getState().setAccessToken(data.accessToken);
+            try {
+                const me = await meRequest();
+                useAuthStore.getState().setUser(me.data.user);
+            } catch {
+                // If /me fails after refresh, continue with token; request may still succeed.
+            }
 
             original.headers.Authorization = `Bearer ${data.accessToken}`;
             return api(original);

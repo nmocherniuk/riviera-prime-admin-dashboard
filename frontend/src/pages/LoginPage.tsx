@@ -32,6 +32,7 @@ export default function LoginPage() {
     try {
       const { data } = await loginRequest(email, password);
       useAuthStore.getState().setAccessToken(data.accessToken);
+      useAuthStore.getState().setUser(data.user);
       navigate(from, { replace: true });
     } catch {
       setError("Invalid email or password.");
