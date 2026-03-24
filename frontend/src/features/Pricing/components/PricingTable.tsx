@@ -1,21 +1,13 @@
-import {
-  Box,
-  IconButton,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from "@mui/material";
+import { useState } from "react";
+import { Box, Typography } from "@mui/material";
 import Chip from "@mui/material/Chip";
+import EditIcon from "@mui/icons-material/Edit";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
 import type { FleetClass } from "../../Fleet/data/dummyFleet";
 import type { VehiclePricing } from "../data/pricingData";
+import { GenericTable } from "../../../components/GenericTable";
+import EntityActionsMenu from "../../../components/EntityActionsMenu";
+import PricingCard from "./PricingCard";
 
 const classColors: Record<FleetClass, { bg: string; color: string }> = {
   Comfort: { bg: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.9)" },
@@ -25,271 +17,121 @@ const classColors: Record<FleetClass, { bg: string; color: string }> = {
 
 type Props = {
   rows: VehiclePricing[];
-  onEditRow?: (row: VehiclePricing) => void;
+  onEditRow: (row: VehiclePricing) => void;
 };
 
 export default function PricingTable({ rows, onEditRow }: Props) {
-  const theme = useTheme();
-  const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
+  const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+  const [selected, setSelected] = useState<VehiclePricing | null>(null);
 
-  if (!isDesktop) {
-    return (
-      <Paper
-        elevation={0}
-        sx={{
-          borderRadius: { xs: 2, md: 3 },
-          border: 1,
-          borderColor: "divider",
-          bgcolor: "background.paper",
-          overflow: "hidden",
-        }}
-      >
-        <Box
+  const openMenu = (e: React.MouseEvent<HTMLElement>, row: VehiclePricing) => {
+    e.stopPropagation();
+    setMenuAnchor(e.currentTarget);
+    setSelected(row);
+  };
+
+  const closeMenu = () => {
+    setMenuAnchor(null);
+    setSelected(null);
+  };
+
+  const columns = [
+    {
+      key: "vehicle",
+      label: "Vehicle",
+      render: (row: VehiclePricing) => (
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <Box
+            sx={{
+              width: 40,
+              height: 40,
+              borderRadius: 2,
+              bgcolor: "rgba(255,255,255,0.08)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "text.secondary",
+            }}
+          >
+            <DirectionsCarIcon fontSize="small" />
+          </Box>
+          <Box>
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: 700, color: "text.primary" }}
+            >
+              {row.vehicle.vehicleName}
+            </Typography>
+            <Typography variant="caption" sx={{ color: "text.secondary" }}>
+              {row.vehicle.licensePlate}
+            </Typography>
+          </Box>
+        </Box>
+      ),
+    },
+    {
+      key: "class",
+      label: "Class",
+      render: (row: VehiclePricing) => (
+        <Chip
+          label={row.vehicle.class}
+          size="small"
           sx={{
-            px: { xs: 1.5, md: 2 },
-            py: 1.5,
-            borderBottom: 1,
-            borderColor: "divider",
+            bgcolor: classColors[row.vehicle.class].bg,
+            color: classColors[row.vehicle.class].color,
+            fontWeight: 600,
+            fontSize: "0.75rem",
           }}
-        >
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "text.primary" }}>
-            Vehicle pricing
-          </Typography>
-        </Box>
-        <Box sx={{ px: { xs: 1.5, md: 2 }, py: 2, display: "flex", flexDirection: "column", gap: 2 }}>
-          {rows.map((row) => {
-            const classStyle = classColors[row.vehicle.class];
-            return (
-              <Paper
-                key={row.vehicle.id}
-                elevation={0}
-                sx={{
-                  p: 2,
-                  borderRadius: 2,
-                  border: 1,
-                  borderColor: "divider",
-                  bgcolor: "rgba(255,255,255,0.02)",
-                }}
-              >
-                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1.5, mb: 1.5 }}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                    <Box
-                      sx={{
-                        width: 40,
-                        height: 40,
-                        borderRadius: 2,
-                        bgcolor: "rgba(255,255,255,0.08)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "text.secondary",
-                      }}
-                    >
-                      <DirectionsCarIcon fontSize="small" />
-                    </Box>
-                    <Box>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "text.primary" }}>
-                        {row.vehicle.vehicleName}
-                      </Typography>
-                      <Chip
-                        label={row.vehicle.class}
-                        size="small"
-                        sx={{
-                          mt: 0.5,
-                          bgcolor: classStyle.bg,
-                          color: classStyle.color,
-                          fontWeight: 600,
-                          fontSize: "0.7rem",
-                        }}
-                      />
-                    </Box>
-                  </Box>
-                  {onEditRow && (
-                    <IconButton
-                      size="small"
-                      sx={{ color: "text.secondary" }}
-                      aria-label="actions"
-                      onClick={() => onEditRow(row)}
-                    >
-                      <MoreVertIcon />
-                    </IconButton>
-                  )}
-                </Box>
-                <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
-                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                    Per hour: <strong style={{ color: "inherit" }}>{row.perHour}</strong>
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                    Per KM: <strong style={{ color: "inherit" }}>{row.perKm}</strong>
-                  </Typography>
-                </Box>
-              </Paper>
-            );
-          })}
-        </Box>
-      </Paper>
-    );
-  }
+        />
+      ),
+    },
+    {
+      key: "perHour",
+      label: "Price per hour",
+      render: (row: VehiclePricing) => (
+        <Typography variant="body2" sx={{ color: "text.primary" }}>
+          {row.perHour}
+        </Typography>
+      ),
+    },
+    {
+      key: "perKm",
+      label: "Price per KM",
+      render: (row: VehiclePricing) => (
+        <Typography variant="body2" sx={{ color: "text.primary" }}>
+          {row.perKm}
+        </Typography>
+      ),
+    },
+  ];
 
   return (
-    <Paper
-      elevation={0}
-      sx={{
-        borderRadius: 3,
-        border: 1,
-        borderColor: "divider",
-        bgcolor: "background.paper",
-        overflow: "hidden",
-      }}
-    >
-      <Box
-        sx={{
-          px: 2,
-          py: 1.5,
-          borderBottom: 1,
-          borderColor: "divider",
-        }}
-      >
-        <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "text.primary" }}>
-          Vehicle pricing
-        </Typography>
-      </Box>
-      <Box sx={{ overflowX: "auto" }}>
-        <Table size="medium" sx={{ minWidth: 640 }}>
-          <TableHead>
-            <TableRow sx={{ bgcolor: "rgba(255,255,255,0.04)" }}>
-              <TableCell
-                sx={{
-                  fontWeight: 700,
-                  color: "text.secondary",
-                  textTransform: "uppercase",
-                  letterSpacing: 0.8,
-                  py: 1.5,
-                }}
-              >
-                Vehicle
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 700,
-                  color: "text.secondary",
-                  textTransform: "uppercase",
-                  letterSpacing: 0.8,
-                  py: 1.5,
-                }}
-              >
-                Class
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 700,
-                  color: "text.secondary",
-                  textTransform: "uppercase",
-                  letterSpacing: 0.8,
-                  py: 1.5,
-                }}
-              >
-                Price per hour
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 700,
-                  color: "text.secondary",
-                  textTransform: "uppercase",
-                  letterSpacing: 0.8,
-                  py: 1.5,
-                }}
-              >
-                Price per KM
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 700,
-                  color: "text.secondary",
-                  textTransform: "uppercase",
-                  letterSpacing: 0.8,
-                  py: 1.5,
-                  width: 56,
-                }}
-              >
-                Actions
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {rows.map((row) => {
-              const classStyle = classColors[row.vehicle.class];
-              return (
-                <TableRow
-                  key={row.vehicle.id}
-                  sx={{ "&:hover": { bgcolor: "rgba(255,255,255,0.03)" } }}
-                >
-                  <TableCell sx={{ py: 2 }}>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                      <Box
-                        sx={{
-                          width: 40,
-                          height: 40,
-                          borderRadius: 2,
-                          bgcolor: "rgba(255,255,255,0.08)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "text.secondary",
-                        }}
-                      >
-                        <DirectionsCarIcon fontSize="small" />
-                      </Box>
-                      <Box>
-                        <Typography variant="body2" sx={{ fontWeight: 700, color: "text.primary" }}>
-                          {row.vehicle.vehicleName}
-                        </Typography>
-                        <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                          {row.vehicle.licensePlate}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={row.vehicle.class}
-                      size="small"
-                      sx={{
-                        bgcolor: classStyle.bg,
-                        color: classStyle.color,
-                        fontWeight: 600,
-                        fontSize: "0.75rem",
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2" sx={{ color: "text.primary" }}>
-                      {row.perHour}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2" sx={{ color: "text.primary" }}>
-                      {row.perKm}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    {onEditRow && (
-                      <IconButton
-                        size="small"
-                        sx={{ color: "text.secondary" }}
-                        aria-label="actions"
-                        onClick={() => onEditRow(row)}
-                      >
-                        <MoreVertIcon />
-                      </IconButton>
-                    )}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </Box>
-    </Paper>
+    <>
+      <GenericTable
+        title="Vehicle pricing"
+        columns={columns}
+        data={rows}
+        actions={openMenu}
+        withPagination={{ pageSize: 6 }}
+        renderMobileCard={(row: VehiclePricing) => (
+          <PricingCard row={row} onEditRow={onEditRow} />
+        )}
+      />
+
+      <EntityActionsMenu
+        anchorEl={menuAnchor}
+        open={Boolean(menuAnchor)}
+        onClose={closeMenu}
+        menuPaperSx={{ minWidth: 200, borderRadius: 2 }}
+        actions={[
+          {
+            label: "Edit",
+            icon: <EditIcon fontSize="small" />,
+            disabled: !selected,
+            onClick: () => selected && onEditRow(selected),
+          },
+        ]}
+      />
+    </>
   );
 }
