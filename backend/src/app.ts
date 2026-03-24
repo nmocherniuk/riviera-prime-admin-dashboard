@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import routes from "./routes/index.js";
+import bcrypt from "bcryptjs";
 
 const app = express();
 

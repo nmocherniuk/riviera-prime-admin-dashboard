@@ -2,17 +2,37 @@ import { Box } from "@mui/material";
 import BusinessIcon from "@mui/icons-material/Business";
 import PersonOffIcon from "@mui/icons-material/PersonOff";
 import GroupIcon from "@mui/icons-material/Group";
-import AssignmentIcon from "@mui/icons-material/Assignment";
 import CardStat from "../../../../components/CardStat";
 
-const stats = [
-  { label: "Active Partners", value: "9", icon: BusinessIcon },
-  { label: "Inactive Partners", value: "3", icon: PersonOffIcon },
-  { label: "Bodyguards Available", value: "28", icon: GroupIcon },
-  { label: "On Assignment", value: "5", icon: AssignmentIcon },
-];
+type Props = {
+  totalPartners: number;
+  activePartners: number;
+  inactivePartners: number;
+};
 
-export default function SecurityPartnersStats() {
+export default function SecurityPartnersStats({
+  totalPartners,
+  activePartners,
+  inactivePartners,
+}: Props) {
+  const stats = [
+    {
+      label: "Partners",
+      value: String(totalPartners),
+      icon: BusinessIcon,
+    },
+    {
+      label: "Active",
+      value: String(activePartners),
+      icon: GroupIcon,
+    },
+    {
+      label: "Inactive",
+      value: String(inactivePartners),
+      icon: PersonOffIcon,
+    },
+  ];
+
   return (
     <Box
       sx={{
@@ -20,7 +40,7 @@ export default function SecurityPartnersStats() {
         gridTemplateColumns: {
           xs: "1fr",
           sm: "repeat(2, minmax(0, 1fr))",
-          md: "repeat(4, minmax(0, 1fr))",
+          md: "repeat(3, minmax(0, 1fr))",
         },
         gap: 2,
       }}

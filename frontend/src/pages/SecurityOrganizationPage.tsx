@@ -1,32 +1,73 @@
-import { Box, Container, Button, Typography } from "@mui/material";
-import { useState, useMemo } from "react";
+import {
+  Box,
+  Container,
+  Button,
+  Typography,
+  CircularProgress,
+} from "@mui/material";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import PageHeader from "../components/PageHeader";
 
 import ConfirmDeleteDialog from "../components/ConfirmDeleteDialog";
-import {
-  DUMMY_PARTNERS,
-  DUMMY_BODYGUARDS,
-} from "../features/partners/Security/data/dummyPartners";
-import type { Bodyguard } from "../features/partners/Security/data/types";
+import { DUMMY_BODYGUARDS } from "../features/partners/Security/data/dummyPartners";
+import type {
+  Bodyguard,
+  Partner,
+} from "../features/partners/Security/data/types";
 import BodyguardModal, {
   type BodyguardFormValues,
 } from "../features/partners/Security/components/bodyguards/BodyguardModal";
 import BodyguardsTable from "../features/partners/Security/components/bodyguards/BodyguardsTable";
+import {
+  dtoToPartner,
+  getApiErrorMessage,
+  getOrganization,
+  isNotFoundError,
+} from "../api/organizations";
 
 export default function SecurityOrganizationPage() {
   const { partnerId } = useParams<{ partnerId: string }>();
   const navigate = useNavigate();
-  const partner = useMemo(
-    () => DUMMY_PARTNERS.find((p) => p.id === partnerId) ?? null,
-    [partnerId],
-  );
 
-  const [bodyguards, setBodyguards] = useState<Bodyguard[]>(() =>
-    DUMMY_BODYGUARDS.filter((b) => b.partnerId === partnerId),
-  );
+  const [partner, setPartner] = useState<Partner | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const loadPartner = useCallback(async () => {
+    if (!partnerId) return;
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const dto = await getOrganization(partnerId, "SECURITY");
+      setPartner(dtoToPartner(dto));
+    } catch (e) {
+      setPartner(null);
+      if (isNotFoundError(e)) {
+        setLoadError("No results");
+      } else {
+        setLoadError(getApiErrorMessage(e, "Failed to load partner"));
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [partnerId]);
+
+  useEffect(() => {
+    void loadPartner();
+  }, [loadPartner]);
+
+  const [bodyguards, setBodyguards] = useState<Bodyguard[]>(() => []);
+  useEffect(() => {
+    if (!partnerId) {
+      setBodyguards([]);
+      return;
+    }
+    setBodyguards(DUMMY_BODYGUARDS.filter((b) => b.partnerId === partnerId));
+  }, [partnerId]);
+
   const [bodyguardModal, setBodyguardModal] = useState<{
     open: boolean;
     bodyguard: Bodyguard | null;
@@ -61,11 +102,43 @@ export default function SecurityOrganizationPage() {
     setBodyguards((prev) => prev.filter((x) => x.id !== b.id));
   };
 
-  if (!partnerId || !partner) {
+  if (!partnerId) {
     return (
       <Box sx={{ p: 3 }}>
         <Typography variant="body1" color="text.secondary">
           Partner not found.
+        </Typography>
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate("/security-partners")}
+          sx={{ mt: 2 }}
+        >
+          Back to partners
+        </Button>
+      </Box>
+    );
+  }
+
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: 240,
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (!partner) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Typography variant="body1" color="text.secondary">
+          {loadError ?? "Organization not found."}
         </Typography>
         <Button
           startIcon={<ArrowBackIcon />}

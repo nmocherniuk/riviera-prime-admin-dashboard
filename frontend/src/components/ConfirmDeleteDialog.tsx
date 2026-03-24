@@ -4,7 +4,7 @@ import BaseModal from "./BaseModal";
 type Props = {
   open: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: () => void | Promise<void>;
   title?: string;
   message?: string;
   confirmLabel?: string;
@@ -49,9 +49,13 @@ export default function ConfirmDeleteDialog({
           <Button
             variant="contained"
             color="error"
-            onClick={() => {
-              onConfirm();
-              onClose();
+            onClick={async () => {
+              try {
+                await Promise.resolve(onConfirm());
+                onClose();
+              } catch {
+                // keep dialog open on failure
+              }
             }}
             sx={{ borderRadius: 2, textTransform: "none" }}
           >

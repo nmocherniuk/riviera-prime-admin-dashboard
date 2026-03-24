@@ -1,48 +1,126 @@
-import { Box, Button, Container, Typography } from "@mui/material";
-import { useCallback, useMemo, useState } from "react";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Container,
+  Typography,
+  Alert,
+} from "@mui/material";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import {
-  DUMMY_DRIVERS,
-  type Driver,
-} from "../features/partners/Drivers/data/dummyDrivers";
+import type { Driver } from "../features/partners/Drivers/data/dummyDrivers";
 import type { DriverOrganization } from "../features/partners/Drivers/data/types";
-import { DUMMY_DRIVER_ORGANIZATIONS } from "../features/partners/Drivers/data/dummyDriverOrganizations";
 import type { DriverFormValues } from "../features/partners/Drivers/components/drivers/DriverManagementModal";
 import DriverManagementModal from "../features/partners/Drivers/components/drivers/DriverManagementModal";
 import ConfirmDeleteDialog from "../components/ConfirmDeleteDialog";
 import DriversTable from "../features/partners/Drivers/components/drivers/DriversTable";
 import DriversHeader from "../features/partners/Drivers/components/drivers/DriversHeader";
 import DriversStats from "../features/partners/Drivers/components/drivers/DriversStats";
-
-const TOTAL_DRIVERS = 28;
-
-function buildDriversList(): Driver[] {
-  const list: Driver[] = [];
-  while (list.length < TOTAL_DRIVERS) {
-    for (const d of DUMMY_DRIVERS) {
-      if (list.length >= TOTAL_DRIVERS) break;
-      list.push({
-        ...d,
-        id: `DRV-${String(list.length + 1).padStart(3, "0")}`,
-      });
-    }
-  }
-  return list;
-}
+import {
+  dtoToDriverOrganization,
+  getApiErrorMessage,
+  getOrganization,
+  isNotFoundError,
+} from "../api/organizations";
+import {
+  createDriver,
+  deleteDriver,
+  driverFormToCreateBody,
+  driverFormToUpdateBody,
+  dtoToDriver,
+  listDrivers,
+  updateDriver,
+} from "../api/drivers";
+import {
+  assignDriverToVehicle,
+  getVehicleIdFromDriverForm,
+  listVehicles,
+} from "../api/vehicles";
 
 export default function DriversPage() {
   const { organizationId } = useParams<{ organizationId: string }>();
   const navigate = useNavigate();
 
-  const organization: DriverOrganization | undefined = useMemo(() => {
-    if (!organizationId) return undefined;
-    return DUMMY_DRIVER_ORGANIZATIONS.find((o) => o.id === organizationId);
+  const [organization, setOrganization] = useState<
+    DriverOrganization | undefined
+  >(undefined);
+  const [orgLoading, setOrgLoading] = useState(true);
+  const [orgError, setOrgError] = useState<string | null>(null);
+
+  const [allDrivers, setAllDrivers] = useState<Driver[]>([]);
+  const [vehiclesByDriverId, setVehiclesByDriverId] = useState<
+    Record<string, Array<{ id: string; label: string; vehicleClass: string }>>
+  >({});
+  const [driversLoading, setDriversLoading] = useState(true);
+  const [driversError, setDriversError] = useState<string | null>(null);
+
+  const loadOrganization = useCallback(async () => {
+    if (!organizationId) return;
+    setOrgLoading(true);
+    setOrgError(null);
+    try {
+      const dto = await getOrganization(organizationId, "CHAUFFEUR");
+      setOrganization(dtoToDriverOrganization(dto));
+    } catch (e) {
+      setOrganization(undefined);
+      if (isNotFoundError(e)) {
+        setOrgError("No results");
+      } else {
+        setOrgError(getApiErrorMessage(e, "Failed to load organization"));
+      }
+    } finally {
+      setOrgLoading(false);
+    }
   }, [organizationId]);
 
-  const [allDrivers, setAllDrivers] = useState<Driver[]>(() =>
-    buildDriversList(),
-  );
+  const loadDrivers = useCallback(async () => {
+    if (!organizationId) return;
+    setDriversLoading(true);
+    setDriversError(null);
+    try {
+      const [rows, vehicles] = await Promise.all([
+        listDrivers(organizationId),
+        listVehicles({ organizationId }),
+      ]);
+      setAllDrivers(
+        rows.map((row) =>
+          dtoToDriver(row, organization?.organizationName ?? ""),
+        ),
+      );
+      const grouped = vehicles.reduce<
+        Record<string, Array<{ id: string; label: string; vehicleClass: string }>>
+      >((acc, v) => {
+        if (!v.driverId) return acc;
+        if (!acc[v.driverId]) acc[v.driverId] = [];
+        acc[v.driverId].push({
+          id: v.id,
+          label: v.vehicleName,
+          vehicleClass: v.class,
+        });
+        return acc;
+      }, {});
+      setVehiclesByDriverId(grouped);
+    } catch (e) {
+      if (isNotFoundError(e)) {
+        setAllDrivers([]);
+      } else {
+        setDriversError(getApiErrorMessage(e, "Failed to load drivers"));
+      }
+    } finally {
+      setDriversLoading(false);
+    }
+  }, [organizationId, organization?.organizationName]);
+
+  useEffect(() => {
+    void loadOrganization();
+  }, [loadOrganization]);
+
+  useEffect(() => {
+    if (!organizationId) return;
+    void loadDrivers();
+  }, [organizationId, loadDrivers]);
+
   const [driverModal, setDriverModal] = useState<{
     open: boolean;
     driver: Driver | null;
@@ -50,27 +128,42 @@ export default function DriversPage() {
   }>({ open: false, driver: null, readOnly: false });
   const [driverToDelete, setDriverToDelete] = useState<Driver | null>(null);
 
-  const drivers = useMemo(() => {
-    if (!organizationId) return [];
-    return allDrivers.filter((d) => d.organizationId === organizationId);
-  }, [allDrivers, organizationId]);
-
   const handleSaveDriver = useCallback(
-    (driverId: string, values: DriverFormValues) => {
-      setAllDrivers((prev) =>
-        prev.map((d) => {
-          if (d.id !== driverId) return d;
-          const fullName = `${values.name} ${values.surname}`.trim();
-          return {
-            ...d,
-            name: fullName || d.name,
-            vehicle: values.vehicle || d.vehicle,
-          };
-        }),
-      );
-      setDriverModal({ open: false, driver: null, readOnly: false });
+    async (driverId: string | null, values: DriverFormValues) => {
+      if (!organizationId) return;
+
+      try {
+        setDriversError(null);
+        if (driverId) {
+          const current = allDrivers.find((d) => d.id === driverId);
+          if (!current) {
+            throw new Error("Driver not found in current list");
+          }
+          const updated = await updateDriver(
+            driverId,
+            driverFormToUpdateBody(values, current),
+            organizationId,
+          );
+          const vehicleId = getVehicleIdFromDriverForm(values);
+          if (vehicleId) {
+            await assignDriverToVehicle(vehicleId, updated.id);
+          }
+        } else {
+          const created = await createDriver(
+            driverFormToCreateBody(values, organizationId),
+          );
+          const vehicleId = getVehicleIdFromDriverForm(values);
+          if (vehicleId) {
+            await assignDriverToVehicle(vehicleId, created.id);
+          }
+        }
+        await loadDrivers();
+      } catch (e) {
+        setDriversError(getApiErrorMessage(e, "Failed to save driver"));
+        throw e;
+      }
     },
-    [],
+    [organizationId, allDrivers, loadDrivers],
   );
 
   const handleDeleteClick = useCallback(
@@ -78,17 +171,73 @@ export default function DriversPage() {
     [],
   );
 
-  const handleConfirmDelete = useCallback(() => {
-    if (!driverToDelete) return;
-    setAllDrivers((prev) => prev.filter((d) => d.id !== driverToDelete.id));
-    setDriverToDelete(null);
-  }, [driverToDelete]);
+  const handleConfirmDelete = useCallback(async () => {
+    if (!driverToDelete || !organizationId) return;
+    try {
+      setDriversError(null);
+      await deleteDriver(driverToDelete.id, organizationId);
+      await loadDrivers();
+      setDriverToDelete(null);
+    } catch (e) {
+      setDriversError(getApiErrorMessage(e, "Failed to delete driver"));
+      throw e;
+    }
+  }, [driverToDelete, organizationId, loadDrivers]);
 
-  if (!organizationId || !organization) {
+  const activeCount = useMemo(
+    () => allDrivers.filter((d) => d.status === "AVAILABLE").length,
+    [allDrivers],
+  );
+  const onRideCount = useMemo(
+    () => allDrivers.filter((d) => d.status === "ON RIDE").length,
+    [allDrivers],
+  );
+  const offlineCount = allDrivers.length - activeCount - onRideCount;
+  const revenueValue = useMemo(() => {
+    const total = allDrivers.reduce((sum, d) => {
+      const n = Number(d.earning.replace(/[^0-9.]/g, ""));
+      return sum + (Number.isFinite(n) ? n : 0);
+    }, 0);
+    return `$${total.toFixed(2)}`;
+  }, [allDrivers]);
+
+  if (!organizationId) {
     return (
       <Box sx={{ p: 3 }}>
         <Typography variant="body1" color="text.secondary">
-          Organization not found.
+          No results
+        </Typography>
+        <Button
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate("/drivers-partners")}
+          sx={{ mt: 2, textTransform: "none" }}
+        >
+          Back to organizations
+        </Button>
+      </Box>
+    );
+  }
+
+  if (orgLoading) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: 240,
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (!organization) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Typography variant="body1" color="text.secondary">
+          {orgError ?? "No results"}
         </Typography>
         <Button
           startIcon={<ArrowBackIcon />}
@@ -107,6 +256,16 @@ export default function DriversPage() {
         maxWidth={false}
         sx={{ px: { xs: 1.5, sm: 2, md: 3 }, maxWidth: "100%" }}
       >
+        {driversError ? (
+          <Alert
+            severity="error"
+            sx={{ mb: 2 }}
+            onClose={() => setDriversError(null)}
+          >
+            {driversError}
+          </Alert>
+        ) : null}
+
         <Box sx={{ pt: { xs: 1, md: 2 } }}>
           <DriversHeader
             organization={organization}
@@ -117,20 +276,42 @@ export default function DriversPage() {
         </Box>
 
         <Box sx={{ pt: { xs: 1, md: 2 } }}>
-          <DriversStats />
+          <DriversStats
+            activeCount={activeCount}
+            onRideCount={onRideCount}
+            offlineCount={offlineCount}
+            revenue={revenueValue}
+          />
         </Box>
 
-        <Box sx={{ mt: 2 }}>
-          <DriversTable
-            drivers={drivers}
-            onDriverView={(d) =>
-              setDriverModal({ open: true, driver: d, readOnly: true })
-            }
-            onDriverEdit={(d) =>
-              setDriverModal({ open: true, driver: d, readOnly: false })
-            }
-            onDriverDelete={handleDeleteClick}
-          />
+        <Box sx={{ mt: 2, minHeight: driversLoading ? 200 : 0 }}>
+          {driversLoading ? (
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                py: 8,
+              }}
+            >
+              <CircularProgress />
+            </Box>
+          ) : allDrivers.length === 0 ? (
+            <Box sx={{ py: 8, textAlign: "center", color: "text.secondary" }}>
+              No results
+            </Box>
+          ) : (
+            <DriversTable
+              drivers={allDrivers}
+              onDriverView={(d) =>
+                setDriverModal({ open: true, driver: d, readOnly: true })
+              }
+              onDriverEdit={(d) =>
+                setDriverModal({ open: true, driver: d, readOnly: false })
+              }
+              onDriverDelete={handleDeleteClick}
+            />
+          )}
         </Box>
 
         <DriverManagementModal
@@ -138,6 +319,11 @@ export default function DriversPage() {
           onClose={() => setDriverModal((prev) => ({ ...prev, open: false }))}
           driver={driverModal.driver}
           readOnly={driverModal.readOnly}
+          managedVehicles={
+            driverModal.driver
+              ? (vehiclesByDriverId[driverModal.driver.id] ?? [])
+              : []
+          }
           onSave={handleSaveDriver}
         />
 
@@ -145,8 +331,8 @@ export default function DriversPage() {
           open={!!driverToDelete}
           onClose={() => setDriverToDelete(null)}
           onConfirm={handleConfirmDelete}
-          title="Ð’Ð¸Ð´Ð°Ð»Ð¸Ñ‚Ð¸ Ð²Ð¾Ð´Ñ–Ñ?"
-          message="Ð¦ÑŽ Ð´Ñ–ÑŽ Ð½Ðµ Ð¼Ð¾Ð¶Ð½Ð° ÑÐºÐ°ÑÑƒÐ²Ð°Ñ‚Ð¸. Ð—Ð°Ð¿Ð¸Ñ Ð±ÑƒÐ´Ðµ Ð²Ð¸Ð´Ð°Ð»ÐµÐ½Ð¾ Ð½Ð°Ð·Ð°Ð²Ð¶Ð´Ð¸."
+          title="˜˜˜˜˜˜˜˜ ˜˜˜˜?"
+          message="˜˜ ˜˜ ˜˜ ˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜. ˜˜˜˜˜ ˜˜˜˜ ˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜."
         />
       </Container>
     </Box>

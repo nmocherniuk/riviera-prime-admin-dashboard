@@ -17,8 +17,7 @@ export default function LoginPage() {
   const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
-  const from =
-    (location.state as { from?: string } | null)?.from ?? "/";
+  const from = (location.state as { from?: string } | null)?.from ?? "/";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,7 +33,8 @@ export default function LoginPage() {
       useAuthStore.getState().setAccessToken(data.accessToken);
       useAuthStore.getState().setUser(data.user);
       navigate(from, { replace: true });
-    } catch {
+    } catch (error) {
+      console.log(error);
       setError("Invalid email or password.");
     } finally {
       setLoading(false);

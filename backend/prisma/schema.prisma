@@ -7,7 +7,7 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
+model Users {
   id        String   @id @default(uuid())
   email     String   @unique
   passwordHash String
@@ -21,4 +21,87 @@ enum Role {
   DRIVER
   PARTNER
   CLIENT
+}
+
+enum OrganizationType {
+  CHAUFFEUR
+  SECURITY
+}
+
+model Organizations {
+  id             String           @id @default(uuid())
+  title          String
+  email          String           @unique
+  phone          String           @unique
+  contactPerson  String
+  serviceArea    String           @default("")
+  status         Boolean
+  type           OrganizationType
+  createdAt      DateTime         @default(now())
+  drivers        Drivers[]
+  vehicles       Vehicles[]
+}
+
+enum DriverStatus {
+  AVAILABLE
+  ON_RIDE
+  OFFLINE
+}
+
+model Drivers {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organizations @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  vehicle        String
+  vehiclePlate   String
+  vehicleColor   String
+  status         DriverStatus @default(AVAILABLE)
+  rides          Int          @default(0)
+  todayShift     String       @default("")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  assignedVehicles Vehicles[]
+
+  @@index([organizationId])
+}
+
+enum VehicleClass {
+  COMFORT
+  BUSINESS
+  VAN
+}
+
+enum VehicleStatus {
+  AVAILABLE
+  ON_TRIP
+}
+
+model Vehicles {
+  id             String        @id @default(uuid())
+  organizationId String
+  organization   Organizations @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  driverId       String?
+  driver         Drivers?      @relation(fields: [driverId], references: [id], onDelete: SetNull)
+  vehicleName    String
+  yearColor      String
+  licensePlate   String        @unique
+  class          VehicleClass
+  status         VehicleStatus @default(AVAILABLE)
+  nextService    String        @default("")
+  pricing        VehiclePricings?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([organizationId])
+}
+
+model VehiclePricings {
+  id         String   @id @default(uuid())
+  vehicleId  String   @unique
+  vehicle    Vehicles @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  perHour    Decimal  @db.Decimal(10, 2)
+  perKm      Decimal  @db.Decimal(10, 2)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }

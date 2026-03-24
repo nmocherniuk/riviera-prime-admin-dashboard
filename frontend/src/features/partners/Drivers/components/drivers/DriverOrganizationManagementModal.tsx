@@ -1,5 +1,4 @@
 import {
-  Box,
   Grid,
   MenuItem,
   TextField,
@@ -61,7 +60,7 @@ type Props = {
   onSave?: (
     organizationId: string | null,
     values: DriverOrganizationFormValues,
-  ) => void;
+  ) => void | Promise<void>;
 };
 
 const ORG_STATUSES: DriverOrganizationStatus[] = ["active", "inactive"];
@@ -86,9 +85,13 @@ export default function DriverOrganizationManagementModal({
         setFormValues((prev) => ({ ...prev, [field]: e.target.value }));
       };
 
-  const handleSave = () => {
-    onSave?.(organization?.id ?? null, formValues);
-    onClose();
+  const handleSave = async () => {
+    try {
+      await Promise.resolve(onSave?.(organization?.id ?? null, formValues));
+      onClose();
+    } catch {
+      // keep modal open on failure
+    }
   };
 
   return (

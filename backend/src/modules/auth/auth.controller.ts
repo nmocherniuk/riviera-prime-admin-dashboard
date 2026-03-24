@@ -4,6 +4,7 @@ import { getRefreshCookieOptions } from "./auth.tokens.js";
 import type { AuthedRequest } from "../../middleware/requireAuth.js";
 
 export async function loginController(req: Request, res: Response) {
+  console.log(req.body);
   try {
     const result = await login(req.body);
     res.cookie("refreshToken", result.refreshToken, getRefreshCookieOptions());
@@ -16,6 +17,8 @@ export async function loginController(req: Request, res: Response) {
     if (message === "Invalid email or password") {
       return res.status(401).json({ message });
     }
+    console.log(message);
+
     return res.status(500).json({ message: "Login failed" });
   }
 }
@@ -44,4 +47,3 @@ export function logoutController(_req: Request, res: Response) {
 export function meController(req: AuthedRequest, res: Response) {
   return res.json({ user: req.user });
 }
-

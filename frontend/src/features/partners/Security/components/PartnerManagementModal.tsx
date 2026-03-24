@@ -52,7 +52,7 @@ type Props = {
   onClose: () => void;
   partner: Partner | null;
   readOnly?: boolean;
-  onSave?: (partnerId: string | null, values: PartnerFormValues) => void;
+  onSave?: (partnerId: string | null, values: PartnerFormValues) => void | Promise<void>;
 };
 
 const PARTNER_STATUSES: PartnerStatus[] = ["active", "inactive"];
@@ -77,9 +77,13 @@ export default function PartnerManagementModal({
         setFormValues((prev) => ({ ...prev, [field]: e.target.value }));
       };
 
-  const handleSave = () => {
-    onSave?.(partner?.id ?? null, formValues);
-    onClose();
+  const handleSave = async () => {
+    try {
+      await Promise.resolve(onSave?.(partner?.id ?? null, formValues));
+      onClose();
+    } catch {
+      // keep modal open on failure
+    }
   };
 
   return (

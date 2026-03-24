@@ -1,10 +1,4 @@
-import {
-  Typography,
-  TextField,
-  Grid,
-  Box,
-  Button,
-} from "@mui/material";
+import { Typography, TextField, Grid, Box, Button } from "@mui/material";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import EditIcon from "@mui/icons-material/Edit";
@@ -23,6 +17,7 @@ export type DriverFormValues = {
   surname: string;
   phone: string;
   email: string;
+  vehicleId: string;
   vehicleType: string;
   vehicle: string;
   perHour: string;
@@ -34,6 +29,7 @@ const defaultFormValues: DriverFormValues = {
   surname: "",
   phone: "",
   email: "",
+  vehicleId: "",
   vehicleType: "",
   vehicle: "",
   perHour: "",
@@ -48,6 +44,7 @@ function driverToFormValues(driver: Driver | null): DriverFormValues {
     surname: surnameParts.join(" ") || "",
     phone: "",
     email: "",
+    vehicleId: "",
     vehicleType: "",
     vehicle: driver.vehicle || "",
     perHour: "",
@@ -60,7 +57,11 @@ type Props = {
   onClose: () => void;
   driver: Driver | null;
   readOnly?: boolean;
-  onSave?: (driverId: string, values: DriverFormValues) => void;
+  managedVehicles?: Array<{ id: string; label: string; vehicleClass: string }>;
+  onSave?: (
+    driverId: string | null,
+    values: DriverFormValues,
+  ) => void | Promise<void>;
 };
 
 export default function DriverManagementModal({
@@ -68,6 +69,7 @@ export default function DriverManagementModal({
   onClose,
   driver,
   readOnly = false,
+  managedVehicles = [],
   onSave,
 }: Props) {
   const [formValues, setFormValues] =
@@ -79,16 +81,36 @@ export default function DriverManagementModal({
 
   const handleChange =
     (field: keyof DriverFormValues) =>
-      (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormValues((prev) => ({ ...prev, [field]: e.target.value }));
-      };
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setFormValues((prev) => ({ ...prev, [field]: e.target.value }));
+    };
 
-  const handleSave = () => {
-    if (driver) {
-      onSave?.(driver.id, formValues);
+  const handleSave = async () => {
+    try {
+      await Promise.resolve(onSave?.(driver?.id ?? null, formValues));
       onClose();
+    } catch {
+      // keep modal open on failure
     }
   };
+
+  const primaryVehicle = managedVehicles[0];
+  const extraVehicles = Math.max(0, managedVehicles.length - 1);
+  const vehicleIdValue = primaryVehicle
+    ? extraVehicles > 0
+      ? `${primaryVehicle.id} (+${extraVehicles})`
+      : primaryVehicle.id
+    : formValues.vehicleId || "—";
+  const vehicleTypeValue = primaryVehicle
+    ? extraVehicles > 0
+      ? `${primaryVehicle.vehicleClass} (+${extraVehicles})`
+      : primaryVehicle.vehicleClass
+    : formValues.vehicleType || "—";
+  const vehicleNameValue = primaryVehicle
+    ? extraVehicles > 0
+      ? `${primaryVehicle.label} (+${extraVehicles})`
+      : primaryVehicle.label
+    : formValues.vehicle || "—";
 
   return (
     <BaseModal
@@ -151,9 +173,7 @@ export default function DriverManagementModal({
         #{driver?.id ?? "—"}
       </Typography>
 
-      <Typography sx={sectionLabelSx}>
-        Driver (Personal Information)
-      </Typography>
+      <Typography sx={sectionLabelSx}>Driver (Personal Information)</Typography>
       <Grid container spacing={1.5}>
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
@@ -217,13 +237,26 @@ export default function DriverManagementModal({
         </Grid>
       </Grid>
 
-      <Typography sx={sectionLabelSx}>
-        Vehicle (Vehicle Information)
-      </Typography>
+      <Typography sx={sectionLabelSx}>Vehicle (Vehicle Information)</Typography>
       <Grid container spacing={1.5}>
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
-            <DetailField label="Type" value={formValues.vehicleType} />
+            <DetailField label="Vehicle ID" value={vehicleIdValue} />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              label="Vehicle ID (optional)"
+              placeholder="UUID vehicle id"
+              value={formValues.vehicleId}
+              onChange={handleChange("vehicleId")}
+              sx={modalTextFieldSx}
+            />
+          )}
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          {readOnly ? (
+            <DetailField label="Type" value={vehicleTypeValue} />
           ) : (
             <TextField
               fullWidth
@@ -238,7 +271,7 @@ export default function DriverManagementModal({
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
-            <DetailField label="Vehicle" value={formValues.vehicle} />
+            <DetailField label="Vehicle" value={vehicleNameValue} />
           ) : (
             <TextField
               fullWidth
@@ -251,36 +284,17 @@ export default function DriverManagementModal({
             />
           )}
         </Grid>
-      </Grid>
-
-      <Typography sx={sectionLabelSx}>Earning (Earning Rates)</Typography>
-      <Grid container spacing={1.5}>
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
-            <DetailField label="Per hour" value={formValues.perHour} />
+            <DetailField label="Vehicle" value={vehicleNameValue} />
           ) : (
             <TextField
               fullWidth
               size="small"
-              label="Per hour"
-              placeholder="Enter rate per hour"
-              value={formValues.perHour}
-              onChange={handleChange("perHour")}
-              sx={modalTextFieldSx}
-            />
-          )}
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          {readOnly ? (
-            <DetailField label="Per KM" value={formValues.perKm} />
-          ) : (
-            <TextField
-              fullWidth
-              size="small"
-              label="Per KM"
-              placeholder="Enter rate per KM"
-              value={formValues.perKm}
-              onChange={handleChange("perKm")}
+              label="Vehicle"
+              placeholder="Enter vehicle model"
+              value={formValues.vehicle}
+              onChange={handleChange("vehicle")}
               sx={modalTextFieldSx}
             />
           )}

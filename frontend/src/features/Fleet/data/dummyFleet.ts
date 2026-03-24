@@ -3,6 +3,8 @@ export type FleetStatus = "AVAILABLE" | "ON TRIP";
 
 export type FleetVehicle = {
   id: string;
+  organizationId: string;
+  driverId?: string | null;
   vehicleName: string;
   yearColor: string;
   licensePlate: string;
@@ -14,6 +16,8 @@ export type FleetVehicle = {
 export const DUMMY_FLEET: FleetVehicle[] = [
   {
     id: "DRV-001",
+    organizationId: "",
+    driverId: null,
     vehicleName: "BMW 7 Series",
     yearColor: "2023 Black Metallic",
     licensePlate: "AV-2023-XD",
@@ -23,6 +27,8 @@ export const DUMMY_FLEET: FleetVehicle[] = [
   },
   {
     id: "DRV-002",
+    organizationId: "",
+    driverId: null,
     vehicleName: "Mercedes-Benz S-Class",
     yearColor: "2024 Navy Blue",
     licensePlate: "BV-2024-MB",
@@ -32,6 +38,8 @@ export const DUMMY_FLEET: FleetVehicle[] = [
   },
   {
     id: "DRV-003",
+    organizationId: "",
+    driverId: null,
     vehicleName: "Audi A8",
     yearColor: "2023 Silver",
     licensePlate: "CV-2023-AU",
@@ -41,6 +49,8 @@ export const DUMMY_FLEET: FleetVehicle[] = [
   },
   {
     id: "DRV-004",
+    organizationId: "",
+    driverId: null,
     vehicleName: "Mercedes V-Class",
     yearColor: "2024 White",
     licensePlate: "DV-2024-VC",
@@ -50,6 +60,8 @@ export const DUMMY_FLEET: FleetVehicle[] = [
   },
   {
     id: "DRV-005",
+    organizationId: "",
+    driverId: null,
     vehicleName: "Range Rover Sentinel",
     yearColor: "2023 Black",
     licensePlate: "EV-2023-RR",

@@ -5,14 +5,26 @@ import PersonOffIcon from "@mui/icons-material/PersonOff";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import CardStat from "../../../../../components/CardStat";
 
-const stats = [
-  { label: "Active Now", value: "12", icon: PeopleIcon },
-  { label: "On Ride", value: "8", icon: DirectionsCarIcon },
-  { label: "Offline", value: "28", icon: PersonOffIcon },
-  { label: "Revenue MTD", value: "£124.5k", icon: AttachMoneyIcon },
-];
+type Props = {
+  activeCount: number;
+  onRideCount: number;
+  offlineCount: number;
+  revenue: string;
+};
 
-export default function DriversStats() {
+export default function DriversStats({
+  activeCount,
+  onRideCount,
+  offlineCount,
+  revenue,
+}: Props) {
+  const stats = [
+    { label: "Active Now", value: String(activeCount), icon: PeopleIcon },
+    { label: "On Ride", value: String(onRideCount), icon: DirectionsCarIcon },
+    { label: "Offline", value: String(offlineCount), icon: PersonOffIcon },
+    { label: "Revenue MTD", value: revenue, icon: AttachMoneyIcon },
+  ];
+
   return (
     <Box
       sx={{

@@ -1,7 +1,7 @@
 import { prisma } from "../../lib/prisma.js";
 
 export async function findUserByEmail(email: string) {
-  return prisma.user.findFirst({
+  return prisma.users.findFirst({
     where: {
       email: {
         equals: email,
