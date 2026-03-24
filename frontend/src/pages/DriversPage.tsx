@@ -6,7 +6,8 @@ import {
   Typography,
   Alert,
 } from "@mui/material";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import type { Driver } from "../features/partners/Drivers/data/dummyDrivers";
@@ -31,95 +32,105 @@ import {
   dtoToDriver,
   listDrivers,
   updateDriver,
+  type DriverDto,
 } from "../api/drivers";
+import type { VehicleDto } from "../api/vehicles";
 import {
   assignDriverToVehicle,
   getVehicleIdFromDriverForm,
   listVehicles,
 } from "../api/vehicles";
+import { queryKeys } from "../api/queryKeys";
+
+type VehiclesByDriver = Record<
+  string,
+  Array<{ id: string; label: string; vehicleClass: string }>
+>;
+
+type DriversPageData = {
+  organization: DriverOrganization;
+  allDrivers: Driver[];
+  vehiclesByDriverId: VehiclesByDriver;
+};
+
+async function fetchDriversPageData(
+  organizationId: string,
+): Promise<DriversPageData> {
+  const dto = await getOrganization(organizationId, "CHAUFFEUR");
+  const org = dtoToDriverOrganization(dto);
+  let rows: DriverDto[] = [];
+  let vehicles: VehicleDto[] = [];
+  try {
+    const [driverRows, vehicleRows] = await Promise.all([
+      listDrivers(organizationId),
+      listVehicles({ organizationId }),
+    ]);
+    rows = driverRows;
+    vehicles = vehicleRows;
+  } catch (e) {
+    if (isNotFoundError(e)) {
+      rows = [];
+      vehicles = [];
+    } else {
+      throw e;
+    }
+  }
+  const allDrivers = rows.map((row) => dtoToDriver(row, org.organizationName));
+  const vehiclesByDriverId = vehicles.reduce<VehiclesByDriver>((acc, v) => {
+    if (!v.driverId) return acc;
+    if (!acc[v.driverId]) acc[v.driverId] = [];
+    acc[v.driverId].push({
+      id: v.id,
+      label: v.vehicleName,
+      vehicleClass: v.class,
+    });
+    return acc;
+  }, {});
+  return { organization: org, allDrivers, vehiclesByDriverId };
+}
 
 export default function DriversPage() {
   const { organizationId } = useParams<{ organizationId: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  const [organization, setOrganization] = useState<
-    DriverOrganization | undefined
-  >(undefined);
-  const [orgLoading, setOrgLoading] = useState(true);
-  const [orgError, setOrgError] = useState<string | null>(null);
+  const driversPageQuery = useQuery({
+    queryKey: organizationId
+      ? queryKeys.drivers.byOrganization(organizationId)
+      : ["drivers", "byOrganization", "none"],
+    queryFn: () => fetchDriversPageData(organizationId!),
+    enabled: Boolean(organizationId),
+  });
 
-  const [allDrivers, setAllDrivers] = useState<Driver[]>([]);
-  const [vehiclesByDriverId, setVehiclesByDriverId] = useState<
-    Record<string, Array<{ id: string; label: string; vehicleClass: string }>>
-  >({});
-  const [driversLoading, setDriversLoading] = useState(true);
+  const organization = useMemo(
+    () => driversPageQuery.data?.organization,
+    [driversPageQuery.data],
+  );
+
+  const allDrivers = useMemo(
+    () => driversPageQuery.data?.allDrivers ?? [],
+    [driversPageQuery.data],
+  );
+
+  const vehiclesByDriverId = useMemo(
+    () =>
+      driversPageQuery.data?.vehiclesByDriverId ?? ({} as VehiclesByDriver),
+    [driversPageQuery.data],
+  );
+
+  const orgLoading = driversPageQuery.isPending;
+  const driversLoading = driversPageQuery.isPending;
+  const fetchError =
+    driversPageQuery.isError && driversPageQuery.error
+      ? isNotFoundError(driversPageQuery.error)
+        ? "No results"
+        : getApiErrorMessage(
+            driversPageQuery.error,
+            "Failed to load drivers page",
+          )
+      : null;
+
   const [driversError, setDriversError] = useState<string | null>(null);
-
-  const loadOrganization = useCallback(async () => {
-    if (!organizationId) return;
-    setOrgLoading(true);
-    setOrgError(null);
-    try {
-      const dto = await getOrganization(organizationId, "CHAUFFEUR");
-      setOrganization(dtoToDriverOrganization(dto));
-    } catch (e) {
-      setOrganization(undefined);
-      if (isNotFoundError(e)) {
-        setOrgError("No results");
-      } else {
-        setOrgError(getApiErrorMessage(e, "Failed to load organization"));
-      }
-    } finally {
-      setOrgLoading(false);
-    }
-  }, [organizationId]);
-
-  const loadDrivers = useCallback(async () => {
-    if (!organizationId) return;
-    setDriversLoading(true);
-    setDriversError(null);
-    try {
-      const [rows, vehicles] = await Promise.all([
-        listDrivers(organizationId),
-        listVehicles({ organizationId }),
-      ]);
-      setAllDrivers(
-        rows.map((row) =>
-          dtoToDriver(row, organization?.organizationName ?? ""),
-        ),
-      );
-      const grouped = vehicles.reduce<
-        Record<string, Array<{ id: string; label: string; vehicleClass: string }>>
-      >((acc, v) => {
-        if (!v.driverId) return acc;
-        if (!acc[v.driverId]) acc[v.driverId] = [];
-        acc[v.driverId].push({
-          id: v.id,
-          label: v.vehicleName,
-          vehicleClass: v.class,
-        });
-        return acc;
-      }, {});
-      setVehiclesByDriverId(grouped);
-    } catch (e) {
-      if (isNotFoundError(e)) {
-        setAllDrivers([]);
-      } else {
-        setDriversError(getApiErrorMessage(e, "Failed to load drivers"));
-      }
-    } finally {
-      setDriversLoading(false);
-    }
-  }, [organizationId, organization?.organizationName]);
-
-  useEffect(() => {
-    void loadOrganization();
-  }, [loadOrganization]);
-
-  useEffect(() => {
-    if (!organizationId) return;
-    void loadDrivers();
-  }, [organizationId, loadDrivers]);
 
   const [driverModal, setDriverModal] = useState<{
     open: boolean;
@@ -157,13 +168,19 @@ export default function DriversPage() {
             await assignDriverToVehicle(vehicleId, created.id);
           }
         }
-        await loadDrivers();
+        await queryClient.invalidateQueries({
+          queryKey: queryKeys.drivers.byOrganization(organizationId),
+        });
+        await queryClient.invalidateQueries({
+          queryKey: queryKeys.vehicles.list({ organizationId }),
+        });
+        await queryClient.invalidateQueries({ queryKey: queryKeys.drivers.all });
       } catch (e) {
         setDriversError(getApiErrorMessage(e, "Failed to save driver"));
         throw e;
       }
     },
-    [organizationId, allDrivers, loadDrivers],
+    [organizationId, allDrivers, queryClient],
   );
 
   const handleDeleteClick = useCallback(
@@ -176,13 +193,19 @@ export default function DriversPage() {
     try {
       setDriversError(null);
       await deleteDriver(driverToDelete.id, organizationId);
-      await loadDrivers();
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.drivers.byOrganization(organizationId),
+      });
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.vehicles.list({ organizationId }),
+      });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.drivers.all });
       setDriverToDelete(null);
     } catch (e) {
       setDriversError(getApiErrorMessage(e, "Failed to delete driver"));
       throw e;
     }
-  }, [driverToDelete, organizationId, loadDrivers]);
+  }, [driverToDelete, organizationId, queryClient]);
 
   const activeCount = useMemo(
     () => allDrivers.filter((d) => d.status === "AVAILABLE").length,
@@ -237,7 +260,7 @@ export default function DriversPage() {
     return (
       <Box sx={{ p: 3 }}>
         <Typography variant="body1" color="text.secondary">
-          {orgError ?? "No results"}
+          {fetchError ?? "No results"}
         </Typography>
         <Button
           startIcon={<ArrowBackIcon />}
@@ -331,8 +354,8 @@ export default function DriversPage() {
           open={!!driverToDelete}
           onClose={() => setDriverToDelete(null)}
           onConfirm={handleConfirmDelete}
-          title="˜˜˜˜˜˜˜˜ ˜˜˜˜?"
-          message="˜˜ ˜˜ ˜˜ ˜˜˜˜˜ ˜˜˜˜˜˜˜˜˜. ˜˜˜˜˜ ˜˜˜˜ ˜˜˜˜˜˜˜˜ ˜˜˜˜˜˜˜˜."
+          title=" ?"
+          message="    .    ."
         />
       </Container>
     </Box>

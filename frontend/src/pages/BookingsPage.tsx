@@ -1,10 +1,11 @@
-import { Box } from "@mui/material";
+import { Box, CircularProgress } from "@mui/material";
 import EventIcon from "@mui/icons-material/Event";
 import ScheduleIcon from "@mui/icons-material/Schedule";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import PeopleIcon from "@mui/icons-material/People";
 import { useBookingsDate } from "../features/Bookings/store/BookingsDateContext";
 import { useMemo, useState, useRef, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Alert from "@mui/material/Alert";
 import BookingManagementModal from "../features/Bookings/components/BookingManagementModal";
 import BookingsDesktopView from "../features/Bookings/components/BookingsDesktopView";
@@ -18,7 +19,9 @@ import {
   dtoToBooking,
   listBookings,
   updateBooking,
+  type BookingDto,
 } from "../api/bookings";
+import { queryKeys } from "../api/queryKeys";
 import type { BookingFormValues } from "../features/Bookings/components/BookingManagementModal";
 import {
   useBookingsList,
@@ -32,6 +35,7 @@ export type BookingsViewMode = "day" | "week" | "month";
 const INITIAL_WEEKS_AFTER = 4;
 
 export default function BookingsPage() {
+  const queryClient = useQueryClient();
   const { selectedDate, setSelectedDate, registerScrollToDate } =
     useBookingsDate();
   const [bookingModal, setBookingModal] = useState<{
@@ -44,26 +48,27 @@ export default function BookingsPage() {
   const [selectedBookingDetail, setSelectedBookingDetail] =
     useState<Booking | null>(null);
   const [weeksToShow, setWeeksToShow] = useState(INITIAL_WEEKS_AFTER);
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [error, setError] = useState<string | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<Record<string, HTMLElement>>({});
 
-  const loadBookings = async () => {
-    setError(null);
-    try {
-      const rows = await listBookings();
-      setBookings(rows.map(dtoToBooking));
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to load bookings";
-      setError(message);
-    }
-  };
+  const {
+    data: bookingRows = [],
+    error: bookingsError,
+    isPending: bookingsPending,
+  } = useQuery<BookingDto[]>({
+    queryKey: queryKeys.bookings.list(),
+    queryFn: () => listBookings(),
+  });
 
-  useEffect(() => {
-    void loadBookings();
-  }, []);
+  const bookings = useMemo(() => bookingRows.map(dtoToBooking), [bookingRows]);
+
+  const error =
+    bookingsError instanceof Error
+      ? bookingsError.message
+      : bookingsError
+        ? "Failed to load bookings"
+        : null;
 
   const { filters, setFilter } = useBookingsFilters();
   const filteredBookings = useMemo(
@@ -113,21 +118,26 @@ export default function BookingsPage() {
       {
         label: "Today's Bookings",
         value: String(
-          bookings.filter((booking) => booking.date === new Date().toISOString().slice(0, 10))
-            .length,
+          bookings.filter(
+            (booking: Booking) =>
+              booking.date === new Date().toISOString().slice(0, 10),
+          ).length,
         ),
         icon: EventIcon,
       },
       {
         label: "Pending",
-        value: String(bookings.filter((booking) => booking.status === "pending").length),
+        value: String(
+          bookings.filter((booking: Booking) => booking.status === "pending")
+            .length,
+        ),
         icon: ScheduleIcon,
       },
       {
         label: "Completed Today",
         value: String(
           bookings.filter(
-            (booking) =>
+            (booking: Booking) =>
               booking.status === "completed" &&
               booking.date === new Date().toISOString().slice(0, 10),
           ).length,
@@ -136,7 +146,10 @@ export default function BookingsPage() {
       },
       {
         label: "Assigned Drivers",
-        value: String(bookings.filter((booking) => Boolean(booking.driverId)).length),
+        value: String(
+          bookings.filter((booking: Booking) => Boolean(booking.driverId))
+            .length,
+        ),
         icon: PeopleIcon,
       },
     ],
@@ -153,8 +166,13 @@ export default function BookingsPage() {
     return total > 0 ? total : 60;
   };
 
-  const handleSaveBooking = async (bookingId: string | null, values: BookingFormValues) => {
-    const bookingAt = new Date(`${values.date}T${values.startTime}:00`).toISOString();
+  const handleSaveBooking = async (
+    bookingId: string | null,
+    values: BookingFormValues,
+  ) => {
+    const bookingAt = new Date(
+      `${values.date}T${values.startTime}:00`,
+    ).toISOString();
     const body = {
       clientName: values.clientName.trim(),
       vehicleId: values.vehicleId.trim(),
@@ -171,7 +189,7 @@ export default function BookingsPage() {
     } else {
       await createBooking(body);
     }
-    await loadBookings();
+    await queryClient.invalidateQueries({ queryKey: queryKeys.bookings.all });
   };
 
   return (
@@ -180,6 +198,17 @@ export default function BookingsPage() {
         <Alert severity="error" sx={{ mx: { xs: 2, md: 3 }, mb: 2 }}>
           {error}
         </Alert>
+      ) : null}
+      {bookingsPending && bookingRows.length === 0 && !error ? (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            py: 4,
+          }}
+        >
+          <CircularProgress />
+        </Box>
       ) : null}
       <BookingsDesktopView
         stats={stats}

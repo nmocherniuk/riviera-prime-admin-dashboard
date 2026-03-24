@@ -1,5 +1,6 @@
 import { Alert, Box, CircularProgress, Container } from "@mui/material";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import SecurityPartnersHeader from "../features/partners/Security/components/SecurityPartnersHeader";
 import SecurityPartnersStats from "../features/partners/Security/components/SecurityPartnersStats";
@@ -21,11 +22,11 @@ import {
   partnerFormToUpdateBody,
   updateOrganization,
 } from "../api/organizations";
+import { queryKeys } from "../api/queryKeys";
 
 export default function SecurityOrganizationsPage() {
   const navigate = useNavigate();
-  const [allPartners, setAllPartners] = useState<Partner[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
 
   const [partnerModal, setPartnerModal] = useState<{
@@ -39,26 +40,28 @@ export default function SecurityOrganizationsPage() {
   });
   const [partnerToDelete, setPartnerToDelete] = useState<Partner | null>(null);
 
-  const loadPartners = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const rows = await listOrganizations("SECURITY");
-      setAllPartners(rows.map(dtoToPartner));
-    } catch (e) {
-      if (isNotFoundError(e)) {
-        setAllPartners([]);
-      } else {
-        setError(getApiErrorMessage(e, "Failed to load partners"));
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const partnersQuery = useQuery({
+    queryKey: queryKeys.organizations.list("SECURITY"),
+    queryFn: () => listOrganizations("SECURITY"),
+  });
 
-  useEffect(() => {
-    void loadPartners();
-  }, [loadPartners]);
+  const allPartners = useMemo(() => {
+    if (
+      partnersQuery.isError &&
+      partnersQuery.error &&
+      isNotFoundError(partnersQuery.error)
+    ) {
+      return [];
+    }
+    if (!partnersQuery.data) return [];
+    return partnersQuery.data.map(dtoToPartner);
+  }, [partnersQuery.data, partnersQuery.isError, partnersQuery.error]);
+
+  const loading = partnersQuery.isPending;
+  const listError =
+    partnersQuery.error && !isNotFoundError(partnersQuery.error)
+      ? getApiErrorMessage(partnersQuery.error, "Failed to load partners")
+      : null;
 
   const activeCount = useMemo(
     () => allPartners.filter((p) => p.status === "active").length,
@@ -81,7 +84,9 @@ export default function SecurityOrganizationsPage() {
       } else {
         await createOrganization(partnerFormToCreateBody(values));
       }
-      await loadPartners();
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.organizations.all,
+      });
     } catch (e) {
       const msg = getApiErrorMessage(e, "Failed to save partner");
       setError(msg);
@@ -95,9 +100,9 @@ export default function SecurityOrganizationsPage() {
         maxWidth={false}
         sx={{ px: { xs: 1.5, sm: 2, md: 3 }, maxWidth: "100%" }}
       >
-        {error ? (
+        {error ?? listError ? (
           <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
-            {error}
+            {error ?? listError}
           </Alert>
         ) : null}
 
@@ -127,6 +132,10 @@ export default function SecurityOrganizationsPage() {
               }}
             >
               <CircularProgress />
+            </Box>
+          ) : listError ? (
+            <Box sx={{ py: 8, textAlign: "center", color: "text.secondary" }}>
+              Unable to load partners.
             </Box>
           ) : allPartners.length === 0 ? (
             <Box sx={{ py: 8, textAlign: "center", color: "text.secondary" }}>
@@ -163,7 +172,9 @@ export default function SecurityOrganizationsPage() {
             setError(null);
             try {
               await deleteOrganization(partnerToDelete.id, "SECURITY");
-              await loadPartners();
+              await queryClient.invalidateQueries({
+                queryKey: queryKeys.organizations.all,
+              });
             } catch (e) {
               setError(getApiErrorMessage(e, "Failed to delete partner"));
               throw e;

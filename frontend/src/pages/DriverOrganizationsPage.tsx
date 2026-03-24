@@ -1,5 +1,6 @@
 import { Alert, Box, CircularProgress, Container } from "@mui/material";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import type { DriverOrganization } from "../features/partners/Drivers/data/types";
 import type { DriverOrganizationFormValues } from "../features/partners/Drivers/components/drivers/DriverOrganizationManagementModal";
@@ -20,14 +21,12 @@ import {
   listOrganizations,
   updateOrganization,
 } from "../api/organizations";
+import { queryKeys } from "../api/queryKeys";
 
 export default function DriverOrganizationsPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  const [allOrganizations, setAllOrganizations] = useState<
-    DriverOrganization[]
-  >([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [orgModal, setOrgModal] = useState<{
@@ -40,26 +39,35 @@ export default function DriverOrganizationsPage() {
     null,
   );
 
-  const loadOrganizations = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const rows = await listOrganizations("CHAUFFEUR");
-      setAllOrganizations(rows.map(dtoToDriverOrganization));
-    } catch (e) {
-      if (isNotFoundError(e)) {
-        setAllOrganizations([]);
-      } else {
-        setError(getApiErrorMessage(e, "Failed to load organizations"));
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const organizationsQuery = useQuery({
+    queryKey: queryKeys.organizations.list("CHAUFFEUR"),
+    queryFn: () => listOrganizations("CHAUFFEUR"),
+  });
 
-  useEffect(() => {
-    void loadOrganizations();
-  }, [loadOrganizations]);
+  const allOrganizations = useMemo(() => {
+    if (
+      organizationsQuery.isError &&
+      organizationsQuery.error &&
+      isNotFoundError(organizationsQuery.error)
+    ) {
+      return [];
+    }
+    if (!organizationsQuery.data) return [];
+    return organizationsQuery.data.map(dtoToDriverOrganization);
+  }, [
+    organizationsQuery.data,
+    organizationsQuery.isError,
+    organizationsQuery.error,
+  ]);
+
+  const loading = organizationsQuery.isPending;
+  const listError =
+    organizationsQuery.error && !isNotFoundError(organizationsQuery.error)
+      ? getApiErrorMessage(
+          organizationsQuery.error,
+          "Failed to load organizations",
+        )
+      : null;
 
   const activeCount = useMemo(
     () => allOrganizations.filter((o) => o.status === "active").length,
@@ -82,7 +90,9 @@ export default function DriverOrganizationsPage() {
       } else {
         await createOrganization(driverFormToCreateBody(values));
       }
-      await loadOrganizations();
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.organizations.all,
+      });
     } catch (e) {
       const msg = getApiErrorMessage(e, "Failed to save organization");
       setError(msg);
@@ -96,9 +106,9 @@ export default function DriverOrganizationsPage() {
         maxWidth={false}
         sx={{ px: { xs: 1.5, sm: 2, md: 3 }, maxWidth: "100%" }}
       >
-        {error ? (
+        {error ?? listError ? (
           <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
-            {error}
+            {error ?? listError}
           </Alert>
         ) : null}
 
@@ -135,6 +145,10 @@ export default function DriverOrganizationsPage() {
               }}
             >
               <CircularProgress />
+            </Box>
+          ) : listError ? (
+            <Box sx={{ py: 8, textAlign: "center", color: "text.secondary" }}>
+              Unable to load organizations.
             </Box>
           ) : allOrganizations.length === 0 ? (
             <Box sx={{ py: 8, textAlign: "center", color: "text.secondary" }}>
@@ -177,7 +191,9 @@ export default function DriverOrganizationsPage() {
             setError(null);
             try {
               await deleteOrganization(orgToDelete.id, "CHAUFFEUR");
-              await loadOrganizations();
+              await queryClient.invalidateQueries({
+                queryKey: queryKeys.organizations.all,
+              });
             } catch (e) {
               setError(getApiErrorMessage(e, "Failed to delete organization"));
               throw e;

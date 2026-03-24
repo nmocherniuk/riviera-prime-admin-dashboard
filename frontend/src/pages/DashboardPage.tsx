@@ -1,8 +1,9 @@
-import { Box, Container } from "@mui/material";
+import { Box, CircularProgress, Container } from "@mui/material";
 import DashboardStatCards from "../features/Dashboard/components/DashboardStatCards";
 import { Line } from "react-chartjs-2";
 import Alert from "@mui/material/Alert";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
+import { useQueries } from "@tanstack/react-query";
 
 import WeeklyRevenueCard from "../features/Dashboard/components/WeeklyRevenueCard";
 import ChartPlaceholderCard from "../features/Dashboard/components/ChartPlaceholderCard";
@@ -11,6 +12,7 @@ import { theme } from "../theme/theme";
 import { listBookings } from "../api/bookings";
 import { listDrivers } from "../api/drivers";
 import { listOrganizations } from "../api/organizations";
+import { queryKeys } from "../api/queryKeys";
 
 const HISTORY_DAYS = 30;
 const FUTURE_DAYS = 1;
@@ -27,87 +29,101 @@ function toChartLabel(value: Date): string {
 }
 
 export default function DashboardPage() {
-  const [error, setError] = useState<string | null>(null);
-  const [bookingDateKeys, setBookingDateKeys] = useState<string[]>([]);
-  const [bookingDailyCounts, setBookingDailyCounts] = useState<number[]>([]);
-  const [bodyguardDailyCounts, setBodyguardDailyCounts] = useState<number[]>(
-    [],
-  );
+  const [bookingsQuery, organizationsQuery, driversQuery] = useQueries({
+    queries: [
+      {
+        queryKey: queryKeys.bookings.list(),
+        queryFn: listBookings,
+      },
+      {
+        queryKey: queryKeys.organizations.list("SECURITY"),
+        queryFn: () => listOrganizations("SECURITY"),
+      },
+      {
+        queryKey: queryKeys.drivers.list(),
+        queryFn: listDrivers,
+      },
+    ],
+  });
 
-  useEffect(() => {
-    const loadDashboardData = async () => {
-      try {
-        const [bookings, organizations, drivers] = await Promise.all([
-          listBookings(),
-          listOrganizations("SECURITY"),
-          listDrivers(),
-        ]);
+  const isPending =
+    bookingsQuery.isPending ||
+    organizationsQuery.isPending ||
+    driversQuery.isPending;
 
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const startDate = new Date(today);
-        startDate.setDate(today.getDate() - (HISTORY_DAYS - 1));
-        const endDate = new Date(today);
-        endDate.setDate(today.getDate() + FUTURE_DAYS);
+  const errorFirst =
+    bookingsQuery.error ?? organizationsQuery.error ?? driversQuery.error;
+  const error =
+    errorFirst instanceof Error
+      ? errorFirst.message
+      : errorFirst
+        ? "Failed to load dashboard overview"
+        : null;
 
-        const axisDates: Date[] = [];
-        const current = new Date(startDate);
-        while (current <= endDate) {
-          axisDates.push(new Date(current));
-          current.setDate(current.getDate() + 1);
-        }
+  const { bookingDateKeys, bookingDailyCounts, bodyguardDailyCounts } =
+    useMemo(() => {
+      const bookings = bookingsQuery.data ?? [];
+      const organizations = organizationsQuery.data ?? [];
+      const drivers = driversQuery.data ?? [];
 
-        const securityOrganizationIds = new Set(
-          organizations.map((organization) => organization.id),
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const startDate = new Date(today);
+      startDate.setDate(today.getDate() - (HISTORY_DAYS - 1));
+      const endDate = new Date(today);
+      endDate.setDate(today.getDate() + FUTURE_DAYS);
+
+      const axisDates: Date[] = [];
+      const current = new Date(startDate);
+      while (current <= endDate) {
+        axisDates.push(new Date(current));
+        current.setDate(current.getDate() + 1);
+      }
+
+      const securityOrganizationIds = new Set(
+        organizations.map((organization) => organization.id),
+      );
+
+      const bookingsCountByDay = new Map<string, number>();
+      bookings.forEach((booking) => {
+        const dayKey = booking.bookingAt.slice(0, 10);
+        bookingsCountByDay.set(
+          dayKey,
+          (bookingsCountByDay.get(dayKey) ?? 0) + 1,
         );
+      });
 
-        const bookingsCountByDay = new Map<string, number>();
-        bookings.forEach((booking) => {
-          const dayKey = booking.bookingAt.slice(0, 10);
-          bookingsCountByDay.set(
+      const bodyguardsCountByDay = new Map<string, number>();
+      drivers
+        .filter((driver) =>
+          securityOrganizationIds.has(driver.organizationId),
+        )
+        .forEach((driver) => {
+          const dayKey = driver.createdAt.slice(0, 10);
+          bodyguardsCountByDay.set(
             dayKey,
-            (bookingsCountByDay.get(dayKey) ?? 0) + 1,
+            (bodyguardsCountByDay.get(dayKey) ?? 0) + 1,
           );
         });
 
-        const bodyguardsCountByDay = new Map<string, number>();
-        drivers
-          .filter((driver) =>
-            securityOrganizationIds.has(driver.organizationId),
-          )
-          .forEach((driver) => {
-            const dayKey = driver.createdAt.slice(0, 10);
-            bodyguardsCountByDay.set(
-              dayKey,
-              (bodyguardsCountByDay.get(dayKey) ?? 0) + 1,
-            );
-          });
-
-        const keys = axisDates.map(toDateKey);
-        setBookingDateKeys(
-          keys.map((key) => {
-            const [year, month, day] = key.split("-");
-            return toChartLabel(
-              new Date(Number(year), Number(month) - 1, Number(day)),
-            );
-          }),
-        );
-        setBookingDailyCounts(
-          keys.map((key) => bookingsCountByDay.get(key) ?? 0),
-        );
-        setBodyguardDailyCounts(
-          keys.map((key) => bodyguardsCountByDay.get(key) ?? 0),
-        );
-      } catch (err) {
-        const message =
-          err instanceof Error
-            ? err.message
-            : "Failed to load dashboard overview";
-        setError(message);
-      }
-    };
-    void loadDashboardData();
-  }, []);
+      const keys = axisDates.map(toDateKey);
+      return {
+        bookingDateKeys: keys.map((key) => {
+          const [year, month, day] = key.split("-");
+          return toChartLabel(
+            new Date(Number(year), Number(month) - 1, Number(day)),
+          );
+        }),
+        bookingDailyCounts: keys.map((key) => bookingsCountByDay.get(key) ?? 0),
+        bodyguardDailyCounts: keys.map(
+          (key) => bodyguardsCountByDay.get(key) ?? 0,
+        ),
+      };
+    }, [
+      bookingsQuery.data,
+      organizationsQuery.data,
+      driversQuery.data,
+    ]);
 
   const bookingsOverviewData = useMemo(
     () => ({
@@ -245,6 +261,11 @@ export default function DashboardPage() {
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
           </Alert>
+        ) : null}
+        {isPending ? (
+          <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
+            <CircularProgress size={28} />
+          </Box>
         ) : null}
         <DashboardHeader />
 

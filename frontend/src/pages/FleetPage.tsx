@@ -1,5 +1,6 @@
 import { Alert, Box, CircularProgress, Container } from "@mui/material";
-import { useCallback, useEffect, useState } from "react";
+import { useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import FleetHeader from "../features/Fleet/components/FleetHeader";
 import FleetStats from "../features/Fleet/components/FleetStats";
 import FleetToolbar from "../features/Fleet/components/FleetToolbar";
@@ -23,16 +24,10 @@ import {
   listOrganizations,
 } from "../api/organizations";
 import { listDrivers } from "../api/drivers";
+import { queryKeys } from "../api/queryKeys";
 
 export default function FleetPage() {
-  const [allVehicles, setAllVehicles] = useState<FleetVehicle[]>([]);
-  const [organizationOptions, setOrganizationOptions] = useState<
-    Array<{ id: string; name: string }>
-  >([]);
-  const [driverOptions, setDriverOptions] = useState<
-    Array<{ id: string; name: string; organizationId: string }>
-  >([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   const [fleetModal, setFleetModal] = useState<{
     open: boolean;
@@ -46,49 +41,63 @@ export default function FleetPage() {
   const [vehicleToDelete, setVehicleToDelete] = useState<FleetVehicle | null>(
     null,
   );
-  const loadVehicles = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const rows = await listVehicles();
-      setAllVehicles(rows.map(dtoToFleetVehicle));
-    } catch (e) {
-      if (isNotFoundError(e)) {
-        setAllVehicles([]);
-      } else {
-        setError(getApiErrorMessage(e, "Failed to load vehicles"));
-      }
-    } finally {
-      setLoading(false);
+
+  const vehiclesQuery = useQuery({
+    queryKey: queryKeys.vehicles.list(),
+    queryFn: listVehicles,
+  });
+
+  const organizationsForFleetQuery = useQuery({
+    queryKey: queryKeys.organizations.list("CHAUFFEUR"),
+    queryFn: () => listOrganizations("CHAUFFEUR"),
+  });
+
+  const driversQuery = useQuery({
+    queryKey: queryKeys.drivers.list(),
+    queryFn: listDrivers,
+  });
+
+  const allVehicles = useMemo(() => {
+    if (
+      vehiclesQuery.isError &&
+      vehiclesQuery.error &&
+      isNotFoundError(vehiclesQuery.error)
+    ) {
+      return [];
     }
-  }, []);
+    if (!vehiclesQuery.data) return [];
+    return vehiclesQuery.data.map(dtoToFleetVehicle);
+  }, [
+    vehiclesQuery.data,
+    vehiclesQuery.isError,
+    vehiclesQuery.error,
+  ]);
 
-  const loadRelations = useCallback(async () => {
-    try {
-      const [orgRows, driverRows] = await Promise.all([
-        listOrganizations("CHAUFFEUR"),
-        listDrivers(),
-      ]);
-      setOrganizationOptions(orgRows.map((o) => ({ id: o.id, name: o.title })));
-      setDriverOptions(
-        driverRows.map((d) => ({
-          id: d.id,
-          name: d.name,
-          organizationId: d.organizationId,
-        })),
-      );
-    } catch {
-      // Keep main flow working even if relation options failed to load.
-    }
-  }, []);
+  const organizationOptions = useMemo(
+    () =>
+      (organizationsForFleetQuery.data ?? []).map((o) => ({
+        id: o.id,
+        name: o.title,
+      })),
+    [organizationsForFleetQuery.data],
+  );
 
-  useEffect(() => {
-    void loadVehicles();
-  }, [loadVehicles]);
+  const driverOptions = useMemo(
+    () =>
+      (driversQuery.data ?? []).map((d) => ({
+        id: d.id,
+        name: d.name,
+        organizationId: d.organizationId,
+      })),
+    [driversQuery.data],
+  );
 
-  useEffect(() => {
-    void loadRelations();
-  }, [loadRelations]);
+  const loading = vehiclesQuery.isPending;
+  const vehiclesError = vehiclesQuery.error;
+  const listError =
+    vehiclesError && !isNotFoundError(vehiclesError)
+      ? getApiErrorMessage(vehiclesError, "Failed to load vehicles")
+      : null;
 
   const handleDeleteClick = (vehicle: FleetVehicle) => {
     setVehicleToDelete(vehicle);
@@ -99,7 +108,10 @@ export default function FleetPage() {
       setError(null);
       try {
         await deleteVehicle(vehicleToDelete.id);
-        await loadVehicles();
+        await queryClient.invalidateQueries({
+          queryKey: queryKeys.vehicles.all,
+        });
+        await queryClient.invalidateQueries({ queryKey: queryKeys.drivers.all });
         setVehicleToDelete(null);
       } catch (e) {
         setError(getApiErrorMessage(e, "Failed to delete vehicle"));
@@ -119,7 +131,10 @@ export default function FleetPage() {
       } else {
         await createVehicle(fleetFormToCreateBody(values));
       }
-      await loadVehicles();
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.vehicles.all,
+      });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.drivers.all });
     } catch (e) {
       setError(getApiErrorMessage(e, "Failed to save vehicle"));
       throw e;
@@ -132,9 +147,13 @@ export default function FleetPage() {
         maxWidth={false}
         sx={{ px: { xs: 1.5, sm: 2, md: 3 }, maxWidth: "100%" }}
       >
-        {error ? (
-          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
-            {error}
+        {error ?? listError ? (
+          <Alert
+            severity="error"
+            sx={{ mb: 2 }}
+            onClose={() => setError(null)}
+          >
+            {error ?? listError}
           </Alert>
         ) : null}
 
@@ -153,6 +172,10 @@ export default function FleetPage() {
           {loading ? (
             <Box sx={{ py: 8, display: "flex", justifyContent: "center" }}>
               <CircularProgress />
+            </Box>
+          ) : listError ? (
+            <Box sx={{ py: 8, textAlign: "center", color: "text.secondary" }}>
+              Unable to load vehicles.
             </Box>
           ) : allVehicles.length === 0 ? (
             <Box sx={{ py: 8, textAlign: "center", color: "text.secondary" }}>
