@@ -14,28 +14,34 @@ import DetailField from "../../../components/DetailField";
 import BaseModal from "../../../components/BaseModal";
 
 export type BookingFormValues = {
+  clientName: string;
+  vehicleId: string;
+  driverId: string;
   date: string;
   startTime: string;
   duration: string;
-  clientName: string;
   route: string;
 };
 
 const defaultFormValues: BookingFormValues = {
+  clientName: "",
+  vehicleId: "",
+  driverId: "",
   date: "",
   startTime: "",
   duration: "",
-  clientName: "",
   route: "",
 };
 
 function bookingToFormValues(booking: Booking | null): BookingFormValues {
   if (!booking) return defaultFormValues;
   return {
+    clientName: booking.clientName || "",
+    vehicleId: booking.vehicleId || "",
+    driverId: booking.driverId || "",
     date: booking.date || "",
     startTime: booking.startTime || "",
     duration: booking.duration || "",
-    clientName: booking.clientName || "",
     route: booking.route || "",
   };
 }
@@ -44,7 +50,7 @@ type Props = {
   open: boolean;
   onClose: () => void;
   booking: Booking | null;
-  onSave?: (bookingId: string | null, values: BookingFormValues) => void;
+  onSave?: (bookingId: string | null, values: BookingFormValues) => void | Promise<void>;
 };
 
 export default function BookingManagementModal({
@@ -126,6 +132,39 @@ export default function BookingManagementModal({
           <TextField
             fullWidth
             size="small"
+            label="Client name"
+            placeholder="Enter client name"
+            value={formValues.clientName}
+            onChange={handleChange("clientName")}
+            sx={modalTextFieldSx}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Vehicle ID"
+            placeholder="Vehicle UUID"
+            value={formValues.vehicleId}
+            onChange={handleChange("vehicleId")}
+            sx={modalTextFieldSx}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <TextField
+            fullWidth
+            size="small"
+            label="Driver ID"
+            placeholder="Driver UUID"
+            value={formValues.driverId}
+            onChange={handleChange("driverId")}
+            sx={modalTextFieldSx}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <TextField
+            fullWidth
+            size="small"
             label="Date"
             placeholder="YYYY-MM-DD"
             type="date"
@@ -161,19 +200,8 @@ export default function BookingManagementModal({
         </Grid>
       </Grid>
 
-      <Typography sx={sectionLabelSx}>Client & Route</Typography>
+      <Typography sx={sectionLabelSx}>Route & Duration</Typography>
       <Grid container spacing={2}>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <TextField
-            fullWidth
-            size="small"
-            label="Client name"
-            placeholder="Enter client name"
-            value={formValues.clientName}
-            onChange={handleChange("clientName")}
-            sx={modalTextFieldSx}
-          />
-        </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             fullWidth

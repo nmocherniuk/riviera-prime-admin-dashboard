@@ -62,6 +62,7 @@ model Drivers {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   assignedVehicles Vehicles[]
+  bookings       Bookings[]
 
   @@index([organizationId])
 }
@@ -90,6 +91,7 @@ model Vehicles {
   status         VehicleStatus @default(AVAILABLE)
   nextService    String        @default("")
   pricing        VehiclePricings?
+  bookings       Bookings[]
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
@@ -104,4 +106,36 @@ model VehiclePricings {
   perKm      Decimal  @db.Decimal(10, 2)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+enum BookingStatus {
+  PENDING
+  ASSIGNED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PAID
+  UNPAID
+}
+
+model Bookings {
+  id            String        @id @default(uuid())
+  clientName    String
+  vehicleId     String
+  vehicle       Vehicles      @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  driverId      String?
+  driver        Drivers?      @relation(fields: [driverId], references: [id], onDelete: SetNull)
+  bookingAt     DateTime
+  route         String        @default("")
+  durationMin   Int           @default(60)
+  status        BookingStatus @default(PENDING)
+  paymentStatus PaymentStatus @default(UNPAID)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([vehicleId])
+  @@index([driverId])
+  @@index([bookingAt])
 }

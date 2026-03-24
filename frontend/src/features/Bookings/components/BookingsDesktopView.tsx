@@ -3,6 +3,7 @@ import BookingsHeader from "./BookingsHeader";
 import BookingStats from "./BookingStats";
 import BookingsFilters from "./BookingsFilters";
 import BookingsCalendar from "./BookingsCalendar/BookingsCalendar";
+import BookingsTable from "./BookingsTable";
 import type { Booking } from "./BookingsCalendar/data/dummyBookings";
 import type { BookingsFilterState } from "../constants/filters";
 
@@ -39,6 +40,10 @@ export default function BookingsDesktopView({
 
       <Box sx={{ mt: 2 }}>
         <BookingsFilters filters={filters} onFilterChange={onFilterChange} />
+      </Box>
+
+      <Box sx={{ mt: 2 }}>
+        <BookingsTable bookings={filteredBookings} />
       </Box>
 
       <Box sx={{ mt: 2 }}>

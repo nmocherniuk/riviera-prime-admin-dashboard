@@ -10,8 +10,10 @@ export type Booking = {
   clientName: string;
   route: string;
   car?: string;
+  vehicleId?: string;
   status?: BookingStatus;
   driverId?: string;
+  driverName?: string;
   paymentStatus?: PaymentStatus;
 };
 
