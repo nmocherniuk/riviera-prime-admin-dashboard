@@ -44,7 +44,7 @@ export default function FleetPage() {
 
   const vehiclesQuery = useQuery({
     queryKey: queryKeys.vehicles.list(),
-    queryFn: listVehicles,
+    queryFn: () => listVehicles(),
   });
 
   const organizationsForFleetQuery = useQuery({
@@ -54,7 +54,7 @@ export default function FleetPage() {
 
   const driversQuery = useQuery({
     queryKey: queryKeys.drivers.list(),
-    queryFn: listDrivers,
+    queryFn: () => listDrivers(),
   });
 
   const allVehicles = useMemo(() => {
@@ -67,11 +67,7 @@ export default function FleetPage() {
     }
     if (!vehiclesQuery.data) return [];
     return vehiclesQuery.data.map(dtoToFleetVehicle);
-  }, [
-    vehiclesQuery.data,
-    vehiclesQuery.isError,
-    vehiclesQuery.error,
-  ]);
+  }, [vehiclesQuery.data, vehiclesQuery.isError, vehiclesQuery.error]);
 
   const organizationOptions = useMemo(
     () =>
@@ -111,7 +107,9 @@ export default function FleetPage() {
         await queryClient.invalidateQueries({
           queryKey: queryKeys.vehicles.all,
         });
-        await queryClient.invalidateQueries({ queryKey: queryKeys.drivers.all });
+        await queryClient.invalidateQueries({
+          queryKey: queryKeys.drivers.all,
+        });
         setVehicleToDelete(null);
       } catch (e) {
         setError(getApiErrorMessage(e, "Failed to delete vehicle"));
@@ -147,12 +145,8 @@ export default function FleetPage() {
         maxWidth={false}
         sx={{ px: { xs: 1.5, sm: 2, md: 3 }, maxWidth: "100%" }}
       >
-        {error ?? listError ? (
-          <Alert
-            severity="error"
-            sx={{ mb: 2 }}
-            onClose={() => setError(null)}
-          >
+        {(error ?? listError) ? (
+          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
             {error ?? listError}
           </Alert>
         ) : null}
@@ -163,7 +157,7 @@ export default function FleetPage() {
           }
         />
         <Box sx={{ mt: 2 }}>
-          <FleetStats />
+          <FleetStats vehicles={allVehicles} />
         </Box>
         <Box sx={{ mt: 2 }}>
           <FleetToolbar />

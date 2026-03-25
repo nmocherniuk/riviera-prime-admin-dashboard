@@ -3,14 +3,38 @@ import BuildCircleIcon from "@mui/icons-material/BuildCircle";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import LocalTaxiIcon from "@mui/icons-material/LocalTaxi";
 import CardStat from "../../../components/CardStat";
+import { useMemo } from "react";
+import type { FleetVehicle } from "../data/dummyFleet";
 
-const stats = [
-  { label: "Available", value: "32", icon: DirectionsCarIcon },
-  { label: "On Trip", value: "12", icon: LocalTaxiIcon },
-  { label: "Maintenance", value: "4", icon: BuildCircleIcon },
-];
+type Props = {
+  vehicles: FleetVehicle[];
+};
 
-export default function FleetStats() {
+export default function FleetStats({ vehicles }: Props) {
+  const stats = useMemo(() => {
+    const available = vehicles.filter((v) => v.status === "AVAILABLE").length;
+    const onTrip = vehicles.filter((v) => v.status === "ON TRIP").length;
+    const maintenance = Math.max(0, vehicles.length - available - onTrip);
+
+    return [
+      {
+        label: "Available",
+        value: String(available),
+        icon: DirectionsCarIcon,
+      },
+      {
+        label: "On Trip",
+        value: String(onTrip),
+        icon: LocalTaxiIcon,
+      },
+      {
+        label: "Maintenance",
+        value: String(maintenance),
+        icon: BuildCircleIcon,
+      },
+    ];
+  }, [vehicles]);
+
   return (
     <Box
       sx={{
