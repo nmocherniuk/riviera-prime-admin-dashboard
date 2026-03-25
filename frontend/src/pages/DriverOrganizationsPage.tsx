@@ -3,12 +3,12 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import type { DriverOrganization } from "../features/partners/Drivers/data/types";
-import type { DriverOrganizationFormValues } from "../features/partners/Drivers/components/drivers/DriverOrganizationManagementModal";
+import type { DriverOrganizationFormValues } from "../features/partners/Drivers/components/drivers/ModalManagement/DriverOrganizationManagementModal";
 import DriversOrganizationsHeader from "../features/partners/Drivers/components/DriversOrganizationsHeader";
 import DriversOrganizationsStats from "../features/partners/Drivers/components/DriversOrganizationsStats";
 import DriversOrganizationsToolbar from "../features/partners/Drivers/components/DriversOrganizationsToolbar";
 import DriversOrganizationsTable from "../features/partners/Drivers/components/DriversOrganizationsTable";
-import DriverOrganizationManagementModal from "../features/partners/Drivers/components/drivers/DriverOrganizationManagementModal";
+import DriverOrganizationManagementModal from "../features/partners/Drivers/components/drivers/ModalManagement/DriverOrganizationManagementModal";
 import ConfirmDeleteDialog from "../components/ConfirmDeleteDialog";
 import {
   createOrganization,
@@ -106,7 +106,7 @@ export default function DriverOrganizationsPage() {
         maxWidth={false}
         sx={{ px: { xs: 1.5, sm: 2, md: 3 }, maxWidth: "100%" }}
       >
-        {error ?? listError ? (
+        {(error ?? listError) ? (
           <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
             {error ?? listError}
           </Alert>

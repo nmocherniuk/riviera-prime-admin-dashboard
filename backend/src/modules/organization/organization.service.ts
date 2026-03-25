@@ -9,6 +9,8 @@ import {
   findOrganizationsByType,
   updateOrganization as updateOrganizationRepo,
   type CreateOrganizationData,
+  upsertChauffeurOrganizationDetails,
+  type ChauffeurOrganizationDetailsUpsertData,
 } from "./organization.repository.js";
 
 export type PublicOrganization = {
@@ -21,13 +23,24 @@ export type PublicOrganization = {
   status: "active" | "inactive";
   type: OrganizationType;
   createdAt: string;
+  chauffeurDetails?: ChauffeurOrganizationDetailsUpsertData | null;
 };
 
 function statusFromBool(status: boolean): "active" | "inactive" {
   return status ? "active" : "inactive";
 }
 
-export function toPublicOrganization(row: Organizations): PublicOrganization {
+function stripUndefined<T extends Record<string, unknown>>(obj: T): Partial<T> {
+  const out: Partial<T> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (v !== undefined) out[k as keyof T] = v as T[keyof T];
+  }
+  return out;
+}
+
+export function toPublicOrganization(row: Organizations & {
+  chauffeurDetails?: ChauffeurOrganizationDetailsUpsertData | null;
+}): PublicOrganization {
   return {
     id: row.id,
     title: row.title,
@@ -38,6 +51,7 @@ export function toPublicOrganization(row: Organizations): PublicOrganization {
     status: statusFromBool(row.status),
     type: row.type,
     createdAt: row.createdAt.toISOString(),
+    chauffeurDetails: row.chauffeurDetails ?? null,
   };
 }
 
@@ -48,6 +62,7 @@ export function statusInputToBool(status: "active" | "inactive"): boolean {
 export async function createOrganization(
   input: Omit<CreateOrganizationData, "status"> & {
     status: "active" | "inactive";
+    chauffeurDetails?: ChauffeurOrganizationDetailsUpsertData;
   },
 ) {
   const data: CreateOrganizationData = {
@@ -55,6 +70,14 @@ export async function createOrganization(
     status: statusInputToBool(input.status),
   };
   const row = await createOrganizationRepo(data);
+
+  // CHAUFFEUR extension table
+  if (input.type === "CHAUFFEUR" && input.chauffeurDetails) {
+    await upsertChauffeurOrganizationDetails(row.id, stripUndefined(input.chauffeurDetails));
+    const fresh = await findOrganizationById(row.id);
+    return fresh ? toPublicOrganization(fresh) : toPublicOrganization(row);
+  }
+
   return toPublicOrganization(row);
 }
 
@@ -81,6 +104,7 @@ export async function updateOrganization(
   id: string,
   input: Omit<CreateOrganizationData, "type" | "status"> & {
     status: "active" | "inactive";
+    chauffeurDetails?: ChauffeurOrganizationDetailsUpsertData;
   },
   typeFilter?: OrganizationType,
 ) {
@@ -99,6 +123,16 @@ export async function updateOrganization(
     serviceArea: input.serviceArea,
     status: statusInputToBool(input.status),
   });
+
+  if (typeFilter === "CHAUFFEUR" && input.chauffeurDetails) {
+    await upsertChauffeurOrganizationDetails(
+      updated.id,
+      stripUndefined(input.chauffeurDetails),
+    );
+    const fresh = await findOrganizationById(updated.id);
+    return fresh ? toPublicOrganization(fresh) : toPublicOrganization(updated);
+  }
+
   return toPublicOrganization(updated);
 }
 

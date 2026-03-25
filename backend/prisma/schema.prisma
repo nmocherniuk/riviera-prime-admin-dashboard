@@ -38,14 +38,91 @@ model Organizations {
   status         Boolean
   type           OrganizationType
   createdAt      DateTime         @default(now())
+
+
   drivers        Drivers[]
   vehicles       Vehicles[]
+  chauffeurDetails  ChauffeurOrganizationDetails?
+
+  @@index([type])
+}
+
+model ChauffeurOrganizationDetails {
+  id                            String         @id @default(uuid())
+  organizationId                String         @unique
+  organization                  Organizations  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // Company Information
+  companyName                   String?
+  legalForm                     String?
+  sirenOrSiret                  String?
+  vatNumber                     String?
+  registrationDate              DateTime?
+  registrationCountry           String?        @default("France")
+  registeredAddress             String?
+  mailingAddress                String?
+  sameAsRegisteredAddress       Boolean        @default(false)
+  websiteUrl                    String?
+  generalEmail                  String?
+  companyPhoneNumber            String?
+  directorFullName              String?
+  directorPosition              String?
+  primaryContactName            String?
+  primaryContactEmail           String?
+  primaryContactPhone           String?
+
+  // Documents metadata
+  kbisUploaded                  Boolean        @default(false)
+  rcProInsuranceUploaded        Boolean        @default(false)
+  transportInsuranceUploaded    Boolean        @default(false)
+  operatingLicenseProvided      Boolean        @default(false)
+  bankDetailsProvided           Boolean        @default(false)
+  directorIdCopyProvided        Boolean        @default(false)
+  signedPartnershipAgreement    Boolean        @default(false)
+  additionalCertifications      String?
+  documentNotes                 String?
+
+  // Operations
+  serviceAreas                  String?
+  serviceTypes                  String[]       @default([])
+  workingHours                  String?
+  support24_7                   Boolean        @default(false)
+  languagesSpoken               String[]       @default([])
+  maxConcurrentBookings         Int?
+  minAdvanceBookingHours        Int?
+  acceptsUrgentBookings         Boolean        @default(false)
+  cancellationPolicy            String?
+  specialConditionsNotes        String?
+
+  // Commercial & Financial
+  cooperationType               CooperationType?
+  bankAccountIban               String?
+  paymentTerms                  String?
+  commissionPercent             Decimal?       @db.Decimal(5, 2)
+  currency                      String?        @default("EUR")
+  minimumFare                   Decimal?       @db.Decimal(10, 2)
+  hourlyRate                    Decimal?       @db.Decimal(10, 2)
+  transferBaseRate              Decimal?       @db.Decimal(10, 2)
+  nightSurchargePercent         Decimal?       @db.Decimal(5, 2)
+  holidaySurchargePercent       Decimal?       @db.Decimal(5, 2)
+  waitingTimeFee                Decimal?       @db.Decimal(10, 2)
+
+  createdAt                     DateTime       @default(now())
+  updatedAt                     DateTime       @updatedAt
+
+  @@index([organizationId])
 }
 
 enum DriverStatus {
   AVAILABLE
   ON_RIDE
   OFFLINE
+}
+
+enum CooperationType {
+  COMMISSION
+  FIXED_RATE
+  CUSTOM
 }
 
 model Drivers {
