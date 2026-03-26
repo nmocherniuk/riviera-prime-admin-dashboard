@@ -3,11 +3,11 @@ import React, { memo } from "react";
 import {
   modalTextFieldSx,
   sectionLabelSx,
-} from "../../../../../../../components/ui/modalStyles";
+} from "../../../../../../components/ui/modalStyles";
 import { Grid, MenuItem, TextField, Typography } from "@mui/material";
-import DetailField from "../../../../../../../components/DetailField";
+import DetailField from "../../../../../../components/DetailField";
 import { COOPERATION_OPTIONS, CURRENCY_OPTIONS } from "../constants";
-import type { DriverOrganization } from "../../../../data/types";
+import type { DriverOrganization } from "../../../data/types";
 
 type Props = {
   readOnly: boolean;

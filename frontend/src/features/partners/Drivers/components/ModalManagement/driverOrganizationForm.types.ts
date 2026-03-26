@@ -1,4 +1,4 @@
-import type { DriverOrganization } from "../../../data/types";
+import type { DriverOrganization } from "../../data/types";
 
 export const defaultFormValues: DriverOrganization = {
   id: "",

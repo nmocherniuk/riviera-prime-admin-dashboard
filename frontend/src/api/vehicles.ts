@@ -1,5 +1,5 @@
 import { api } from "./api";
-import type { DriverFormValues } from "../features/partners/Drivers/components/drivers/DriverManagementModal";
+import type { DriverFormValues } from "../features/partners/Drivers/components/drivers/ModalManagement/driverManagementForm.types";
 import type {
   FleetClass,
   FleetStatus,
@@ -48,7 +48,9 @@ export function dtoToFleetVehicle(dto: VehicleDto): FleetVehicle {
   };
 }
 
-export function fleetFormToCreateBody(values: FleetFormValues): CreateVehicleBody {
+export function fleetFormToCreateBody(
+  values: FleetFormValues,
+): CreateVehicleBody {
   return {
     organizationId: values.organizationId.trim(),
     driverId: values.driverId.trim() || null,
@@ -61,7 +63,9 @@ export function fleetFormToCreateBody(values: FleetFormValues): CreateVehicleBod
   };
 }
 
-export function fleetFormToUpdateBody(values: FleetFormValues): UpdateVehicleBody {
+export function fleetFormToUpdateBody(
+  values: FleetFormValues,
+): UpdateVehicleBody {
   return {
     driverId: values.driverId.trim() || null,
     vehicleName: values.vehicleName.trim(),
@@ -73,7 +77,10 @@ export function fleetFormToUpdateBody(values: FleetFormValues): UpdateVehicleBod
   };
 }
 
-export async function listVehicles(filters?: { organizationId?: string; driverId?: string }) {
+export async function listVehicles(filters?: {
+  organizationId?: string;
+  driverId?: string;
+}) {
   const { data } = await api.get<{ vehicles: VehicleDto[] }>("/vehicles", {
     params: filters ?? {},
   });
@@ -86,11 +93,17 @@ export async function createVehicle(body: CreateVehicleBody) {
 }
 
 export async function updateVehicle(id: string, body: UpdateVehicleBody) {
-  const { data } = await api.patch<{ vehicle: VehicleDto }>(`/vehicles/${id}`, body);
+  const { data } = await api.patch<{ vehicle: VehicleDto }>(
+    `/vehicles/${id}`,
+    body,
+  );
   return data.vehicle;
 }
 
-export async function assignDriverToVehicle(vehicleId: string, driverId: string | null) {
+export async function assignDriverToVehicle(
+  vehicleId: string,
+  driverId: string | null,
+) {
   const { data } = await api.patch<{ vehicle: VehicleDto }>(
     `/vehicles/${vehicleId}/assign-driver`,
     { driverId },

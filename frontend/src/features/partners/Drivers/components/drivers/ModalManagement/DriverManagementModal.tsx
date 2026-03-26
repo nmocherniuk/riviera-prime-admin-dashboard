@@ -1,65 +1,69 @@
-import { Typography, Button, Divider } from "@mui/material";
+import { Button, Divider, Typography } from "@mui/material";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import EditIcon from "@mui/icons-material/Edit";
-import { useEffect, useState, type ChangeEvent } from "react";
-import type { DriverOrganization } from "../../../data/types";
+import { useState, useEffect } from "react";
 import BaseModal from "../../../../../../components/BaseModal";
-import CompanySection from "./components/CompanySection";
-import DocumentsSection from "./components/DocumentsSection";
-import OperationsSection from "./components/OperationsSection";
-import FinancialSection from "./components/FinancialSection";
-import { defaultFormValues } from "./driverOrganizationForm.types";
-import { orgToFormValues } from "./driverOrganizationForm.mapper";
+import {
+  defaultFormValues,
+  type DriverFormValues,
+  type DriverManagementModalProps,
+} from "./driverManagementForm.types";
+import { driverToFormValues } from "./driverManagementForm.mapper";
 import BasicInfoSection from "./components/BasicInfoSection";
+import ProfessionalSection from "./components/ProfessionalSection";
+import DocumentsSection from "./components/DocumentsSection";
+import OperationsVehicleSection from "./components/OperationsVehicleSection";
 
-type Props = {
-  open: boolean;
-  onClose: () => void;
-  organization: DriverOrganization | null;
-  readOnly?: boolean;
-  onSave?: (
-    organizationId: string | null,
-    values: DriverOrganization,
-  ) => void | Promise<void>;
-};
-
-export default function DriverOrganizationManagementModal({
+export default function DriverManagementModal({
   open,
   onClose,
-  organization,
+  driver,
   readOnly = false,
+  managedVehicles = [],
   onSave,
-}: Props) {
+}: DriverManagementModalProps) {
   const [formValues, setFormValues] =
-    useState<DriverOrganization>(defaultFormValues);
+    useState<DriverFormValues>(defaultFormValues);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setFormValues(orgToFormValues(organization));
-  }, [organization, open]);
+    setFormValues(driverToFormValues(driver));
+  }, [driver, open]);
 
   const handleChange =
-    (field: keyof DriverOrganization) => (e: ChangeEvent<HTMLInputElement>) => {
+    (field: keyof DriverFormValues) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
       const nextValue =
         e.target.type === "checkbox" ? e.target.checked : e.target.value;
-      setFormValues(
-        (prev) =>
-          ({
-            ...prev,
-            [field]: nextValue,
-          }) as DriverOrganization,
-      );
+      setFormValues((prev) => ({ ...prev, [field]: nextValue }));
     };
 
   const handleSave = async () => {
     try {
-      await Promise.resolve(onSave?.(organization?.id ?? null, formValues));
+      await Promise.resolve(onSave?.(driver?.id ?? null, formValues));
       onClose();
     } catch {
       // keep modal open on failure
     }
   };
+
+  const primaryVehicle = managedVehicles[0];
+  const extraVehicles = Math.max(0, managedVehicles.length - 1);
+  const vehicleIdValue = primaryVehicle
+    ? extraVehicles > 0
+      ? `${primaryVehicle.id} (+${extraVehicles})`
+      : primaryVehicle.id
+    : formValues.vehicleId || "—";
+  const vehicleTypeValue = primaryVehicle
+    ? extraVehicles > 0
+      ? `${primaryVehicle.vehicleClass} (+${extraVehicles})`
+      : primaryVehicle.vehicleClass
+    : formValues.vehicleType || "—";
+  const vehicleNameValue = primaryVehicle
+    ? extraVehicles > 0
+      ? `${primaryVehicle.label} (+${extraVehicles})`
+      : primaryVehicle.label
+    : formValues.vehicle || "—";
 
   return (
     <BaseModal
@@ -74,11 +78,7 @@ export default function DriverOrganizationManagementModal({
             variant="h6"
             sx={{ fontWeight: 700, color: "text.primary" }}
           >
-            {readOnly
-              ? "Organization details"
-              : organization
-                ? "Edit organization"
-                : "Add organization"}
+            {readOnly ? "Driver details" : "Driver Management"}
           </Typography>
         </>
       }
@@ -121,38 +121,32 @@ export default function DriverOrganizationManagementModal({
         ) : undefined
       }
     >
-      <BasicInfoSection formValues={formValues} />
-
+      <BasicInfoSection
+        readOnly={readOnly}
+        driverId={driver?.id}
+        formValues={formValues}
+        onChange={handleChange}
+      />
       <Divider sx={{ my: 2 }} />
-
-      <CompanySection
+      <ProfessionalSection
         readOnly={readOnly}
         formValues={formValues}
-        handleChange={handleChange}
+        onChange={handleChange}
       />
-
       <Divider sx={{ my: 2 }} />
-
       <DocumentsSection
         readOnly={readOnly}
         formValues={formValues}
-        handleChange={handleChange}
+        onChange={handleChange}
       />
-
       <Divider sx={{ my: 2 }} />
-
-      <OperationsSection
+      <OperationsVehicleSection
         readOnly={readOnly}
         formValues={formValues}
-        handleChange={handleChange}
-      />
-
-      <Divider sx={{ my: 2 }} />
-
-      <FinancialSection
-        readOnly={readOnly}
-        formValues={formValues}
-        handleChange={handleChange}
+        onChange={handleChange}
+        vehicleIdValue={vehicleIdValue}
+        vehicleTypeValue={vehicleTypeValue}
+        vehicleNameValue={vehicleNameValue}
       />
     </BaseModal>
   );

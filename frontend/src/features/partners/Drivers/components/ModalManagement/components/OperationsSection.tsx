@@ -10,10 +10,10 @@ import {
 import {
   modalTextFieldSx,
   sectionLabelSx,
-} from "../../../../../../../components/ui/modalStyles";
-import DetailField from "../../../../../../../components/DetailField";
+} from "../../../../../../components/ui/modalStyles";
+import DetailField from "../../../../../../components/DetailField";
 import { LANGUAGE_OPTIONS, SERVICE_TYPES } from "../constants";
-import type { DriverOrganization } from "../../../../data/types";
+import type { DriverOrganization } from "../../../data/types";
 
 type Props = {
   readOnly: boolean;

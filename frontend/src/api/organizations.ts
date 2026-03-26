@@ -3,7 +3,7 @@ import { api } from "./api";
 import type { DriverOrganization } from "../features/partners/Drivers/data/types";
 import type { ChauffeurOrganizationDetails } from "../features/partners/Drivers/data/types";
 import type { Partner } from "../features/partners/Security/data/types";
-import type { DriverOrganizationFormValues } from "../features/partners/Drivers/components/drivers/ModalManagement/DriverOrganizationManagementModal";
+import type { DriverOrganizationFormValues } from "../features/partners/Drivers/components/ModalManagement/DriverOrganizationManagementModal";
 import type { PartnerFormValues } from "../features/partners/Security/components/ModalManagement/PartnerManagementModal";
 import type { SecurityOrganizationDetails } from "../features/partners/Security/data/types";
 
@@ -303,7 +303,9 @@ export function partnerFormToCreateBody(
       bankDetailsProvided: values.bankDetailsProvided,
       directorIdCopyProvided: values.directorIdCopyProvided,
       signedPartnershipAgreement: values.signedPartnershipAgreement,
-      additionalCertifications: trimOrUndefined(values.additionalCertifications),
+      additionalCertifications: trimOrUndefined(
+        values.additionalCertifications,
+      ),
 
       serviceAreas: trimOrUndefined(values.serviceAreas),
       serviceTypes: values.serviceTypes,
@@ -464,7 +466,9 @@ export function partnerFormToUpdateBody(
       bankDetailsProvided: values.bankDetailsProvided,
       directorIdCopyProvided: values.directorIdCopyProvided,
       signedPartnershipAgreement: values.signedPartnershipAgreement,
-      additionalCertifications: trimOrUndefined(values.additionalCertifications),
+      additionalCertifications: trimOrUndefined(
+        values.additionalCertifications,
+      ),
 
       serviceAreas: trimOrUndefined(values.serviceAreas),
       serviceTypes: values.serviceTypes,

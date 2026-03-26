@@ -5,12 +5,12 @@ import { TextField } from "@mui/material";
 import { Checkbox } from "@mui/material";
 import { FormControlLabel } from "@mui/material";
 
-import DetailField from "../../../../../../../components/DetailField";
+import DetailField from "../../../../../../components/DetailField";
 import {
   modalTextFieldSx,
   sectionLabelSx,
-} from "../../../../../../../components/ui/modalStyles";
-import type { DriverOrganization } from "../../../../data/types";
+} from "../../../../../../components/ui/modalStyles";
+import type { DriverOrganization } from "../../../data/types";
 
 type Props = {
   readOnly: boolean;

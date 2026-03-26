@@ -126,21 +126,76 @@ enum CooperationType {
   CUSTOM
 }
 
+enum EmploymentStatus {
+  EMPLOYEE
+  FREELANCE
+  SUBCONTRACTOR
+}
+
 model Drivers {
   id             String       @id @default(uuid())
   organizationId String
   organization   Organizations @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // BASIC
   name           String
+  phone          String?
+  email          String?
+  address        String?
+  nationality    String?
+  birthDate      DateTime?
+  languages      String[]     @default([])
+  emergencyContact String?
+
+  // PROFESSIONAL
+  employmentStatus     EmploymentStatus?
+  vtcCardNumber        String?
+  vtcCardIssuedAt      DateTime?
+  vtcCardExpiresAt     DateTime?
+  driverLicenseNumber  String?
+  licenseCategory      String?
+  licenseIssuedAt      DateTime?
+  licenseExpiresAt     DateTime?
+  drivingExperienceYears Int?
+  hasVipExperience     Boolean @default(false)
+  hasEventExperience   Boolean @default(false)
+  languageLevel        String?
+  dressCodeReady       Boolean @default(false)
+
+  // DOCUMENTS (metadata)
+  passportProvided           Boolean @default(false)
+  driverLicenseProvided      Boolean @default(false)
+  vtcCardProvided            Boolean @default(false)
+  criminalRecordProvided     Boolean @default(false)
+  medicalCertificateProvided Boolean @default(false)
+  insuranceProofProvided     Boolean @default(false)
+  profilePhotoProvided       Boolean @default(false)
+  signedContractProvided     Boolean @default(false)
+
+  // OPERATIONS
+  baseCity                   String?
+  workingRadiusKm            Int?
+  acceptsLongDistance        Boolean @default(false)
+  acceptsNightTrips          Boolean @default(false)
+  acceptsAirportTransfers    Boolean @default(false)
+  acceptsVipClients          Boolean @default(false)
+  availabilityDays           String[] @default([])
+  availabilityHours          String?
+  hasOwnVehicle              Boolean @default(false)
+
+  // EXISTING FIELDS (залишаємо)
   vehicle        String
   vehiclePlate   String
   vehicleColor   String
   status         DriverStatus @default(AVAILABLE)
   rides          Int          @default(0)
   todayShift     String       @default("")
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+
   assignedVehicles Vehicles[]
   bookings       Bookings[]
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   @@index([organizationId])
 }

@@ -12,8 +12,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import type { Driver } from "../features/partners/Drivers/data/dummyDrivers";
 import type { DriverOrganization } from "../features/partners/Drivers/data/types";
-import type { DriverFormValues } from "../features/partners/Drivers/components/drivers/DriverManagementModal";
-import DriverManagementModal from "../features/partners/Drivers/components/drivers/DriverManagementModal";
+import type { DriverFormValues } from "../features/partners/Drivers/components/drivers/ModalManagement/driverManagementForm.types";
+import DriverManagementModal from "../features/partners/Drivers/components/drivers/ModalManagement/DriverManagementModal";
 import ConfirmDeleteDialog from "../components/ConfirmDeleteDialog";
 import DriversTable from "../features/partners/Drivers/components/drivers/DriversTable";
 import DriversHeader from "../features/partners/Drivers/components/drivers/DriversHeader";
@@ -113,8 +113,7 @@ export default function DriversPage() {
   );
 
   const vehiclesByDriverId = useMemo(
-    () =>
-      driversPageQuery.data?.vehiclesByDriverId ?? ({} as VehiclesByDriver),
+    () => driversPageQuery.data?.vehiclesByDriverId ?? ({} as VehiclesByDriver),
     [driversPageQuery.data],
   );
 
@@ -174,7 +173,9 @@ export default function DriversPage() {
         await queryClient.invalidateQueries({
           queryKey: queryKeys.vehicles.list({ organizationId }),
         });
-        await queryClient.invalidateQueries({ queryKey: queryKeys.drivers.all });
+        await queryClient.invalidateQueries({
+          queryKey: queryKeys.drivers.all,
+        });
       } catch (e) {
         setDriversError(getApiErrorMessage(e, "Failed to save driver"));
         throw e;
@@ -354,8 +355,8 @@ export default function DriversPage() {
           open={!!driverToDelete}
           onClose={() => setDriverToDelete(null)}
           onConfirm={handleConfirmDelete}
-          title=" ?"
-          message="    .    ."
+          title="ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½?"
+          message="ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½. ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½."
         />
       </Container>
     </Box>

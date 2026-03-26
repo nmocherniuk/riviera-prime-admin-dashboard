@@ -1,4 +1,4 @@
-import type { DriverOrganization } from "../../../data/types";
+import type { DriverOrganization } from "../../data/types";
 import { defaultFormValues } from "./driverOrganizationForm.types";
 
 export function orgToFormValues(

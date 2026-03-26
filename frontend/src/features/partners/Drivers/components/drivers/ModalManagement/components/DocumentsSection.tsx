@@ -1,103 +1,46 @@
-import React, { memo } from "react";
-import {
-  modalTextFieldSx,
-  sectionLabelSx,
-} from "../../../../../../../components/ui/modalStyles";
+import { Checkbox, FormControlLabel, Grid, Typography } from "@mui/material";
+import { memo } from "react";
 import DetailField from "../../../../../../../components/DetailField";
+import { sectionLabelSx } from "../../../../../../../components/ui/modalStyles";
 import {
-  Checkbox,
-  FormControlLabel,
-  Grid,
-  TextField,
-  Typography,
-} from "@mui/material";
-import { DOCUMENTS_OPTIONS } from "../constants";
-import type { DriverOrganization } from "../../../../data/types";
+  DOCUMENT_FIELDS,
+  type DriverFormValues,
+  type DriverModalFormOnChange,
+} from "../driverManagementForm.types";
 
 type Props = {
   readOnly: boolean;
-  formValues: DriverOrganization;
-  handleChange: (
-    field: keyof DriverOrganization,
-  ) => (e: React.ChangeEvent<HTMLInputElement>) => void;
+  formValues: DriverFormValues;
+  onChange: DriverModalFormOnChange;
 };
 
-const DocumentsSection = ({ readOnly, formValues, handleChange }: Props) => {
+function yesNo(value: boolean) {
+  return value ? "Yes" : "No";
+}
+
+function DocumentsSection({ readOnly, formValues, onChange }: Props) {
   return (
     <>
       <Typography sx={sectionLabelSx}>Documents</Typography>
-      <Grid container spacing={2} sx={{ mb: 2 }}>
-        {DOCUMENTS_OPTIONS.map((d, index) => {
-          const val = formValues[d.key];
-          const isLastOdd =
-            DOCUMENTS_OPTIONS.length % 2 !== 0 &&
-            index === DOCUMENTS_OPTIONS.length - 1;
-
-          if (readOnly) {
-            return (
-              <Grid size={{ xs: 12, md: isLastOdd ? 12 : 6 }}>
-                <DetailField label={d.label} value={val ? "Yes" : "No"} />
-              </Grid>
-            );
-          }
-
-          return (
-            <Grid key={d.key} size={{ xs: 12, md: isLastOdd ? 12 : 6 }}>
+      <Grid container spacing={1.5}>
+        {DOCUMENT_FIELDS.map((f) => (
+          <Grid key={f.key} size={{ xs: 12, md: 6 }}>
+            {readOnly ? (
+              <DetailField label={f.label} value={yesNo(formValues[f.key])} />
+            ) : (
               <FormControlLabel
                 control={
-                  <Checkbox
-                    checked={Boolean(val)}
-                    onChange={handleChange(d.key as keyof DriverOrganization)}
-                  />
+                  <Checkbox checked={formValues[f.key]} onChange={onChange(f.key)} />
                 }
-                label={d.label}
+                label={f.label}
               />
-            </Grid>
-          );
-        })}
-
-        <Grid size={{ xs: 12 }}>
-          {readOnly ? (
-            <DetailField
-              label="Additional certifications"
-              value={formValues.additionalCertifications}
-            />
-          ) : (
-            <TextField
-              fullWidth
-              size="small"
-              label="Additional certifications"
-              value={formValues.additionalCertifications}
-              onChange={handleChange("additionalCertifications")}
-              multiline
-              minRows={2}
-              sx={modalTextFieldSx}
-            />
-          )}
-        </Grid>
-
-        <Grid size={{ xs: 12 }}>
-          {readOnly ? (
-            <DetailField
-              label="Document notes"
-              value={formValues.documentNotes}
-            />
-          ) : (
-            <TextField
-              fullWidth
-              size="small"
-              label="Document notes"
-              value={formValues.documentNotes}
-              onChange={handleChange("documentNotes")}
-              multiline
-              minRows={2}
-              sx={modalTextFieldSx}
-            />
-          )}
-        </Grid>
+            )}
+          </Grid>
+        ))}
       </Grid>
     </>
   );
-};
+}
 
 export default memo(DocumentsSection);
+
