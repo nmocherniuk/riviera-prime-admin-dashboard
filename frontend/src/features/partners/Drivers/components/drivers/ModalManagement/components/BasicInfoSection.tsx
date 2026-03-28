@@ -1,21 +1,22 @@
-import { Grid, TextField, Typography } from "@mui/material";
-import { memo } from "react";
+import { Grid, MenuItem, TextField, Typography } from "@mui/material";
+import { memo, type ChangeEvent } from "react";
 import DetailField from "../../../../../../../components/DetailField";
 import {
   modalTextFieldSx,
   sectionLabelSx,
   valueBoxSx,
 } from "../../../../../../../components/ui/modalStyles";
-import type {
-  DriverFormValues,
-  DriverModalFormOnChange,
-} from "../driverManagementForm.types";
+;
+import { LANGUAGE_OPTIONS } from "../../../ModalManagement/constants";
+import type { DriverFormValues } from "../../types";
 
 type Props = {
   readOnly: boolean;
   driverId?: string;
   formValues: DriverFormValues;
-  onChange: DriverModalFormOnChange;
+  onChange: <K extends keyof DriverFormValues>(
+    field: K,
+  ) => (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
 function BasicInfoSection({ readOnly, driverId, formValues, onChange }: Props) {
@@ -117,21 +118,33 @@ function BasicInfoSection({ readOnly, driverId, formValues, onChange }: Props) {
             />
           )}
         </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid size={{ xs: 12 }}>
           {readOnly ? (
             <DetailField
-              label="Languages (comma separated)"
-              value={formValues.languages}
+              label="Languages spoken"
+              value={(formValues.languages ?? []).join(", ")}
             />
           ) : (
             <TextField
               fullWidth
               size="small"
-              label="Languages (comma separated)"
-              value={formValues.languages}
-              onChange={onChange("languages")}
+              select
+              label="Languages spoken"
+              value={formValues.languages ?? []}
+              SelectProps={{ multiple: true }}
+              onChange={(e) =>
+                onChange("languages")(
+                  e as ChangeEvent<HTMLInputElement>,
+                )
+              }
               sx={modalTextFieldSx}
-            />
+            >
+              {LANGUAGE_OPTIONS.map((l) => (
+                <MenuItem key={l} value={l}>
+                  {l}
+                </MenuItem>
+              ))}
+            </TextField>
           )}
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
@@ -149,6 +162,37 @@ function BasicInfoSection({ readOnly, driverId, formValues, onChange }: Props) {
               onChange={onChange("emergencyContact")}
               sx={modalTextFieldSx}
             />
+          )}
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          {readOnly ? (
+            <DetailField
+              label="Employment status"
+              value={formValues.status ? "Active" : "Inactive"}
+            />
+          ) : (
+            <TextField
+              select
+              fullWidth
+              size="small"
+              label="Employment status"
+              value={formValues.status ? "active" : "inactive"}
+              onChange={(e) => {
+                const checked = e.target.value === "active";
+                onChange("status")({
+                  target: {
+                    type: "checkbox",
+                    checked,
+                    name: "status",
+                    value: "",
+                  },
+                } as ChangeEvent<HTMLInputElement>);
+              }}
+              sx={modalTextFieldSx}
+            >
+              <MenuItem value="active">Active</MenuItem>
+              <MenuItem value="inactive">Inactive</MenuItem>
+            </TextField>
           )}
         </Grid>
       </Grid>

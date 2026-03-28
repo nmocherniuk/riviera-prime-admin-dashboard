@@ -1,55 +1,7 @@
-export type DriverStatus = "AVAILABLE" | "ON RIDE" | "OFFLINE";
+import type { Driver } from "../components/drivers/types";
 
-export type Driver = {
-  id: string;
-  organizationId: string;
-  organizationName: string;
-  name: string;
-  phone?: string | null;
-  email?: string | null;
-  address?: string | null;
-  nationality?: string | null;
-  birthDate?: string | null;
-  languages?: string[];
-  emergencyContact?: string | null;
-  employmentStatus?: "EMPLOYEE" | "FREELANCE" | "SUBCONTRACTOR" | null;
-  vtcCardNumber?: string | null;
-  vtcCardIssuedAt?: string | null;
-  vtcCardExpiresAt?: string | null;
-  driverLicenseNumber?: string | null;
-  licenseCategory?: string | null;
-  licenseIssuedAt?: string | null;
-  licenseExpiresAt?: string | null;
-  drivingExperienceYears?: number | null;
-  hasVipExperience?: boolean;
-  hasEventExperience?: boolean;
-  languageLevel?: string | null;
-  dressCodeReady?: boolean;
-  passportProvided?: boolean;
-  driverLicenseProvided?: boolean;
-  vtcCardProvided?: boolean;
-  criminalRecordProvided?: boolean;
-  medicalCertificateProvided?: boolean;
-  insuranceProofProvided?: boolean;
-  profilePhotoProvided?: boolean;
-  signedContractProvided?: boolean;
-  baseCity?: string | null;
-  workingRadiusKm?: number | null;
-  acceptsLongDistance?: boolean;
-  acceptsNightTrips?: boolean;
-  acceptsAirportTransfers?: boolean;
-  acceptsVipClients?: boolean;
-  availabilityDays?: string[];
-  availabilityHours?: string | null;
-  hasOwnVehicle?: boolean;
-  vehicle: string;
-  vehiclePlate: string;
-  vehicleColor: string;
-  status: DriverStatus;
-  rides: number;
-  earning: string;
-  todayShift: string;
-};
+
+
 
 export const DUMMY_DRIVERS: Driver[] = [
   {
@@ -60,7 +12,7 @@ export const DUMMY_DRIVERS: Driver[] = [
     vehicle: "Mercedes-Benz S-Class",
     vehiclePlate: "LIMO-992",
     vehicleColor: "Black",
-    status: "AVAILABLE",
+    status: true,
     rides: 123,
     earning: "$3,421.21",
     todayShift: "08:00-18:00",
@@ -73,7 +25,7 @@ export const DUMMY_DRIVERS: Driver[] = [
     vehicle: "BMW 7 Series",
     vehiclePlate: "LIMO-881",
     vehicleColor: "Navy",
-    status: "ON RIDE",
+    status: true,
     rides: 98,
     earning: "$2,890.50",
     todayShift: "10:00-22:00",
@@ -86,7 +38,7 @@ export const DUMMY_DRIVERS: Driver[] = [
     vehicle: "Audi A8",
     vehiclePlate: "LIMO-774",
     vehicleColor: "Silver",
-    status: "OFFLINE",
+    status: false,
     rides: 156,
     earning: "$4,102.00",
     todayShift: "OFF",
@@ -99,7 +51,7 @@ export const DUMMY_DRIVERS: Driver[] = [
     vehicle: "Mercedes-Benz E-Class",
     vehiclePlate: "LIMO-663",
     vehicleColor: "White",
-    status: "AVAILABLE",
+    status: true,
     rides: 87,
     earning: "$2,456.80",
     todayShift: "06:00-14:00",
@@ -112,7 +64,7 @@ export const DUMMY_DRIVERS: Driver[] = [
     vehicle: "Range Rover Sentinel",
     vehiclePlate: "LIMO-552",
     vehicleColor: "Black",
-    status: "ON RIDE",
+    status: true,
     rides: 201,
     earning: "$5,678.90",
     todayShift: "NIGHT SHIFT",

@@ -7,17 +7,15 @@ import {
   listDrivers,
   updateDriver,
 } from "./driver.service.js";
+import { isPrismaKnownError } from "./driver.utils.js";
 
-function isPrismaKnownError(
-  error: unknown,
-): error is { code: string; meta?: { target?: unknown } } {
-  return typeof error === "object" && error !== null && "code" in error;
-}
 
 export async function listDriversController(req: AuthedRequest, res: Response) {
   try {
     const { organizationId } = req.query as { organizationId?: string };
+
     const drivers = await listDrivers(organizationId);
+
     return res.json({ drivers });
   } catch (error) {
     const message = error instanceof Error ? error.message : "List failed";
@@ -31,11 +29,13 @@ export async function getDriverByIdController(
 ) {
   try {
     const { id } = req.params as { id: string };
-    const { organizationId } = req.query as { organizationId?: string };
-    const driver = await getDriverById(id, organizationId);
+
+    const driver = await getDriverById(id);
+
     if (!driver) {
       return res.status(404).json({ message: "Driver not found" });
     }
+
     return res.json({ driver });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Get failed";
@@ -49,6 +49,7 @@ export async function createDriverController(
 ) {
   try {
     const driver = await createDriver(req.body);
+
     return res.status(201).json({ driver });
   } catch (error) {
     if (isPrismaKnownError(error) && error.code === "P2003") {
@@ -67,11 +68,14 @@ export async function updateDriverController(
 ) {
   try {
     const { id } = req.params as { id: string };
-    const { organizationId } = req.query as { organizationId?: string };
-    const driver = await updateDriver(id, req.body, organizationId);
+
+
+    const driver = await updateDriver(id, req.body);
+
     if (!driver) {
       return res.status(404).json({ message: "Driver not found" });
     }
+
     return res.json({ driver });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Update failed";
@@ -85,8 +89,9 @@ export async function deleteDriverController(
 ) {
   try {
     const { id } = req.params as { id: string };
-    const { organizationId } = req.query as { organizationId?: string };
-    const deleted = await deleteDriver(id, organizationId);
+
+    const deleted = await deleteDriver(id);
+
     if (!deleted) {
       return res.status(404).json({ message: "Driver not found" });
     }

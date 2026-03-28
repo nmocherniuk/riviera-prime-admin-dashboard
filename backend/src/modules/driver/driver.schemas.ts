@@ -1,11 +1,5 @@
 import { z } from "zod";
 
-export const publicDriverStatusSchema = z.enum([
-  "AVAILABLE",
-  "ON RIDE",
-  "OFFLINE",
-]);
-
 export const driverIdParamsSchema = z.object({
   id: z.string().uuid(),
 });
@@ -61,7 +55,7 @@ export const createDriverSchema = z.object({
   vehicle: z.string().min(1),
   vehiclePlate: z.string().min(1),
   vehicleColor: z.string().min(1),
-  status: publicDriverStatusSchema,
+  status: z.boolean().default(true),
   rides: z.number().int().nonnegative().default(0),
   todayShift: z.string().default(""),
 });

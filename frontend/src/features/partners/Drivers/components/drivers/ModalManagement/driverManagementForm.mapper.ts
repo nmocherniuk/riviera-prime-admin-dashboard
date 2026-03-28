@@ -1,7 +1,7 @@
-import type { Driver } from "../../../data/dummyDrivers";
+import { toNumber } from "../../../../../../utils/transform";
+import type { Driver, DriverFormValues } from "../types";
 import {
   defaultFormValues,
-  type DriverFormValues,
 } from "./driverManagementForm.types";
 
 export function driverToFormValues(driver: Driver | null): DriverFormValues {
@@ -13,29 +13,18 @@ export function driverToFormValues(driver: Driver | null): DriverFormValues {
     email: driver.email ?? "",
     address: driver.address ?? "",
     nationality: driver.nationality ?? "",
-    birthDate: driver.birthDate ? String(driver.birthDate).slice(0, 10) : "",
-    languages: (driver.languages ?? []).join(", "),
+    birthDate: driver.birthDate ?? undefined,
+    languages: driver.languages ?? [],
     emergencyContact: driver.emergencyContact ?? "",
-    employmentStatus: driver.employmentStatus ?? "",
+    employmentStatus: driver.employmentStatus ?? null,
     vtcCardNumber: driver.vtcCardNumber ?? "",
-    vtcCardIssuedAt: driver.vtcCardIssuedAt
-      ? String(driver.vtcCardIssuedAt).slice(0, 10)
-      : "",
-    vtcCardExpiresAt: driver.vtcCardExpiresAt
-      ? String(driver.vtcCardExpiresAt).slice(0, 10)
-      : "",
+    vtcCardIssuedAt: driver.vtcCardIssuedAt ?? undefined,
+    vtcCardExpiresAt: driver.vtcCardExpiresAt ?? undefined,
     driverLicenseNumber: driver.driverLicenseNumber ?? "",
     licenseCategory: driver.licenseCategory ?? "",
-    licenseIssuedAt: driver.licenseIssuedAt
-      ? String(driver.licenseIssuedAt).slice(0, 10)
-      : "",
-    licenseExpiresAt: driver.licenseExpiresAt
-      ? String(driver.licenseExpiresAt).slice(0, 10)
-      : "",
-    drivingExperienceYears:
-      driver.drivingExperienceYears != null
-        ? String(driver.drivingExperienceYears)
-        : "",
+    licenseIssuedAt: driver.licenseIssuedAt ?? undefined,
+    licenseExpiresAt: driver.licenseExpiresAt ?? undefined,
+    drivingExperienceYears: driver.drivingExperienceYears ?? undefined,
     hasVipExperience: driver.hasVipExperience ?? false,
     hasEventExperience: driver.hasEventExperience ?? false,
     languageLevel: driver.languageLevel ?? "",
@@ -50,22 +39,74 @@ export function driverToFormValues(driver: Driver | null): DriverFormValues {
     signedContractProvided: driver.signedContractProvided ?? false,
     baseCity: driver.baseCity ?? "",
     workingRadiusKm:
-      driver.workingRadiusKm != null ? String(driver.workingRadiusKm) : "",
+      driver.workingRadiusKm ?? undefined,
     acceptsLongDistance: driver.acceptsLongDistance ?? false,
     acceptsNightTrips: driver.acceptsNightTrips ?? false,
     acceptsAirportTransfers: driver.acceptsAirportTransfers ?? false,
     acceptsVipClients: driver.acceptsVipClients ?? false,
-    availabilityDays: (driver.availabilityDays ?? []).join(", "),
-    availabilityHours: driver.availabilityHours ?? "",
+    availabilityDays: driver.availabilityDays ?? [],
+    availabilityHours: driver.availabilityHours ?? undefined,
     hasOwnVehicle: driver.hasOwnVehicle ?? false,
-    vehicleId: "",
-    vehicleType: "",
-    vehicle: driver.vehicle || "",
-    vehiclePlate: driver.vehiclePlate ?? "",
-    vehicleColor: driver.vehicleColor ?? "",
-    status: driver.status,
-    rides: String(driver.rides ?? 0),
-    todayShift: driver.todayShift ?? "",
+    vehicle: driver.vehicle ?? undefined,
+    vehiclePlate: driver.vehiclePlate ?? undefined,
+    vehicleColor: driver.vehicleColor ?? undefined,
+    status: driver.status ?? true,
+    rides: driver.rides ?? undefined,
+    todayShift: driver.todayShift ?? undefined,
   };
 }
 
+export function FormValuesToDriver(
+  values: DriverFormValues,
+  organizationId: string,
+): Driver {
+
+  return {
+    organizationId,
+    organizationName: "",
+    name: values.name.trim() || "Unnamed driver",
+    phone: values.phone?.trim() || undefined,
+    email: values.email?.trim() || undefined,
+    address: values.address?.trim() || undefined,
+    nationality: values.nationality?.trim() || undefined,
+    birthDate: values.birthDate || undefined,
+    languages: values.languages,
+    emergencyContact: values.emergencyContact?.trim() || undefined,
+    employmentStatus: values.employmentStatus || undefined,
+    vtcCardNumber: values.vtcCardNumber?.trim() || undefined,
+    vtcCardIssuedAt: values.vtcCardIssuedAt || undefined,
+    vtcCardExpiresAt: values.vtcCardExpiresAt || undefined,
+    driverLicenseNumber: values.driverLicenseNumber?.trim() || undefined,
+    licenseCategory: values.licenseCategory?.trim() || undefined,
+    licenseIssuedAt: values.licenseIssuedAt || undefined,
+    licenseExpiresAt: values.licenseExpiresAt || undefined,
+    drivingExperienceYears: toNumber(values.drivingExperienceYears),
+    hasVipExperience: values.hasVipExperience,
+    hasEventExperience: values.hasEventExperience,
+    languageLevel: values.languageLevel?.trim() || undefined,
+    dressCodeReady: values.dressCodeReady,
+    passportProvided: values.passportProvided,
+    driverLicenseProvided: values.driverLicenseProvided,
+    vtcCardProvided: values.vtcCardProvided,
+    criminalRecordProvided: values.criminalRecordProvided,
+    medicalCertificateProvided: values.medicalCertificateProvided,
+    insuranceProofProvided: values.insuranceProofProvided,
+    profilePhotoProvided: values.profilePhotoProvided,
+    signedContractProvided: values.signedContractProvided,
+    baseCity: values.baseCity?.trim() || undefined,
+    workingRadiusKm: toNumber(values.workingRadiusKm),
+    acceptsLongDistance: values.acceptsLongDistance,
+    acceptsNightTrips: values.acceptsNightTrips,
+    acceptsAirportTransfers: values.acceptsAirportTransfers,
+    acceptsVipClients: values.acceptsVipClients,
+    availabilityDays: values.availabilityDays,
+    availabilityHours: values.availabilityHours?.trim() || undefined,
+    hasOwnVehicle: values.hasOwnVehicle,
+    vehicle: values.vehicle?.trim() || "Unknown vehicle",
+    vehiclePlate: values.vehiclePlate?.trim() || "N/A",
+    vehicleColor: values.vehicleColor?.trim() || "N/A",
+    status: values.status ?? true,
+    rides: toNumber(values.rides),
+    todayShift: values.todayShift?.trim() || undefined,
+  };
+}

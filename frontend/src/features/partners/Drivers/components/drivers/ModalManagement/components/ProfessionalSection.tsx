@@ -5,21 +5,17 @@ import {
   modalTextFieldSx,
   sectionLabelSx,
 } from "../../../../../../../components/ui/modalStyles";
-import {
-  PROFESSIONAL_BOOLEAN_FIELDS,
-  type DriverFormValues,
-  type DriverModalFormOnChange,
-} from "../driverManagementForm.types";
+
+import { PROFESSIONAL_BOOLEAN_FIELDS } from "../constants";
+import type { DriverFormValues } from "../../types";
 
 type Props = {
   readOnly: boolean;
   formValues: DriverFormValues;
-  onChange: DriverModalFormOnChange;
+  onChange: <K extends keyof DriverFormValues>(
+    field: K,
+  ) => (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
-
-function yesNo(value: boolean) {
-  return value ? "Yes" : "No";
-}
 
 function ProfessionalSection({ readOnly, formValues, onChange }: Props) {
   return (
@@ -124,7 +120,7 @@ function ProfessionalSection({ readOnly, formValues, onChange }: Props) {
         {PROFESSIONAL_BOOLEAN_FIELDS.map((f) => (
           <Grid key={f.key} size={{ xs: 12, md: 4 }}>
             {readOnly ? (
-              <DetailField label={f.label} value={yesNo(formValues[f.key])} />
+              <DetailField label={f.label} value={formValues[f.key] ? "Yes" : "No"} />
             ) : (
               <FormControlLabel
                 control={

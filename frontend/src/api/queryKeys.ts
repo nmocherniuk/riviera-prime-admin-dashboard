@@ -14,6 +14,8 @@ export const queryKeys = {
       [...queryKeys.organizations.all, "list", type] as const,
     detail: (type: OrganizationType, id: string) =>
       [...queryKeys.organizations.all, "detail", type, id] as const,
+    byId: (id: string) =>
+      [...queryKeys.organizations.all, "byId", id] as const,
   },
   drivers: {
     all: ["drivers"] as const,

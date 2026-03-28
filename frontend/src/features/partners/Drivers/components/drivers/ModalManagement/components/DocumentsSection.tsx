@@ -2,21 +2,18 @@ import { Checkbox, FormControlLabel, Grid, Typography } from "@mui/material";
 import { memo } from "react";
 import DetailField from "../../../../../../../components/DetailField";
 import { sectionLabelSx } from "../../../../../../../components/ui/modalStyles";
-import {
-  DOCUMENT_FIELDS,
-  type DriverFormValues,
-  type DriverModalFormOnChange,
-} from "../driverManagementForm.types";
+;
+import { DOCUMENT_FIELDS } from "../constants";
+import type { DriverFormValues } from "../../types";
 
 type Props = {
   readOnly: boolean;
   formValues: DriverFormValues;
-  onChange: DriverModalFormOnChange;
+  onChange: <K extends keyof DriverFormValues>(
+    field: K,
+  ) => (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
-function yesNo(value: boolean) {
-  return value ? "Yes" : "No";
-}
 
 function DocumentsSection({ readOnly, formValues, onChange }: Props) {
   return (
@@ -26,7 +23,7 @@ function DocumentsSection({ readOnly, formValues, onChange }: Props) {
         {DOCUMENT_FIELDS.map((f) => (
           <Grid key={f.key} size={{ xs: 12, md: 6 }}>
             {readOnly ? (
-              <DetailField label={f.label} value={yesNo(formValues[f.key])} />
+              <DetailField label={f.label} value={formValues[f.key] ? "Yes" : "No"} />
             ) : (
               <FormControlLabel
                 control={

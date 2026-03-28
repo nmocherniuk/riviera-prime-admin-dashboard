@@ -6,14 +6,25 @@ import { useState, useEffect } from "react";
 import BaseModal from "../../../../../../components/BaseModal";
 import {
   defaultFormValues,
-  type DriverFormValues,
-  type DriverManagementModalProps,
 } from "./driverManagementForm.types";
 import { driverToFormValues } from "./driverManagementForm.mapper";
 import BasicInfoSection from "./components/BasicInfoSection";
 import ProfessionalSection from "./components/ProfessionalSection";
 import DocumentsSection from "./components/DocumentsSection";
-import OperationsVehicleSection from "./components/OperationsVehicleSection";
+import type { Driver, DriverFormValues } from "../types";
+
+type DriverManagementModalProps = {
+  open: boolean;
+  onClose: () => void;
+  driver: Driver | null;
+  readOnly?: boolean;
+  managedVehicles?: Array<{ id: string; label: string; vehicleClass: string }>;
+  onSave?: (
+    driverId: string | null,
+    values: DriverFormValues,
+  ) => void | Promise<void>;
+};
+
 
 export default function DriverManagementModal({
   open,
@@ -32,38 +43,29 @@ export default function DriverManagementModal({
 
   const handleChange =
     (field: keyof DriverFormValues) =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const nextValue =
-        e.target.type === "checkbox" ? e.target.checked : e.target.value;
-      setFormValues((prev) => ({ ...prev, [field]: nextValue }));
-    };
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        const nextValue =
+          e.target.type === "checkbox" ? e.target.checked : e.target.value;
+        setFormValues((prev: DriverFormValues) => ({ ...prev, [field]: nextValue }));
+      };
 
-  const handleSave = async () => {
-    try {
-      await Promise.resolve(onSave?.(driver?.id ?? null, formValues));
-      onClose();
-    } catch {
-      // keep modal open on failure
-    }
-  };
-
-  const primaryVehicle = managedVehicles[0];
-  const extraVehicles = Math.max(0, managedVehicles.length - 1);
-  const vehicleIdValue = primaryVehicle
-    ? extraVehicles > 0
-      ? `${primaryVehicle.id} (+${extraVehicles})`
-      : primaryVehicle.id
-    : formValues.vehicleId || "—";
-  const vehicleTypeValue = primaryVehicle
-    ? extraVehicles > 0
-      ? `${primaryVehicle.vehicleClass} (+${extraVehicles})`
-      : primaryVehicle.vehicleClass
-    : formValues.vehicleType || "—";
-  const vehicleNameValue = primaryVehicle
-    ? extraVehicles > 0
-      ? `${primaryVehicle.label} (+${extraVehicles})`
-      : primaryVehicle.label
-    : formValues.vehicle || "—";
+  // const primaryVehicle = managedVehicles[0];
+  // const extraVehicles = Math.max(0, managedVehicles.length - 1);
+  // const vehicleIdValue = primaryVehicle
+  //   ? extraVehicles > 0
+  //     ? `${primaryVehicle.id} (+${extraVehicles})`
+  //     : primaryVehicle.id
+  //   : formValues.vehicleId || "—";
+  // const vehicleTypeValue = primaryVehicle
+  //   ? extraVehicles > 0
+  //     ? `${primaryVehicle.vehicleClass} (+${extraVehicles})`
+  //     : primaryVehicle.vehicleClass
+  //   : formValues.vehicleType || "—";
+  // const vehicleNameValue = primaryVehicle
+  //   ? extraVehicles > 0
+  //     ? `${primaryVehicle.label} (+${extraVehicles})`
+  //     : primaryVehicle.label
+  //   : formValues.vehicle || "—";
 
   return (
     <BaseModal
@@ -107,7 +109,7 @@ export default function DriverManagementModal({
               variant="contained"
               color="primary"
               startIcon={<EditIcon />}
-              onClick={handleSave}
+              onClick={() => onSave?.(driver?.id ?? null, formValues)}
               sx={{
                 borderRadius: 2,
                 textTransform: "none",
@@ -140,14 +142,14 @@ export default function DriverManagementModal({
         onChange={handleChange}
       />
       <Divider sx={{ my: 2 }} />
-      <OperationsVehicleSection
+      {/* <OperationsVehicleSection
         readOnly={readOnly}
         formValues={formValues}
         onChange={handleChange}
         vehicleIdValue={vehicleIdValue}
         vehicleTypeValue={vehicleTypeValue}
         vehicleNameValue={vehicleNameValue}
-      />
+      /> */}
     </BaseModal>
   );
 }

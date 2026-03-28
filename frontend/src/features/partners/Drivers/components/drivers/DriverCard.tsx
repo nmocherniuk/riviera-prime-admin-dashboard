@@ -15,13 +15,16 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PersonIcon from "@mui/icons-material/Person";
-import type { Driver, DriverStatus } from "../../data/dummyDrivers";
+import type { Driver } from "./types";
 
-const statusColors: Record<DriverStatus, { bg: string; color: string }> = {
-  AVAILABLE: { bg: "rgba(34, 197, 94, 0.2)", color: "#22c55e" },
-  "ON RIDE": { bg: "rgba(59, 130, 246, 0.2)", color: "#3b82f6" },
-  OFFLINE: { bg: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" },
-};
+const statusStyle = (active: boolean) =>
+  active
+    ? { bg: "rgba(34, 197, 94, 0.2)", color: "#22c55e", label: "Active" as const }
+    : {
+        bg: "rgba(255,255,255,0.08)",
+        color: "rgba(255,255,255,0.6)",
+        label: "Inactive" as const,
+      };
 
 type Props = {
   driver: Driver;
@@ -36,7 +39,7 @@ export default function DriverCard({
   onEdit,
   onDelete,
 }: Props) {
-  const statusStyle = statusColors[d.status];
+  const chip = statusStyle(d.status ?? true);
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
 
   const openMenu = (e: React.MouseEvent<HTMLElement>) => {
@@ -150,11 +153,11 @@ export default function DriverCard({
         }}
       >
         <Chip
-          label={d.status}
+          label={chip.label}
           size="small"
           sx={{
-            bgcolor: statusStyle.bg,
-            color: statusStyle.color,
+            bgcolor: chip.bg,
+            color: chip.color,
             fontWeight: 700,
             fontSize: "0.7rem",
             letterSpacing: 0.5,

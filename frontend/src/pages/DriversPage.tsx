@@ -10,162 +10,163 @@ import { useCallback, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import type { Driver } from "../features/partners/Drivers/data/dummyDrivers";
-import type { DriverOrganization } from "../features/partners/Drivers/data/types";
-import type { DriverFormValues } from "../features/partners/Drivers/components/drivers/ModalManagement/driverManagementForm.types";
 import DriverManagementModal from "../features/partners/Drivers/components/drivers/ModalManagement/DriverManagementModal";
 import ConfirmDeleteDialog from "../components/ConfirmDeleteDialog";
 import DriversTable from "../features/partners/Drivers/components/drivers/DriversTable";
 import DriversHeader from "../features/partners/Drivers/components/drivers/DriversHeader";
 import DriversStats from "../features/partners/Drivers/components/drivers/DriversStats";
 import {
-  // toGeneralInfoDriverOrganization,
   getApiErrorMessage,
   getOrganization,
   isNotFoundError,
 } from "../api/organizations";
-import {
-  createDriver,
-  deleteDriver,
-  driverFormToCreateBody,
-  driverFormToUpdateBody,
-  dtoToDriver,
-  listDrivers,
-  updateDriver,
-  type DriverDto,
-} from "../api/drivers";
-import type { VehicleDto } from "../api/vehicles";
-import {
-  assignDriverToVehicle,
-  getVehicleIdFromDriverForm,
-  listVehicles,
-} from "../api/vehicles";
+import { createDriver, deleteDriver, listDrivers, updateDriver } from "../api/drivers";
 import { queryKeys } from "../api/queryKeys";
+import type { Driver, DriverFormValues } from "../features/partners/Drivers/components/drivers/types";
+import { FormValuesToDriver } from "../features/partners/Drivers/components/drivers/ModalManagement/driverManagementForm.mapper";
+import { useToast } from "../providers/ToastProvider";
+import type { DriverOrganization } from "../features/partners/Drivers/data/types";
 
-type VehiclesByDriver = Record<
-  string,
-  Array<{ id: string; label: string; vehicleClass: string }>
->;
+// type VehiclesByDriver = Record<
+//   string,
+//   Array<{ id: string; label: string; vehicleClass: string }>
+// >;
 
-type DriversPageData = {
-  organization: DriverOrganization;
-  allDrivers: Driver[];
-  vehiclesByDriverId: VehiclesByDriver;
-};
+// type DriversPageData = {
+//   organization: DriverOrganization;
+//   allDrivers: Driver[];
+//   vehiclesByDriverId: VehiclesByDriver;
+// };
 
-async function fetchDriversPageData(
-  organizationId: string,
-): Promise<DriversPageData> {
-  const dto = await getOrganization(organizationId, "CHAUFFEUR");
-  // const org = toGeneralInfoDriverOrganization(dto);
-  let rows: DriverDto[] = [];
-  let vehicles: VehicleDto[] = [];
-  try {
-    const [driverRows, vehicleRows] = await Promise.all([
-      listDrivers(organizationId),
-      listVehicles({ organizationId }),
-    ]);
-    rows = driverRows;
-    vehicles = vehicleRows;
-  } catch (e) {
-    if (isNotFoundError(e)) {
-      rows = [];
-      vehicles = [];
-    } else {
-      throw e;
-    }
-  }
-  const allDrivers = rows.map((row) => dtoToDriver(row, org.organizationName));
-  const vehiclesByDriverId = vehicles.reduce<VehiclesByDriver>((acc, v) => {
-    if (!v.driverId) return acc;
-    if (!acc[v.driverId]) acc[v.driverId] = [];
-    acc[v.driverId].push({
-      id: v.id,
-      label: v.vehicleName,
-      vehicleClass: v.class,
-    });
-    return acc;
-  }, {});
-  return { organization: org, allDrivers, vehiclesByDriverId };
-}
+// async function fetchDriversPageData(
+//   organizationId: string,
+// ): Promise<DriversPageData> {
+//   const org = await getOrganization(organizationId);
+
+
+//   let rows: DriverDto[] = [];
+//   let vehicles: VehicleDto[] = [];
+//   try {
+//     const [driverRows, vehicleRows] = await Promise.all([
+//       listDrivers(organizationId),
+//       listVehicles({ organizationId }),
+//     ]);
+//     rows = driverRows;
+//     vehicles = vehicleRows;
+//   } catch (e) {
+//     if (isNotFoundError(e)) {
+//       rows = [];
+//       vehicles = [];
+//     } else {
+//       throw e;
+//     }
+//   }
+//   const allDrivers = rows.map((row) => dtoToDriver(row, org.organizationName));
+//   const vehiclesByDriverId = vehicles.reduce<VehiclesByDriver>((acc, v) => {
+//     if (!v.driverId) return acc;
+//     if (!acc[v.driverId]) acc[v.driverId] = [];
+//     acc[v.driverId].push({
+//       id: v.id,
+//       label: v.vehicleName,
+//       vehicleClass: v.class,
+//     });
+//     return acc;
+//   }, {});
+//   return { organization: org, allDrivers, vehiclesByDriverId };
+// }
 
 export default function DriversPage() {
   const { organizationId } = useParams<{ organizationId: string }>();
+
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const driversPageQuery = useQuery({
-    queryKey: organizationId
-      ? queryKeys.drivers.byOrganization(organizationId)
-      : ["drivers", "byOrganization", "none"],
-    queryFn: () => fetchDriversPageData(organizationId!),
-    enabled: Boolean(organizationId),
-  });
+  const [error, setError] = useState<string | null>(null);
+  const [driverToDelete, setDriverToDelete] = useState<Driver | null>(null);
 
-  const organization = useMemo(
-    () => driversPageQuery.data?.organization,
-    [driversPageQuery.data],
-  );
-
-  const allDrivers = useMemo(
-    () => driversPageQuery.data?.allDrivers ?? [],
-    [driversPageQuery.data],
-  );
-
-  const vehiclesByDriverId = useMemo(
-    () => driversPageQuery.data?.vehiclesByDriverId ?? ({} as VehiclesByDriver),
-    [driversPageQuery.data],
-  );
-
-  const orgLoading = driversPageQuery.isPending;
-  const driversLoading = driversPageQuery.isPending;
-  const fetchError =
-    driversPageQuery.isError && driversPageQuery.error
-      ? isNotFoundError(driversPageQuery.error)
-        ? "No results"
-        : getApiErrorMessage(
-          driversPageQuery.error,
-          "Failed to load drivers page",
-        )
-      : null;
-
-  const [driversError, setDriversError] = useState<string | null>(null);
-
+  const { showToast } = useToast();
   const [driverModal, setDriverModal] = useState<{
     open: boolean;
     driver: Driver | null;
     readOnly?: boolean;
   }>({ open: false, driver: null, readOnly: false });
-  const [driverToDelete, setDriverToDelete] = useState<Driver | null>(null);
+
+  const {
+    data: organization,
+    isPending: organizationPending,
+    error: organizationError,
+  } = useQuery({
+    queryKey: queryKeys.organizations.byId(organizationId!),
+    queryFn: () => getOrganization(organizationId!),
+    enabled: Boolean(organizationId),
+  });
+
+  const {
+    data: drivers = [],
+    isPending: driversPending,
+    error: driversError,
+  } = useQuery({
+    queryKey: organizationId
+      ? queryKeys.drivers.byOrganization(organizationId)
+      : ["drivers", "byOrganization", "none"],
+    queryFn: () => listDrivers(organizationId!),
+    enabled: Boolean(organizationId),
+  });
+
+  const isPending = organizationPending || driversPending;
+  const listError = organizationError && !isNotFoundError(organizationError)
+    ? getApiErrorMessage(organizationError, "Failed to load organization")
+    : driversError && !isNotFoundError(driversError)
+      ? getApiErrorMessage(driversError, "Failed to load drivers")
+      : null;
+
+
+  // const vehiclesByDriverId = useMemo(
+  //   () => ({} as VehiclesByDriver),
+  //   [],
+  // );
+
+  // const vehiclesByDriverId = useMemo(
+  //   () => driversPageQuery.data?.vehiclesByDriverId ?? ({} as VehiclesByDriver),
+  //   [driversPageQuery.data],
+  // );
+
+  // const orgLoading = driversPageQuery.isPending;
+  // const fetchError =
+  //   driversPageQuery.isError && driversPageQuery.error
+  //     ? isNotFoundError(driversPageQuery.error)
+  //       ? "No results"
+  //       : getApiErrorMessage(
+  //         driversPageQuery.error,
+  //         "Failed to load drivers page",
+  //       )
+  //     : null;
+
+
 
   const handleSaveDriver = useCallback(
     async (driverId: string | null, values: DriverFormValues) => {
+
       if (!organizationId) return;
 
       try {
-        setDriversError(null);
+        setError(null);
         if (driverId) {
-          const current = allDrivers.find((d) => d.id === driverId);
-          if (!current) {
-            throw new Error("Driver not found in current list");
-          }
-          const updated = await updateDriver(
+          await updateDriver(
             driverId,
-            driverFormToUpdateBody(values, current),
-            organizationId,
+            FormValuesToDriver(values, organizationId),
           );
-          const vehicleId = getVehicleIdFromDriverForm(values);
-          if (vehicleId) {
-            await assignDriverToVehicle(vehicleId, updated.id);
-          }
+          // const vehicleId = getVehicleIdFromDriverForm(values);
+          // if (vehicleId) {
+          //   await assignDriverToVehicle(vehicleId, updated.id);
+          // }
         } else {
-          const created = await createDriver(
-            driverFormToCreateBody(values, organizationId),
+          await createDriver(
+            FormValuesToDriver(values, organizationId),
           );
-          const vehicleId = getVehicleIdFromDriverForm(values);
-          if (vehicleId) {
-            await assignDriverToVehicle(vehicleId, created.id);
-          }
+          // const vehicleId = getVehicleIdFromDriverForm(values);
+          //   await assignDriverToVehicle(vehicleId, created.id);
+          // }
         }
         await queryClient.invalidateQueries({
           queryKey: queryKeys.drivers.byOrganization(organizationId),
@@ -176,12 +177,26 @@ export default function DriversPage() {
         await queryClient.invalidateQueries({
           queryKey: queryKeys.drivers.all,
         });
+
+        showToast({
+          message: driverId
+            ? "Driver updated successfully."
+            : "Driver created successfully.",
+          severity: "success",
+        });
+
+        setDriverModal((prev) => ({
+          ...prev,
+          open: false,
+          driver: null,
+        }));
       } catch (e) {
-        setDriversError(getApiErrorMessage(e, "Failed to save driver"));
+        const msg = getApiErrorMessage(e, "Failed to save driver");
+        showToast({ message: msg, severity: "error" });
         throw e;
       }
     },
-    [organizationId, allDrivers, queryClient],
+    [organizationId, drivers, queryClient],
   );
 
   const handleDeleteClick = useCallback(
@@ -189,41 +204,14 @@ export default function DriversPage() {
     [],
   );
 
-  const handleConfirmDelete = useCallback(async () => {
-    if (!driverToDelete || !organizationId) return;
-    try {
-      setDriversError(null);
-      await deleteDriver(driverToDelete.id, organizationId);
-      await queryClient.invalidateQueries({
-        queryKey: queryKeys.drivers.byOrganization(organizationId),
-      });
-      await queryClient.invalidateQueries({
-        queryKey: queryKeys.vehicles.list({ organizationId }),
-      });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.drivers.all });
-      setDriverToDelete(null);
-    } catch (e) {
-      setDriversError(getApiErrorMessage(e, "Failed to delete driver"));
-      throw e;
-    }
-  }, [driverToDelete, organizationId, queryClient]);
-
   const activeCount = useMemo(
-    () => allDrivers.filter((d) => d.status === "AVAILABLE").length,
-    [allDrivers],
+    () => drivers.filter((d) => d.status !== false).length,
+    [drivers],
   );
-  const onRideCount = useMemo(
-    () => allDrivers.filter((d) => d.status === "ON RIDE").length,
-    [allDrivers],
+  const inactiveCount = useMemo(
+    () => drivers.filter((d) => d.status === false).length,
+    [drivers],
   );
-  const offlineCount = allDrivers.length - activeCount - onRideCount;
-  const revenueValue = useMemo(() => {
-    const total = allDrivers.reduce((sum, d) => {
-      const n = Number(d.earning.replace(/[^0-9.]/g, ""));
-      return sum + (Number.isFinite(n) ? n : 0);
-    }, 0);
-    return `$${total.toFixed(2)}`;
-  }, [allDrivers]);
 
   if (!organizationId) {
     return (
@@ -242,7 +230,7 @@ export default function DriversPage() {
     );
   }
 
-  if (orgLoading) {
+  if (isPending) {
     return (
       <Box
         sx={{
@@ -257,11 +245,11 @@ export default function DriversPage() {
     );
   }
 
-  if (!organization) {
+  if (listError) {
     return (
       <Box sx={{ p: 3 }}>
         <Typography variant="body1" color="text.secondary">
-          {fetchError ?? "No results"}
+          {listError ?? "No results"}
         </Typography>
         <Button
           startIcon={<ArrowBackIcon />}
@@ -280,19 +268,19 @@ export default function DriversPage() {
         maxWidth={false}
         sx={{ px: { xs: 1.5, sm: 2, md: 3 }, maxWidth: "100%" }}
       >
-        {driversError ? (
+        {error ? (
           <Alert
             severity="error"
             sx={{ mb: 2 }}
-            onClose={() => setDriversError(null)}
+            onClose={() => setError(null)}
           >
-            {driversError}
+            {error}
           </Alert>
         ) : null}
 
         <Box sx={{ pt: { xs: 1, md: 2 } }}>
           <DriversHeader
-            organization={organization}
+            organizationName={organization?.organizationName ?? ""}
             onAddDriver={() =>
               setDriverModal({ open: true, driver: null, readOnly: false })
             }
@@ -302,14 +290,12 @@ export default function DriversPage() {
         <Box sx={{ pt: { xs: 1, md: 2 } }}>
           <DriversStats
             activeCount={activeCount}
-            onRideCount={onRideCount}
-            offlineCount={offlineCount}
-            revenue={revenueValue}
+            inactiveCount={inactiveCount}
           />
         </Box>
 
-        <Box sx={{ mt: 2, minHeight: driversLoading ? 200 : 0 }}>
-          {driversLoading ? (
+        <Box sx={{ mt: 2, minHeight: isPending ? 200 : 0 }}>
+          {isPending ? (
             <Box
               sx={{
                 display: "flex",
@@ -320,13 +306,13 @@ export default function DriversPage() {
             >
               <CircularProgress />
             </Box>
-          ) : allDrivers.length === 0 ? (
+          ) : drivers.length === 0 ? (
             <Box sx={{ py: 8, textAlign: "center", color: "text.secondary" }}>
               No results
             </Box>
           ) : (
             <DriversTable
-              drivers={allDrivers}
+              drivers={drivers}
               onDriverView={(d) =>
                 setDriverModal({ open: true, driver: d, readOnly: true })
               }
@@ -344,9 +330,10 @@ export default function DriversPage() {
           driver={driverModal.driver}
           readOnly={driverModal.readOnly}
           managedVehicles={
-            driverModal.driver
-              ? (vehiclesByDriverId[driverModal.driver.id] ?? [])
-              : []
+            []
+            // driverModal.driver?.id
+            //   ? (vehiclesByDriverId[driverModal.driver.id] ?? [])
+            //   : []
           }
           onSave={handleSaveDriver}
         />
@@ -354,9 +341,35 @@ export default function DriversPage() {
         <ConfirmDeleteDialog
           open={!!driverToDelete}
           onClose={() => setDriverToDelete(null)}
-          onConfirm={handleConfirmDelete}
-          title="�������� ����?"
-          message="�� �� �� ����� ���������. ����� ���� �������� ��������."
+          onConfirm={async () => {
+            if (!driverToDelete?.id) return;
+
+            setError(null);
+            try {
+              await deleteDriver(driverToDelete.id);
+
+              await queryClient.invalidateQueries({
+                queryKey: queryKeys.drivers.byOrganization(organizationId),
+              });
+              await queryClient.invalidateQueries({
+                queryKey: queryKeys.vehicles.list({ organizationId }),
+              });
+              await queryClient.invalidateQueries({ queryKey: queryKeys.drivers.all });
+
+              setDriverToDelete(null);
+
+              showToast({
+                message: "Driver deleted successfully.",
+                severity: "success",
+              });
+            } catch (e) {
+              const msg = getApiErrorMessage(e, "Failed to delete driver");
+              showToast({ message: msg, severity: "error" });
+              throw e;
+            }
+          }}
+          title="Delete driver?"
+          message="This action cannot be undone. The driver will be deleted permanently."
         />
       </Container>
     </Box>

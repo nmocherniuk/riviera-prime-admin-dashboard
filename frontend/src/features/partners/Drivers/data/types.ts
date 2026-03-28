@@ -18,6 +18,7 @@ export type DriverOrganizationFormValues = {
   registrationCountry?: string | null;
   registeredAddress?: string | null;
   sameAsRegisteredAddress?: boolean;
+  mailingAddress?: string | null;
   websiteUrl?: string | null;
   directorFullName?: string | null;
   directorPosition?: string | null;

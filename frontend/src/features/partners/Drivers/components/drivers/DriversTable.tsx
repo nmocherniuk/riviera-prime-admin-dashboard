@@ -4,16 +4,19 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PersonIcon from "@mui/icons-material/Person";
 import { useCallback, useState } from "react";
-import type { Driver, DriverStatus } from "../../data/dummyDrivers";
 import { GenericTable } from "../../../../../components/GenericTable";
 import EntityActionsMenu from "../../../../../components/EntityActionsMenu";
 import DriverCard from "./DriverCard";
+import type { Driver } from "./types";
 
-const statusColors: Record<DriverStatus, { bg: string; color: string }> = {
-  AVAILABLE: { bg: "rgba(34, 197, 94, 0.2)", color: "#22c55e" },
-  "ON RIDE": { bg: "rgba(59, 130, 246, 0.2)", color: "#3b82f6" },
-  OFFLINE: { bg: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" },
-};
+const statusStyle = (active: boolean) =>
+  active
+    ? { bg: "rgba(34, 197, 94, 0.2)", color: "#22c55e", label: "Active" as const }
+    : {
+        bg: "rgba(255,255,255,0.08)",
+        color: "rgba(255,255,255,0.6)",
+        label: "Inactive" as const,
+      };
 
 type Props = {
   drivers: Driver[];
@@ -92,19 +95,22 @@ export default function DriversTable({
     {
       key: "status",
       label: "Status",
-      render: (d: Driver) => (
-        <Chip
-          label={d.status}
-          size="small"
-          sx={{
-            bgcolor: statusColors[d.status].bg,
-            color: statusColors[d.status].color,
-            fontWeight: 700,
-            fontSize: "0.7rem",
-            letterSpacing: 0.5,
-          }}
-        />
-      ),
+      render: (d: Driver) => {
+        const s = statusStyle(d.status ?? true);
+        return (
+          <Chip
+            label={s.label}
+            size="small"
+            sx={{
+              bgcolor: s.bg,
+              color: s.color,
+              fontWeight: 700,
+              fontSize: "0.7rem",
+              letterSpacing: 0.5,
+            }}
+          />
+        );
+      },
     },
     {
       key: "rides",

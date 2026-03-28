@@ -1,14 +1,13 @@
 import { Button } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import PageHeader from "../../../../../components/PageHeader";
-import type { DriverOrganization } from "../../data/types";
 
-type Props = { organization: DriverOrganization; onAddDriver: () => void };
+type Props = { organizationName: string; onAddDriver: () => void };
 
-export default function DriversHeader({ organization, onAddDriver }: Props) {
+export default function DriversHeader({ organizationName, onAddDriver }: Props) {
   return (
     <PageHeader
-      title={organization.organizationName}
+      title={organizationName}
       subtitle="Manage drivers"
       titleSx={{ fontWeight: 800, letterSpacing: "-0.02em" }}
       subtitleSx={{ fontSize: { xs: "0.875rem", md: "1rem" } }}

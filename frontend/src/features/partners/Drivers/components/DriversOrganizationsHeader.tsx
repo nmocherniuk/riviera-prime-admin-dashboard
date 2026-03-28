@@ -34,7 +34,7 @@ export default function DriversOrganizationsHeader({
           onClick={onAddOrganization}
           sx={primaryButtonSx}
         >
-          Add New Organization
+          Add New Driver Organization
         </Button>
       }
     />

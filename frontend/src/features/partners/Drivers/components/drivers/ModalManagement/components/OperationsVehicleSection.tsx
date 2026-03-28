@@ -5,24 +5,21 @@ import {
   modalTextFieldSx,
   sectionLabelSx,
 } from "../../../../../../../components/ui/modalStyles";
-import {
-  OPERATION_BOOLEAN_FIELDS,
-  type DriverFormValues,
-  type DriverModalFormOnChange,
-} from "../driverManagementForm.types";
+
+import { OPERATION_BOOLEAN_FIELDS } from "../constants";
+import type { DriverFormValues } from "../../types";
 
 type Props = {
   readOnly: boolean;
   formValues: DriverFormValues;
-  onChange: DriverModalFormOnChange;
+  onChange: <K extends keyof DriverFormValues>(
+    field: K,
+  ) => (e: React.ChangeEvent<HTMLInputElement>) => void;
   vehicleIdValue: string;
   vehicleTypeValue: string;
   vehicleNameValue: string;
 };
 
-function yesNo(value: boolean) {
-  return value ? "Yes" : "No";
-}
 
 function OperationsVehicleSection({
   readOnly,
@@ -45,13 +42,13 @@ function OperationsVehicleSection({
               size="small"
               label="Vehicle ID (optional)"
               placeholder="UUID vehicle id"
-              value={formValues.vehicleId}
-              onChange={onChange("vehicleId")}
+              value={formValues.vehicle}
+              onChange={onChange("vehicle")}
               sx={modalTextFieldSx}
             />
           )}
         </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
+        {/* <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
             <DetailField label="Type" value={vehicleTypeValue} />
           ) : (
@@ -65,7 +62,7 @@ function OperationsVehicleSection({
               sx={modalTextFieldSx}
             />
           )}
-        </Grid>
+        </Grid> */}
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
             <DetailField label="Vehicle" value={vehicleNameValue} />
@@ -171,20 +168,32 @@ function OperationsVehicleSection({
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
-            <DetailField label="Status" value={formValues.status} />
+            <DetailField
+              label="Status"
+              value={formValues.status ? "Active" : "Inactive"}
+            />
           ) : (
             <TextField
               select
               fullWidth
               size="small"
               label="Status"
-              value={formValues.status}
-              onChange={onChange("status")}
+              value={formValues.status ? "active" : "inactive"}
+              onChange={(e) => {
+                const active = e.target.value === "active";
+                onChange("status")({
+                  ...e,
+                  target: {
+                    ...e.target,
+                    type: "checkbox",
+                    checked: active,
+                  },
+                } as React.ChangeEvent<HTMLInputElement>);
+              }}
               sx={modalTextFieldSx}
             >
-              <MenuItem value="AVAILABLE">AVAILABLE</MenuItem>
-              <MenuItem value="ON RIDE">ON RIDE</MenuItem>
-              <MenuItem value="OFFLINE">OFFLINE</MenuItem>
+              <MenuItem value="active">Active</MenuItem>
+              <MenuItem value="inactive">Inactive</MenuItem>
             </TextField>
           )}
         </Grid>
@@ -221,7 +230,7 @@ function OperationsVehicleSection({
         {OPERATION_BOOLEAN_FIELDS.map((f) => (
           <Grid key={f.key} size={{ xs: 12, md: 4 }}>
             {readOnly ? (
-              <DetailField label={f.label} value={yesNo(formValues[f.key])} />
+              <DetailField label={f.label} value={formValues[f.key] ? "Yes" : "No"} />
             ) : (
               <FormControlLabel
                 control={

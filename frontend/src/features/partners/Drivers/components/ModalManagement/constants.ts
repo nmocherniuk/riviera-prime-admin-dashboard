@@ -1,4 +1,15 @@
-import type { DriverOrganization } from "../../data/types";
+import type { DriverOrganizationFormValues } from "../../data/types";
+
+export type DriverOrganizationDocumentKey = keyof Pick<
+  DriverOrganizationFormValues,
+  | "kbisUploaded"
+  | "rcProInsuranceUploaded"
+  | "transportInsuranceUploaded"
+  | "operatingLicenseProvided"
+  | "bankDetailsProvided"
+  | "directorIdCopyProvided"
+  | "signedPartnershipAgreement"
+>;
 
 export const SERVICE_TYPES = [
   "Airport Transfer",
@@ -15,11 +26,11 @@ export const COOPERATION_OPTIONS: Array<{
   value: "" | "COMMISSION" | "FIXED_RATE" | "CUSTOM";
   label: string;
 }> = [
-  { value: "", label: "—" },
-  { value: "COMMISSION", label: "Commission" },
-  { value: "FIXED_RATE", label: "Fixed rate" },
-  { value: "CUSTOM", label: "Custom" },
-];
+    { value: "", label: "—" },
+    { value: "COMMISSION", label: "Commission" },
+    { value: "FIXED_RATE", label: "Fixed rate" },
+    { value: "CUSTOM", label: "Custom" },
+  ];
 
 export const CURRENCY_OPTIONS: Array<"EUR" | "USD" | "GBP"> = [
   "EUR",
@@ -28,23 +39,23 @@ export const CURRENCY_OPTIONS: Array<"EUR" | "USD" | "GBP"> = [
 ];
 
 export const DOCUMENTS_OPTIONS: Array<{
-  key: keyof DriverOrganization;
+  key: DriverOrganizationDocumentKey;
   label: string;
 }> = [
-  { key: "kbisUploaded", label: "KBIS uploaded" },
-  { key: "rcProInsuranceUploaded", label: "RC Pro insurance uploaded" },
-  {
-    key: "transportInsuranceUploaded",
-    label: "Transport insurance uploaded",
-  },
-  {
-    key: "operatingLicenseProvided",
-    label: "Operating license provided",
-  },
-  { key: "bankDetailsProvided", label: "Bank details provided" },
-  { key: "directorIdCopyProvided", label: "Director ID copy provided" },
-  {
-    key: "signedPartnershipAgreement",
-    label: "Signed partnership agreement",
-  },
-] as const;
+    { key: "kbisUploaded", label: "KBIS uploaded" },
+    { key: "rcProInsuranceUploaded", label: "RC Pro insurance uploaded" },
+    {
+      key: "transportInsuranceUploaded",
+      label: "Transport insurance uploaded",
+    },
+    {
+      key: "operatingLicenseProvided",
+      label: "Operating license provided",
+    },
+    { key: "bankDetailsProvided", label: "Bank details provided" },
+    { key: "directorIdCopyProvided", label: "Director ID copy provided" },
+    {
+      key: "signedPartnershipAgreement",
+      label: "Signed partnership agreement",
+    },
+  ];
