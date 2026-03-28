@@ -4,14 +4,14 @@ import CloseIcon from "@mui/icons-material/Close";
 import EditIcon from "@mui/icons-material/Edit";
 import { useEffect, useState, type ChangeEvent } from "react";
 import BaseModal from "../../../../../components/BaseModal";
-import { defaultFormValues } from "./securityPartnerForm.types";
+import { defaultFormValues } from "./securityOrganizationForm.types";
 import BasicInfoSection from "./components/BasicInfoSection";
 import CompanyDetailsSection from "./components/CompanyDetailsSection";
 import DocumentsSection from "./components/DocumentsSection";
 import OperationsSection from "./components/OperationsSection";
 import FinancialSection from "./components/FinancialSection";
-import { orgToFormValues } from "./securityPartnerForm.mapper";
-import type { SecurityOrganization } from "../../data/types";
+import type { SecurityOrganization, SecurityOrganizationFormValues } from "../../data/types";
+import { securityOrganizationToFormValues } from "./securityOrganizationForm.mapper";
 
 type Props = {
   open: boolean;
@@ -20,11 +20,11 @@ type Props = {
   readOnly?: boolean;
   onSave?: (
     organizationId: string | null,
-    values: SecurityOrganization,
+    values: SecurityOrganizationFormValues,
   ) => void | Promise<void>;
 };
 
-export default function PartnerManagementModal({
+export default function SecurityOrganizationManagementModal({
   open,
   onClose,
   organization,
@@ -32,29 +32,21 @@ export default function PartnerManagementModal({
   onSave,
 }: Props) {
   const [formValues, setFormValues] =
-    useState<SecurityOrganization>(defaultFormValues);
+    useState<SecurityOrganizationFormValues>(defaultFormValues);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setFormValues(orgToFormValues(organization));
+    setFormValues(securityOrganizationToFormValues(organization));
   }, [organization, open]);
 
   const handleChange =
-    <K extends keyof SecurityOrganization>(field: K) =>
-    (e: ChangeEvent<HTMLInputElement>) => {
-      const nextValue =
-        e.target.type === "checkbox" ? e.target.checked : e.target.value;
-      setFormValues((prev) => ({ ...prev, [field]: nextValue }));
-    };
+    <K extends keyof SecurityOrganizationFormValues>(field: K) =>
+      (e: ChangeEvent<HTMLInputElement>) => {
+        const nextValue =
+          e.target.type === "checkbox" ? e.target.checked : e.target.value;
+        setFormValues((prev) => ({ ...prev, [field]: nextValue }));
+      };
 
-  const handleSave = async () => {
-    try {
-      await Promise.resolve(onSave?.(organization?.id ?? null, formValues));
-      onClose();
-    } catch {
-      // keep modal open on failure
-    }
-  };
 
   return (
     <BaseModal
@@ -102,7 +94,7 @@ export default function PartnerManagementModal({
               variant="contained"
               color="primary"
               startIcon={<EditIcon />}
-              onClick={handleSave}
+              onClick={() => onSave?.(organization?.id ?? null, formValues)}
               sx={{
                 borderRadius: 2,
                 textTransform: "none",
@@ -116,30 +108,30 @@ export default function PartnerManagementModal({
         ) : undefined
       }
     >
-      <BasicInfoSection formValues={formValues} />
+      <BasicInfoSection formValues={formValues} readOnly={readOnly} handleChange={handleChange} />
       <Divider sx={{ my: 2 }} />
       <CompanyDetailsSection
         readOnly={readOnly}
         formValues={formValues}
-        onChange={handleChange}
+        handleChange={handleChange}
       />
       <Divider sx={{ my: 2 }} />
       <DocumentsSection
         readOnly={readOnly}
         formValues={formValues}
-        onChange={handleChange}
+        handleChange={handleChange}
       />
       <Divider sx={{ my: 2 }} />
       <OperationsSection
         readOnly={readOnly}
         formValues={formValues}
-        onChange={handleChange}
+        handleChange={handleChange}
       />
       <Divider sx={{ my: 2 }} />
       <FinancialSection
         readOnly={readOnly}
         formValues={formValues}
-        onChange={handleChange}
+        handleChange={handleChange}
       />
     </BaseModal>
   );

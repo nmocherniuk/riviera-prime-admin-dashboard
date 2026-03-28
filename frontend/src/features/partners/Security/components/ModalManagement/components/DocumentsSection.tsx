@@ -10,19 +10,19 @@ import {
   modalTextFieldSx,
   sectionLabelSx,
 } from "../../../../../../components/ui/modalStyles";
-import type { SecurityOrganization } from "../../../data/types";
+import type { SecurityOrganizationFormValues } from "../../../data/types";
 import { memo } from "react";
 import { DOCUMENTS_OPTIONS } from "../constants";
 
 type Props = {
   readOnly: boolean;
-  formValues: SecurityOrganization;
-  onChange: <K extends keyof SecurityOrganization>(
-    field: K,
+  formValues: SecurityOrganizationFormValues;
+  handleChange: (
+    field: keyof SecurityOrganizationFormValues,
   ) => (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
-function DocumentsSection({ readOnly, formValues, onChange }: Props) {
+function DocumentsSection({ readOnly, formValues, handleChange }: Props) {
   return (
     <>
       <Typography sx={sectionLabelSx}>Documents</Typography>
@@ -44,7 +44,7 @@ function DocumentsSection({ readOnly, formValues, onChange }: Props) {
                   control={
                     <Checkbox
                       checked={Boolean(formValues[c.key])}
-                      onChange={onChange(c.key)}
+                      onChange={handleChange(c.key)}
                     />
                   }
                   label={c.label}
@@ -66,7 +66,7 @@ function DocumentsSection({ readOnly, formValues, onChange }: Props) {
               size="small"
               label="Additional certifications"
               value={formValues.additionalCertifications}
-              onChange={onChange("additionalCertifications")}
+              onChange={handleChange("additionalCertifications")}
               multiline
               minRows={2}
               sx={modalTextFieldSx}

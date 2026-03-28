@@ -5,42 +5,17 @@ import {
   findOrganizationById,
   findOrganizationsByType,
   updateOrganizationRow,
-  upsertDriverOrganizationDetails,
-  upsertSecurityOrganizationDetails,
+  upsertOrganizationDetails,
 } from "./organization.repository.js";
 import type {
   DriverOrganizationDetails,
   GeneralOrganizationPayload,
   NewOrganization,
   Organization,
+  SecurityOrganizationDetails,
 } from "./organization.types.js";
 
 import { stripUndefined } from "./organization.utils.js";
-
-
-
-
-
-// export function toPublicOrganization(row: Organizations & {
-//   chauffeurDetails?: ChauffeurOrganizationDetailsUpsertData | null;
-//   securityDetails?: SecurityOrganizationDetailsUpsertData | null;
-// }): PublicOrganization {
-//   return {
-//     id: row.id,
-//     title: row.title,
-//     email: row.email,
-//     phone: row.phone,
-//     contactPerson: row.contactPerson,
-//     serviceAreas: row.serviceAreas,
-//     status: statusFromBool(row.status),
-//     type: row.type,
-//     createdAt: row.createdAt.toISOString(),
-//     chauffeurDetails: row.chauffeurDetails ?? null,
-//     securityDetails: row.securityDetails ?? null,
-//   };
-// }
-
-
 
 
 export async function createOrganization(
@@ -58,23 +33,21 @@ export async function createOrganization(
 
   const generalOrganization = await createGeneralOrganization(generalOrganizationPayload);
 
-  // CHAUFFEUR extension table
   if (data.type === "CHAUFFEUR" && data.chauffeurDetails) {
-    await upsertDriverOrganizationDetails(
+    await upsertOrganizationDetails(
       generalOrganization.id,
-      stripUndefined(data.chauffeurDetails),
+      "CHAUFFEUR",
+      stripUndefined(data.chauffeurDetails) as DriverOrganizationDetails,
     );
   }
 
-  // SECURITY extension table
-  // if (input.type === "SECURITY" && input.securityDetails) {
-  //   await upsertSecurityOrganizationDetails(
-  //     row.id,
-  //     stripUndefined(input.securityDetails),
-  //   );
-  //   const fresh = await findOrganizationById(row.id);
-  //   return fresh ? toPublicOrganization(fresh) : toPublicOrganization(row);
-  // }
+  if (data.type === "SECURITY" && data.securityDetails) {
+    await upsertOrganizationDetails(
+      generalOrganization.id,
+      "SECURITY",
+      stripUndefined(data.securityDetails) as SecurityOrganizationDetails,
+    );
+  }
 
   return { ...data, id: generalOrganization.id };
 }
@@ -108,16 +81,18 @@ export async function updateOrganization(
   });
 
   if (row.type === "CHAUFFEUR" && data.chauffeurDetails) {
-    await upsertDriverOrganizationDetails(
+    await upsertOrganizationDetails(
       id,
+      "CHAUFFEUR",
       stripUndefined(data.chauffeurDetails) as DriverOrganizationDetails,
     );
   }
 
   if (row.type === "SECURITY" && data.securityDetails) {
-    await upsertSecurityOrganizationDetails(
+    await upsertOrganizationDetails(
       id,
-      stripUndefined(data.securityDetails),
+      "SECURITY",
+      stripUndefined(data.securityDetails) as SecurityOrganizationDetails,
     );
   }
 

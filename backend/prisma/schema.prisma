@@ -285,7 +285,6 @@ model SecurityOrganizationDetails {
   organization     Organizations @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   // Company Information
-  companyName                String?
   legalForm                  String?
   sirenOrSiret               String?
   licenseNumber              String? // autorisation d’exercice
@@ -294,12 +293,8 @@ model SecurityOrganizationDetails {
   registeredAddress          String?
   officeAddress              String?
   websiteUrl                 String?
-  generalEmail               String?
   companyPhoneNumber         String?
   directorFullName           String?
-  primaryContactName         String?
-  primaryContactEmail        String?
-  primaryContactPhone        String?
 
   // Documents metadata
   kbisUploaded               Boolean @default(false)
@@ -312,7 +307,6 @@ model SecurityOrganizationDetails {
   additionalCertifications   String?
 
   // Operations
-  serviceAreas               String?
   serviceTypes               String[] @default([])
   support24_7                Boolean @default(false)
   minBookingHours            Int?

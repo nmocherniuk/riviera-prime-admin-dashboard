@@ -7,30 +7,29 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import SecurityIcon from "@mui/icons-material/Security";
 import GroupIcon from "@mui/icons-material/Group";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import type { Partner, PartnerStatus } from "../data/types";
 import EntityActionsMenu from "../../../../components/EntityActionsMenu";
+import type { SecurityOrganization, SecurityOrganizationStatus } from "../data/types";
 
-const statusColors: Record<PartnerStatus, { bg: string; color: string }> = {
+const statusColors: Record<SecurityOrganizationStatus, { bg: string; color: string }> = {
   active: { bg: "rgba(34, 197, 94, 0.2)", color: "#22c55e" },
   inactive: { bg: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" },
 };
 
 type Props = {
-  partner: Partner;
+  organization: SecurityOrganization;
   onView?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
   onViewBodyguards?: () => void;
 };
 
-export default function PartnerCard({
-  partner: p,
+export default function SecurityOrganizationCard({
+  organization: o,
   onView,
   onEdit,
   onDelete,
   onViewBodyguards,
 }: Props) {
-  const statusStyle = statusColors[p.status];
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
 
   const openMenu = (e: React.MouseEvent<HTMLElement>) => {
@@ -86,16 +85,16 @@ export default function PartnerCard({
               variant="subtitle2"
               sx={{ fontWeight: 700, color: "text.primary" }}
             >
-              {p.companyName}
+              {o.organizationName}
             </Typography>
             <Typography variant="caption" sx={{ color: "text.secondary" }}>
-              {p.contactPerson}
+              {o.contactPerson}
             </Typography>
             <Typography
               variant="caption"
               sx={{ color: "text.secondary", display: "block" }}
             >
-              ID: {p.id}
+              ID: {o.id}
             </Typography>
           </Box>
         </Box>
@@ -154,18 +153,18 @@ export default function PartnerCard({
         }}
       >
         <Chip
-          label={p.status}
+          label={o.status ? "active" : "inactive"}
           size="small"
           sx={{
-            bgcolor: statusStyle.bg,
-            color: statusStyle.color,
+            bgcolor: statusColors[o.status ? "active" : "inactive"].bg,
+            color: statusColors[o.status ? "active" : "inactive"].color,
             fontWeight: 700,
             fontSize: "0.7rem",
             textTransform: "capitalize",
           }}
         />
         <Typography variant="caption" sx={{ color: "text.secondary" }}>
-          {p.locationServiceArea}
+          {o.serviceAreas}
         </Typography>
       </Box>
     </Paper>

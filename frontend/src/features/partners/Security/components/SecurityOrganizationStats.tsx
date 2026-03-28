@@ -5,30 +5,30 @@ import GroupIcon from "@mui/icons-material/Group";
 import CardStat from "../../../../components/CardStat";
 
 type Props = {
-  totalPartners: number;
-  activePartners: number;
-  inactivePartners: number;
+  totalOrganizations: number;
+  activeOrganizations: number;
+  inactiveOrganizations: number;
 };
 
-export default function SecurityPartnersStats({
-  totalPartners,
-  activePartners,
-  inactivePartners,
+export default function SecurityOrganizationStats({
+  totalOrganizations,
+  activeOrganizations,
+  inactiveOrganizations,
 }: Props) {
   const stats = [
     {
-      label: "Partners",
-      value: String(totalPartners),
+      label: "Organizations",
+      value: String(totalOrganizations),
       icon: BusinessIcon,
     },
     {
       label: "Active",
-      value: String(activePartners),
+      value: String(activeOrganizations),
       icon: GroupIcon,
     },
     {
       label: "Inactive",
-      value: String(inactivePartners),
+      value: String(inactiveOrganizations),
       icon: PersonOffIcon,
     },
   ];

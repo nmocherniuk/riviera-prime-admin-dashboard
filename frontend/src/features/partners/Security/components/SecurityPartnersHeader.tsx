@@ -2,7 +2,7 @@ import { Button } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import PageHeader from "../../../../components/PageHeader";
 
-type Props = { onAddPartner?: () => void };
+type Props = { onAddOrganization?: () => void };
 
 const primaryButtonSx = {
   width: { xs: "100%", sm: "auto" },
@@ -15,7 +15,7 @@ const primaryButtonSx = {
   "&:hover": { bgcolor: "primary.dark" },
 };
 
-export default function SecurityPartnersHeader({ onAddPartner }: Props) {
+export default function SecurityPartnersHeader({ onAddOrganization }: Props) {
   return (
     <PageHeader
       title="Security / Partners"
@@ -27,10 +27,10 @@ export default function SecurityPartnersHeader({ onAddPartner }: Props) {
         <Button
           variant="contained"
           startIcon={<AddIcon />}
-          onClick={onAddPartner}
+          onClick={onAddOrganization}
           sx={primaryButtonSx}
         >
-          Add Partner
+          Add Security Organization
         </Button>
       }
     />

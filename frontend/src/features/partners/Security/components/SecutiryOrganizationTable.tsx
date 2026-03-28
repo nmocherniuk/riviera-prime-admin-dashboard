@@ -9,51 +9,51 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import SecurityIcon from "@mui/icons-material/Security";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import EntityActionsMenu from "../../../../components/EntityActionsMenu";
-import type { Partner, PartnerStatus } from "../data/types";
-import PartnerCard from "./PartnerCard";
+import SecurityOrganizationCard from "./SecurityOrganizationCard";
 import { GenericTable } from "../../../../components/GenericTable";
+import type { SecurityOrganization, SecurityOrganizationStatus } from "../data/types";
 
-const statusColors: Record<PartnerStatus, { bg: string; color: string }> = {
+const statusColors: Record<SecurityOrganizationStatus, { bg: string; color: string }> = {
   active: { bg: "rgba(34, 197, 94, 0.2)", color: "#22c55e" },
   inactive: { bg: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" },
 };
 
 
 type Props = {
-  partners: Partner[];
-  onPartnerView?: (partner: Partner) => void;
-  onPartnerEdit?: (partner: Partner) => void;
-  onPartnerDelete?: (partner: Partner) => void;
-  onViewBodyguards?: (partner: Partner) => void;
+  organizations: SecurityOrganization[];
+  onOrganizationView?: (organization: SecurityOrganization) => void;
+  onOrganizationEdit?: (organization: SecurityOrganization) => void;
+  onOrganizationDelete?: (organization: SecurityOrganization) => void;
+  onViewBodyguards?: (partner: SecurityOrganization) => void;
 };
 
 
-export default function PartnersTable({
-  partners,
-  onPartnerView,
-  onPartnerEdit,
-  onPartnerDelete,
+export default function SecurityOrganizationTable({
+  organizations,
+  onOrganizationView,
+  onOrganizationEdit,
+  onOrganizationDelete,
   onViewBodyguards,
 }: Props) {
 
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
-  const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null);
+  const [selectedOrganization, setSelectedOrganization] = useState<SecurityOrganization | null>(null);
 
-  const openMenu = (e: React.MouseEvent<HTMLElement>, partner: Partner) => {
+  const openMenu = (e: React.MouseEvent<HTMLElement>, organization: SecurityOrganization) => {
     e.stopPropagation();
     setMenuAnchor(e.currentTarget);
-    setSelectedPartner(partner);
+    setSelectedOrganization(organization);
   };
   const closeMenu = () => {
     setMenuAnchor(null);
-    setSelectedPartner(null);
+    setSelectedOrganization(null);
   };
 
   const columns = [
     {
       key: "companyName",
       label: "Company",
-      render: (p: Partner) => (
+      render: (o: SecurityOrganization) => (
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
           <Box
             sx={{
@@ -74,10 +74,10 @@ export default function PartnersTable({
               variant="body2"
               sx={{ fontWeight: 700, color: "text.primary" }}
             >
-              {p.companyName}
+              {o.organizationName}
             </Typography>
             <Typography variant="caption" sx={{ color: "text.secondary" }}>
-              ID: {p.id}
+              ID: {o.id}
             </Typography>
           </Box>
         </Box>
@@ -86,25 +86,25 @@ export default function PartnersTable({
     {
       key: "contactPerson",
       label: "Contact",
-      render: (p: Partner) => (
+      render: (o: SecurityOrganization) => (
         <Typography variant="body2" sx={{ color: "text.primary" }}>
-          {p.contactPerson}
+          {o.contactPerson}
         </Typography>
       ),
     },
     {
       key: "emailPhone",
       label: "Email/Phone",
-      render: (p: Partner) => (
+      render: (o: SecurityOrganization) => (
         <>
           <Typography variant="body2" sx={{ color: "text.secondary" }}>
-            {p.email}
+            {o.email}
           </Typography>
           <Typography
             variant="caption"
             sx={{ color: "text.secondary", display: "block" }}
           >
-            {p.phone}
+            {o.phone}
           </Typography>
         </>
       ),
@@ -112,22 +112,22 @@ export default function PartnersTable({
     {
       key: "locationServiceArea",
       label: "Service area",
-      render: (p: Partner) => (
+      render: (o: SecurityOrganization) => (
         <Typography variant="body2" sx={{ color: "text.secondary" }}>
-          {p.locationServiceArea}
+          {o.serviceAreas}
         </Typography>
       ),
     },
     {
       key: "status",
       label: "Status",
-      render: (p: Partner) => (
+      render: (o: SecurityOrganization) => (
         <Chip
-          label={p.status}
+          label={o.status ? "active" : "inactive"}
           size="small"
           sx={{
-            bgcolor: statusColors[p.status].bg,
-            color: statusColors[p.status].color,
+            bgcolor: statusColors[o.status ? "active" : "inactive"].bg,
+            color: statusColors[o.status ? "active" : "inactive"].color,
             fontWeight: 700,
             fontSize: "0.7rem",
             textTransform: "capitalize",
@@ -141,14 +141,14 @@ export default function PartnersTable({
     <>
       <GenericTable
         title="Organizations"
-        data={partners}
+        data={organizations}
         columns={columns}
         withPagination={{
           pageSize: 6,
         }}
         onRowClick={onViewBodyguards}
         actions={openMenu}
-        renderMobileCard={(p) => <PartnerCard key={p.id} partner={p} />}
+        renderMobileCard={(o) => <SecurityOrganizationCard key={o.id} organization={o} />}
       />
       <EntityActionsMenu
         anchorEl={menuAnchor}
@@ -159,22 +159,22 @@ export default function PartnersTable({
           {
             label: "View details",
             icon: <VisibilityIcon fontSize="small" />,
-            disabled: !selectedPartner || !onPartnerView,
-            onClick: () => selectedPartner && onPartnerView?.(selectedPartner),
+            disabled: !selectedOrganization || !onOrganizationView,
+            onClick: () => selectedOrganization && onOrganizationView?.(selectedOrganization),
           },
           {
             label: "Edit",
             icon: <EditIcon fontSize="small" />,
-            disabled: !selectedPartner || !onPartnerEdit,
-            onClick: () => selectedPartner && onPartnerEdit?.(selectedPartner),
+            disabled: !selectedOrganization || !onOrganizationEdit,
+            onClick: () => selectedOrganization && onOrganizationEdit?.(selectedOrganization),
           },
           {
             label: "Delete",
             icon: <DeleteIcon fontSize="small" />,
-            disabled: !selectedPartner || !onPartnerDelete,
+            disabled: !selectedOrganization || !onOrganizationDelete,
             color: "error.main",
             onClick: () =>
-              selectedPartner && onPartnerDelete?.(selectedPartner),
+              selectedOrganization && onOrganizationDelete?.(selectedOrganization),
           },
         ]}
       />

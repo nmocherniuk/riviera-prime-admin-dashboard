@@ -3,93 +3,101 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import SecurityPartnersHeader from "../features/partners/Security/components/SecurityPartnersHeader";
-import SecurityPartnersStats from "../features/partners/Security/components/SecurityPartnersStats";
-import SecurityPartnersToolbar from "../features/partners/Security/components/SecurityPartnersToolbar";
+import SecurityPartnersToolbar from "../features/partners/Security/components/SecurityOrganizationToolbar";
 import ConfirmDeleteDialog from "../components/ConfirmDeleteDialog";
 
-import PartnersTable from "../features/partners/Security/components/PartnersTable";
+import SecurityOrganizationTable from "../features/partners/Security/components/SecutiryOrganizationTable";
 import {
   createOrganization,
   deleteOrganization,
   getApiErrorMessage,
   isNotFoundError,
   listOrganizations,
+  updateOrganization,
 } from "../api/organizations";
 import { queryKeys } from "../api/queryKeys";
+import type { SecurityOrganization, SecurityOrganizationFormValues } from "../features/partners/Security/data/types";
+import { formValuesToSecurityOrganization } from "../features/partners/Security/components/ModalManagement/securityOrganizationForm.mapper";
+import { useToast } from "../providers/ToastProvider";
+import SecurityOrganizationManagementModal from "../features/partners/Security/components/ModalManagement/SecurityOrganizationManagementModal";
+import SecurityOrganizationStats from "../features/partners/Security/components/SecurityOrganizationStats";
 
 export default function SecurityOrganizationsPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
 
-  const [partnerModal, setPartnerModal] = useState<{
+  const [orgModal, setOrgModal] = useState<{
     open: boolean;
-    partner: Partner | null;
+    organization: SecurityOrganization | null;
     readOnly?: boolean;
   }>({
     open: false,
-    partner: null,
+    organization: null,
     readOnly: false,
   });
-  // const [partnerToDelete, setPartnerToDelete] = useState<Partner | null>(null);
+  const [orgToDelete, setOrgToDelete] = useState<SecurityOrganization | null>(null);
+  const { showToast } = useToast();
 
-  // const partnersQuery = useQuery({
-  //   queryKey: queryKeys.organizations.list("SECURITY"),
-  //   queryFn: () => listOrganizations("SECURITY"),
-  // });
+  const { data: securityOrganizations = [], isPending, error: securityOrganizationsError } = useQuery({
+    queryKey: queryKeys.organizations.list("SECURITY"),
+    queryFn: async () => {
+      return await listOrganizations("SECURITY");
+    },
+  });
 
-  // const allPartners = useMemo(() => {
-  //   if (
-  //     partnersQuery.isError &&
-  //     partnersQuery.error &&
-  //     isNotFoundError(partnersQuery.error)
-  //   ) {
-  //     return [];
-  //   }
-  //   if (!partnersQuery.data) return [];
-  //   return partnersQuery.data.map(dtoToPartner);
-  // }, [partnersQuery.data, partnersQuery.isError, partnersQuery.error]);
+  const listError =
+    securityOrganizationsError && !isNotFoundError(securityOrganizationsError)
+      ? getApiErrorMessage(securityOrganizationsError, "Failed to load partners")
+      : null;
 
-  // const loading = partnersQuery.isPending;
-  // const listError =
-  //   partnersQuery.error && !isNotFoundError(partnersQuery.error)
-  //     ? getApiErrorMessage(partnersQuery.error, "Failed to load partners")
-  //     : null;
+  const activeCount = useMemo(
+    () => securityOrganizations.filter((o) => o.status).length,
+    [securityOrganizations],
+  );
+  const inactiveCount = securityOrganizations.length - activeCount;
 
-  // const activeCount = useMemo(
-  //   () => allPartners.filter((p) => p.status === "active").length,
-  //   [allPartners],
-  // );
-  // const inactiveCount = allPartners.length - activeCount;
+  const handleSavePartner = async (
+    organizationId: string | null,
+    values: SecurityOrganizationFormValues,
+  ) => {
+    try {
+      setError(null);
+      if (organizationId) {
+        await updateOrganization(
+          organizationId,
+          formValuesToSecurityOrganization(values),
+        );
+      } else {
+        await createOrganization(formValuesToSecurityOrganization(values));
+      }
 
-  // const handleSavePartner = async (
-  //   partnerId: string | null,
-  //   values: PartnerFormValues,
-  // ) => {
-  //   try {
-  //     setError(null);
-  //     if (partnerId) {
-  //       await updateOrganization(
-  //         partnerId,
-  //         partnerFormToUpdateBody(values),
-  //         "SECURITY",
-  //       );
-  //     } else {
-  //       await createOrganization(partnerFormToCreateBody(values));
-  //     }
-  //     await queryClient.invalidateQueries({
-  //       queryKey: queryKeys.organizations.all,
-  //     });
-  //   } catch (e) {
-  //     const msg = getApiErrorMessage(e, "Failed to save partner");
-  //     setError(msg);
-  //     throw e;
-  //   }
-  // };
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.organizations.all,
+      });
+
+      showToast({
+        message: organizationId
+          ? "Organization updated successfully."
+          : "Organization created successfully.",
+        severity: "success",
+      });
+
+      setOrgModal((prev) => ({
+        ...prev,
+        open: false,
+        organization: null,
+      }));
+    } catch (e) {
+      const msg = getApiErrorMessage(e, "Failed to save organization");
+      showToast({ message: msg, severity: "error" });
+      throw e;
+    }
+  };
 
   return (
     <Box sx={{ minHeight: "100%", pb: 3, overflowX: "hidden" }}>
-      {/* <Container
+      <Container
         maxWidth={false}
         sx={{ px: { xs: 1.5, sm: 2, md: 3 }, maxWidth: "100%" }}
       >
@@ -100,22 +108,22 @@ export default function SecurityOrganizationsPage() {
         ) : null}
 
         <SecurityPartnersHeader
-          onAddPartner={() =>
-            setPartnerModal({ open: true, partner: null, readOnly: false })
+          onAddOrganization={() =>
+            setOrgModal({ open: true, organization: null, readOnly: false })
           }
         />
         <Box sx={{ mt: 2 }}>
-          <SecurityPartnersStats
-            totalPartners={allPartners.length}
-            activePartners={activeCount}
-            inactivePartners={inactiveCount}
+          <SecurityOrganizationStats
+            totalOrganizations={securityOrganizations.length}
+            activeOrganizations={activeCount}
+            inactiveOrganizations={inactiveCount}
           />
         </Box>
         <Box sx={{ mt: 2 }}>
           <SecurityPartnersToolbar />
         </Box>
-        <Box sx={{ mt: 2, position: "relative", minHeight: loading ? 200 : 0 }}>
-          {loading ? (
+        <Box sx={{ mt: 2, position: "relative", minHeight: isPending ? 200 : 0 }}>
+          {isPending ? (
             <Box
               sx={{
                 display: "flex",
@@ -130,53 +138,59 @@ export default function SecurityOrganizationsPage() {
             <Box sx={{ py: 8, textAlign: "center", color: "text.secondary" }}>
               Unable to load partners.
             </Box>
-          ) : allPartners.length === 0 ? (
+          ) : securityOrganizations.length === 0 ? (
             <Box sx={{ py: 8, textAlign: "center", color: "text.secondary" }}>
               No organizations found.
             </Box>
           ) : (
-            <PartnersTable
-              partners={allPartners}
-              onPartnerView={(partner) =>
-                setPartnerModal({ open: true, partner, readOnly: true })
+            <SecurityOrganizationTable
+              organizations={securityOrganizations as SecurityOrganization[]}
+              onOrganizationView={(organization) =>
+                setOrgModal({ open: true, organization, readOnly: true })
               }
-              onPartnerEdit={(partner) =>
-                setPartnerModal({ open: true, partner, readOnly: false })
+              onOrganizationEdit={(organization) =>
+                setOrgModal({ open: true, organization, readOnly: false })
               }
-              onPartnerDelete={(partner) => setPartnerToDelete(partner)}
-              onViewBodyguards={(partner) =>
-                navigate(`/security-partners/${partner.id}`)
+              onOrganizationDelete={(organization) => setOrgToDelete(organization)}
+              onViewBodyguards={(organization) =>
+                navigate(`/security-partners/${organization.id}`)
               }
             />
           )}
         </Box>
-        <PartnerManagementModal
-          open={partnerModal.open}
-          onClose={() => setPartnerModal((prev) => ({ ...prev, open: false }))}
-          // partner={partnerModal.partner}
-          readOnly={partnerModal.readOnly}
+        <SecurityOrganizationManagementModal
+          open={orgModal.open}
+          onClose={() => setOrgModal((prev) => ({ ...prev, open: false }))}
+          organization={orgModal.organization}
+          readOnly={orgModal.readOnly}
           onSave={handleSavePartner}
         />
         <ConfirmDeleteDialog
-          open={!!partnerToDelete}
-          onClose={() => setPartnerToDelete(null)}
+          open={!!orgToDelete}
+          onClose={() => setOrgToDelete(null)}
           onConfirm={async () => {
-            if (!partnerToDelete) return;
+            if (!orgToDelete?.id) return;
             setError(null);
+
             try {
-              await deleteOrganization(partnerToDelete.id, "SECURITY");
+              await deleteOrganization(orgToDelete.id);
               await queryClient.invalidateQueries({
                 queryKey: queryKeys.organizations.all,
               });
+
+              showToast({
+                message: "Organization deleted successfully.",
+                severity: "success",
+              });
             } catch (e) {
-              setError(getApiErrorMessage(e, "Failed to delete partner"));
+              showToast({ message: getApiErrorMessage(e, "Failed to delete organization"), severity: "error" });
               throw e;
             }
           }}
-          title="Видалити партнера?"
-          message="Цю дію не можна скасувати. Запис буде видалено назавжди."
+          title="Delete organization?"
+          message="This action cannot be undone. The record will be deleted permanently."
         />
-      </Container> */}
+      </Container>
     </Box>
   );
 }

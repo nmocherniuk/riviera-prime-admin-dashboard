@@ -1,5 +1,7 @@
-import type { OrganizationType } from "../../generated/prisma/enums.js";
-import type { SecurityOrganizationDetailsUpsertData } from "./organization.repository.js";
+import type {
+    CooperationType,
+    OrganizationType,
+} from "../../generated/prisma/enums.js";
 
 export type GeneralOrganizationPayload = {
     organizationName: string;
@@ -20,7 +22,7 @@ export type NewOrganization = {
     status: boolean;
     type: OrganizationType;
     chauffeurDetails?: DriverOrganizationDetails;
-    securityDetails?: SecurityOrganizationDetailsUpsertData;
+    securityDetails?: SecurityOrganizationDetails;
 };
 
 export type Organization = NewOrganization & { id: string };
@@ -37,7 +39,6 @@ export type DriverOrganizationDetails = {
     websiteUrl?: string | null;
     directorFullName?: string | null;
     directorPosition?: string | null;
-    primaryContactName?: string | null;
 
     kbisUploaded?: boolean;
     rcProInsuranceUploaded?: boolean;
@@ -59,7 +60,7 @@ export type DriverOrganizationDetails = {
     cancellationPolicy?: string | null;
     specialConditionsNotes?: string | null;
 
-    cooperationType?: string | null;
+    cooperationType?: CooperationType | null;
     bankAccountIban?: string | null;
     paymentTerms?: string | null;
     commissionPercent?: number | null;
@@ -71,3 +72,49 @@ export type DriverOrganizationDetails = {
     holidaySurchargePercent?: number | null;
     waitingTimeFee?: number | null;
 };
+
+export type SecurityOrganizationDetails = {
+    legalForm?: string | null;
+    sirenOrSiret?: string | null;
+    licenseNumber?: string | null;
+    cnapsNumber?: string | null;
+    registrationDate?: Date | null;
+    registeredAddress?: string | null;
+    officeAddress?: string | null;
+    websiteUrl?: string | null;
+    directorFullName?: string | null;
+
+    kbisUploaded?: boolean;
+    licenseUploaded?: boolean;
+    rcProInsuranceUploaded?: boolean;
+    cnapsAuthorizationUploaded?: boolean;
+    bankDetailsProvided?: boolean;
+    directorIdCopyProvided?: boolean;
+    signedPartnershipAgreement?: boolean;
+    additionalCertifications?: string | null;
+
+    serviceTypes?: string[];
+    support24_7?: boolean;
+    minBookingHours?: number | null;
+    mobilizationTimeMinutes?: number | null;
+    agentsCount?: number | null;
+    languagesSpoken?: string[];
+    hasTeamLeader?: boolean;
+    armedPersonnelAllowed?: boolean;
+    unarmedPersonnelAllowed?: boolean;
+    internationalMissions?: boolean;
+    specialRequirements?: string | null;
+
+    hourlyRate?: number | null;
+    dailyRate?: number | null;
+    nightRate?: number | null;
+    eventRate?: number | null;
+    executiveProtectionRate?: number | null;
+    minimumBookingAmount?: number | null;
+    commissionPercent?: number | null;
+    paymentTerms?: string | null;
+    bankAccountIban?: string | null;
+    currency?: string | null;
+};
+
+export type UpdateOrganizationData = Omit<GeneralOrganizationPayload, "type">;

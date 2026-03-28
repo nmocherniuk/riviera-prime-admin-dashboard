@@ -1,4 +1,4 @@
-import type { SecurityOrganization } from "../../data/types";
+import type { SecurityOrganizationFormValues } from "../../data/types";
 
 export const SECURITY_SERVICE_TYPES = [
   "Static guarding",
@@ -18,7 +18,7 @@ export const CURRENCY_OPTIONS: Array<"EUR" | "USD" | "GBP"> = [
 ];
 
 export const DOCUMENTS_OPTIONS: Array<{
-  key: keyof SecurityOrganization;
+  key: keyof SecurityOrganizationFormValues;
   label: string;
 }> = [
   { key: "kbisUploaded", label: "KBIS uploaded" },
@@ -37,7 +37,7 @@ export const DOCUMENTS_OPTIONS: Array<{
 ];
 
 export const OPERATIONS_OPTIONS: Array<{
-  key: keyof SecurityOrganization;
+  key: keyof SecurityOrganizationFormValues;
   label: string;
 }> = [
   { key: "hourlyRate", label: "Hourly rate" },
@@ -50,7 +50,7 @@ export const OPERATIONS_OPTIONS: Array<{
 ];
 
 export const SPECIAL_REQUIREMENTS_OPTIONS: Array<{
-  key: keyof SecurityOrganization;
+  key: keyof SecurityOrganizationFormValues;
   label: string;
 }> = [
   { key: "hasTeamLeader", label: "Has team leader" },

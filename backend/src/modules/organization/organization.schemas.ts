@@ -59,7 +59,6 @@ export const chauffeurOrganizationDetailsInputSchema = z
 export const securityOrganizationDetailsInputSchema = z
   .object({
     // Company Information
-    companyName: z.string().optional(),
     legalForm: z.string().optional(),
     sirenOrSiret: z.string().optional(),
     licenseNumber: z.string().optional(),
@@ -68,12 +67,7 @@ export const securityOrganizationDetailsInputSchema = z
     registeredAddress: z.string().optional(),
     officeAddress: z.string().optional(),
     websiteUrl: z.string().url().optional(),
-    generalEmail: z.string().email().optional(),
-    companyPhoneNumber: z.string().optional(),
     directorFullName: z.string().optional(),
-    primaryContactName: z.string().optional(),
-    primaryContactEmail: z.string().email().optional(),
-    primaryContactPhone: z.string().optional(),
 
     // Documents metadata
     kbisUploaded: z.boolean().optional(),
@@ -86,7 +80,6 @@ export const securityOrganizationDetailsInputSchema = z
     additionalCertifications: z.string().optional(),
 
     // Operations
-    serviceAreas: z.string().optional(),
     serviceTypes: z.array(z.string()).optional(),
     support24_7: z.boolean().optional(),
     minBookingHours: z.coerce.number().int().optional(),

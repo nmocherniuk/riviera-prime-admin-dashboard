@@ -1,3 +1,4 @@
+import { toNumber } from "../../../../../utils/transform";
 import type { DriverOrganization, DriverOrganizationFormValues } from "../../data/types";
 import { defaultFormValues } from "./driverOrganizationForm.types";
 
@@ -94,13 +95,6 @@ export function driverOrganizationToFormValues(
 export function formValuesToDriverOrganization(
   values: DriverOrganizationFormValues,
 ): DriverOrganization {
-  const toNumber = (v: string | number | null | undefined) => {
-    if (v === null || v === undefined || v === "") return undefined;
-
-    const num = Number(v);
-    return Number.isNaN(num) ? undefined : num;
-  };
-
   return {
     id: values.id ?? undefined,
     organizationName: values.organizationName.trim(),

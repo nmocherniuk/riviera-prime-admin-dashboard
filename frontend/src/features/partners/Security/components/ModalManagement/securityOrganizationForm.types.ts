@@ -1,7 +1,12 @@
-import type { SecurityOrganization } from "../../data/types";
+import type { SecurityOrganizationFormValues } from "../../data/types";
 
-export const defaultFormValues: SecurityOrganization = {
+export const defaultFormValues: SecurityOrganizationFormValues = {
   id: "",
+  organizationName: "",
+  email: "",
+  phone: "",
+  contactPerson: "",
+  status: true,
 
   legalForm: "",
   sirenOrSiret: "",
@@ -11,12 +16,7 @@ export const defaultFormValues: SecurityOrganization = {
   registeredAddress: "",
   officeAddress: "",
   websiteUrl: "",
-  generalEmail: "",
-  companyPhoneNumber: "",
   directorFullName: "",
-  primaryContactName: "",
-  primaryContactEmail: "",
-  primaryContactPhone: "",
 
   kbisUploaded: false,
   licenseUploaded: false,

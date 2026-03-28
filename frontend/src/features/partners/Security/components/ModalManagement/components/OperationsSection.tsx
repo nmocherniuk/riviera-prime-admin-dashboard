@@ -18,17 +18,17 @@ import {
   SECURITY_SERVICE_TYPES,
   SPECIAL_REQUIREMENTS_OPTIONS,
 } from "../constants";
-import type { SecurityOrganization } from "../../../data/types";
+import type { SecurityOrganizationFormValues } from "../../../data/types";
 
 type Props = {
   readOnly: boolean;
-  formValues: SecurityOrganization;
-  onChange: <K extends keyof SecurityOrganization>(
+  formValues: SecurityOrganizationFormValues;
+  handleChange: <K extends keyof SecurityOrganizationFormValues>(
     field: K,
   ) => (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
-function OperationsSection({ readOnly, formValues, onChange }: Props) {
+function OperationsSection({ readOnly, formValues, handleChange }: Props) {
   return (
     <>
       <Typography sx={sectionLabelSx}>Operations</Typography>
@@ -45,7 +45,7 @@ function OperationsSection({ readOnly, formValues, onChange }: Props) {
               size="small"
               label="Service areas"
               value={formValues.serviceAreas}
-              onChange={onChange("serviceAreas")}
+              onChange={handleChange("serviceAreas")}
               multiline
               minRows={2}
               sx={modalTextFieldSx}
@@ -68,7 +68,7 @@ function OperationsSection({ readOnly, formValues, onChange }: Props) {
               value={formValues.serviceTypes}
               SelectProps={{ multiple: true }}
               onChange={(e) =>
-                onChange("serviceTypes")(e as ChangeEvent<HTMLInputElement>)
+                handleChange("serviceTypes")(e as ChangeEvent<HTMLInputElement>)
               }
               sx={modalTextFieldSx}
             >
@@ -92,7 +92,7 @@ function OperationsSection({ readOnly, formValues, onChange }: Props) {
               control={
                 <Switch
                   checked={formValues.support24_7}
-                  onChange={onChange("support24_7")}
+                  onChange={handleChange("support24_7")}
                 />
               }
               label="Support 24/7"
@@ -115,7 +115,7 @@ function OperationsSection({ readOnly, formValues, onChange }: Props) {
               value={formValues.languagesSpoken}
               SelectProps={{ multiple: true }}
               onChange={(e) =>
-                onChange("languagesSpoken")(e as ChangeEvent<HTMLInputElement>)
+                handleChange("languagesSpoken")(e as ChangeEvent<HTMLInputElement>)
               }
               sx={modalTextFieldSx}
             >
@@ -141,7 +141,7 @@ function OperationsSection({ readOnly, formValues, onChange }: Props) {
               type="number"
               label="Min booking (hours)"
               value={formValues.minBookingHours}
-              onChange={onChange("minBookingHours")}
+              onChange={handleChange("minBookingHours")}
               sx={modalTextFieldSx}
             />
           )}
@@ -159,7 +159,7 @@ function OperationsSection({ readOnly, formValues, onChange }: Props) {
               type="number"
               label="Mobilization time (min)"
               value={formValues.mobilizationTimeMinutes}
-              onChange={onChange("mobilizationTimeMinutes")}
+              onChange={handleChange("mobilizationTimeMinutes")}
               sx={modalTextFieldSx}
             />
           )}
@@ -174,7 +174,7 @@ function OperationsSection({ readOnly, formValues, onChange }: Props) {
               type="number"
               label="Agents count"
               value={formValues.agentsCount}
-              onChange={onChange("agentsCount")}
+              onChange={handleChange("agentsCount")}
               sx={modalTextFieldSx}
             />
           )}
@@ -192,7 +192,7 @@ function OperationsSection({ readOnly, formValues, onChange }: Props) {
                 control={
                   <Checkbox
                     checked={Boolean(formValues[c.key])}
-                    onChange={onChange(c.key)}
+                    onChange={handleChange(c.key)}
                   />
                 }
                 label={c.label}
@@ -213,7 +213,7 @@ function OperationsSection({ readOnly, formValues, onChange }: Props) {
               size="small"
               label="Special requirements"
               value={formValues.specialRequirements}
-              onChange={onChange("specialRequirements")}
+              onChange={handleChange("specialRequirements")}
               multiline
               minRows={2}
               sx={modalTextFieldSx}

@@ -6,17 +6,17 @@ import {
 } from "../../../../../../components/ui/modalStyles";
 import { CURRENCY_OPTIONS, OPERATIONS_OPTIONS } from "../constants";
 import { memo } from "react";
-import type { SecurityOrganization } from "../../../data/types";
+import type { SecurityOrganizationFormValues } from "../../../data/types";
 
 type Props = {
   readOnly: boolean;
-  formValues: SecurityOrganization;
-  onChange: <K extends keyof SecurityOrganization>(
+  formValues: SecurityOrganizationFormValues;
+  handleChange: <K extends keyof SecurityOrganizationFormValues>(
     field: K,
   ) => (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
-function FinancialSection({ readOnly, formValues, onChange }: Props) {
+function FinancialSection({ readOnly, formValues, handleChange }: Props) {
   return (
     <>
       <Typography sx={sectionLabelSx}>Financial</Typography>
@@ -33,7 +33,7 @@ function FinancialSection({ readOnly, formValues, onChange }: Props) {
               size="small"
               label="Bank account IBAN"
               value={formValues.bankAccountIban}
-              onChange={onChange("bankAccountIban")}
+              onChange={handleChange("bankAccountIban")}
               sx={modalTextFieldSx}
             />
           )}
@@ -51,7 +51,7 @@ function FinancialSection({ readOnly, formValues, onChange }: Props) {
               size="small"
               label="Payment terms"
               value={formValues.paymentTerms}
-              onChange={onChange("paymentTerms")}
+              onChange={handleChange("paymentTerms")}
               multiline
               minRows={2}
               sx={modalTextFieldSx}
@@ -69,7 +69,7 @@ function FinancialSection({ readOnly, formValues, onChange }: Props) {
               select
               label="Currency"
               value={formValues.currency}
-              onChange={onChange("currency")}
+              onChange={handleChange("currency")}
               sx={modalTextFieldSx}
             >
               {CURRENCY_OPTIONS.map((c) => (
@@ -95,7 +95,7 @@ function FinancialSection({ readOnly, formValues, onChange }: Props) {
                 type="number"
                 label={f.label}
                 value={String(formValues[f.key] ?? "")}
-                onChange={onChange(f.key)}
+                onChange={handleChange(f.key)}
                 sx={modalTextFieldSx}
               />
             )}

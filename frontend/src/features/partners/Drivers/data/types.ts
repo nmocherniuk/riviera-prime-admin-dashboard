@@ -1,4 +1,3 @@
-/** API / display labels only; form and `DriverOrganization` use `boolean` (`true` = active). */
 export type DriverOrganizationStatus = "active" | "inactive";
 
 export type DriverOrganizationFormValues = {
