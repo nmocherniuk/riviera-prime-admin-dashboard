@@ -1,6 +1,4 @@
-import type { Partner } from "./types";
-
-export const DUMMY_PARTNERS: Partner[] = [
+export const DUMMY_PARTNERS = [
   {
     id: "PRT-001",
     companyName: "Elite Guard Solutions",

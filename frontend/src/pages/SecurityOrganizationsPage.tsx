@@ -6,21 +6,14 @@ import SecurityPartnersHeader from "../features/partners/Security/components/Sec
 import SecurityPartnersStats from "../features/partners/Security/components/SecurityPartnersStats";
 import SecurityPartnersToolbar from "../features/partners/Security/components/SecurityPartnersToolbar";
 import ConfirmDeleteDialog from "../components/ConfirmDeleteDialog";
-import type { Partner } from "../features/partners/Security/data/types";
-import PartnerManagementModal, {
-  type PartnerFormValues,
-} from "../features/partners/Security/components/ModalManagement/PartnerManagementModal";
+
 import PartnersTable from "../features/partners/Security/components/PartnersTable";
 import {
   createOrganization,
   deleteOrganization,
-  dtoToPartner,
   getApiErrorMessage,
   isNotFoundError,
   listOrganizations,
-  partnerFormToCreateBody,
-  partnerFormToUpdateBody,
-  updateOrganization,
 } from "../api/organizations";
 import { queryKeys } from "../api/queryKeys";
 
@@ -38,65 +31,65 @@ export default function SecurityOrganizationsPage() {
     partner: null,
     readOnly: false,
   });
-  const [partnerToDelete, setPartnerToDelete] = useState<Partner | null>(null);
+  // const [partnerToDelete, setPartnerToDelete] = useState<Partner | null>(null);
 
-  const partnersQuery = useQuery({
-    queryKey: queryKeys.organizations.list("SECURITY"),
-    queryFn: () => listOrganizations("SECURITY"),
-  });
+  // const partnersQuery = useQuery({
+  //   queryKey: queryKeys.organizations.list("SECURITY"),
+  //   queryFn: () => listOrganizations("SECURITY"),
+  // });
 
-  const allPartners = useMemo(() => {
-    if (
-      partnersQuery.isError &&
-      partnersQuery.error &&
-      isNotFoundError(partnersQuery.error)
-    ) {
-      return [];
-    }
-    if (!partnersQuery.data) return [];
-    return partnersQuery.data.map(dtoToPartner);
-  }, [partnersQuery.data, partnersQuery.isError, partnersQuery.error]);
+  // const allPartners = useMemo(() => {
+  //   if (
+  //     partnersQuery.isError &&
+  //     partnersQuery.error &&
+  //     isNotFoundError(partnersQuery.error)
+  //   ) {
+  //     return [];
+  //   }
+  //   if (!partnersQuery.data) return [];
+  //   return partnersQuery.data.map(dtoToPartner);
+  // }, [partnersQuery.data, partnersQuery.isError, partnersQuery.error]);
 
-  const loading = partnersQuery.isPending;
-  const listError =
-    partnersQuery.error && !isNotFoundError(partnersQuery.error)
-      ? getApiErrorMessage(partnersQuery.error, "Failed to load partners")
-      : null;
+  // const loading = partnersQuery.isPending;
+  // const listError =
+  //   partnersQuery.error && !isNotFoundError(partnersQuery.error)
+  //     ? getApiErrorMessage(partnersQuery.error, "Failed to load partners")
+  //     : null;
 
-  const activeCount = useMemo(
-    () => allPartners.filter((p) => p.status === "active").length,
-    [allPartners],
-  );
-  const inactiveCount = allPartners.length - activeCount;
+  // const activeCount = useMemo(
+  //   () => allPartners.filter((p) => p.status === "active").length,
+  //   [allPartners],
+  // );
+  // const inactiveCount = allPartners.length - activeCount;
 
-  const handleSavePartner = async (
-    partnerId: string | null,
-    values: PartnerFormValues,
-  ) => {
-    try {
-      setError(null);
-      if (partnerId) {
-        await updateOrganization(
-          partnerId,
-          partnerFormToUpdateBody(values),
-          "SECURITY",
-        );
-      } else {
-        await createOrganization(partnerFormToCreateBody(values));
-      }
-      await queryClient.invalidateQueries({
-        queryKey: queryKeys.organizations.all,
-      });
-    } catch (e) {
-      const msg = getApiErrorMessage(e, "Failed to save partner");
-      setError(msg);
-      throw e;
-    }
-  };
+  // const handleSavePartner = async (
+  //   partnerId: string | null,
+  //   values: PartnerFormValues,
+  // ) => {
+  //   try {
+  //     setError(null);
+  //     if (partnerId) {
+  //       await updateOrganization(
+  //         partnerId,
+  //         partnerFormToUpdateBody(values),
+  //         "SECURITY",
+  //       );
+  //     } else {
+  //       await createOrganization(partnerFormToCreateBody(values));
+  //     }
+  //     await queryClient.invalidateQueries({
+  //       queryKey: queryKeys.organizations.all,
+  //     });
+  //   } catch (e) {
+  //     const msg = getApiErrorMessage(e, "Failed to save partner");
+  //     setError(msg);
+  //     throw e;
+  //   }
+  // };
 
   return (
     <Box sx={{ minHeight: "100%", pb: 3, overflowX: "hidden" }}>
-      <Container
+      {/* <Container
         maxWidth={false}
         sx={{ px: { xs: 1.5, sm: 2, md: 3 }, maxWidth: "100%" }}
       >
@@ -160,7 +153,7 @@ export default function SecurityOrganizationsPage() {
         <PartnerManagementModal
           open={partnerModal.open}
           onClose={() => setPartnerModal((prev) => ({ ...prev, open: false }))}
-          partner={partnerModal.partner}
+          // partner={partnerModal.partner}
           readOnly={partnerModal.readOnly}
           onSave={handleSavePartner}
         />
@@ -183,7 +176,7 @@ export default function SecurityOrganizationsPage() {
           title="Видалити партнера?"
           message="Цю дію не можна скасувати. Запис буде видалено назавжди."
         />
-      </Container>
+      </Container> */}
     </Box>
   );
 }

@@ -2,10 +2,7 @@ import { Box, IconButton, Paper, Typography } from "@mui/material";
 import Chip from "@mui/material/Chip";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import BusinessIcon from "@mui/icons-material/Business";
-import type {
-  DriverOrganization,
-  DriverOrganizationStatus,
-} from "../data/types";
+import type { DriverOrganization } from "../data/types";
 import { useState } from "react";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import EditIcon from "@mui/icons-material/Edit";
@@ -13,13 +10,14 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import GroupIcon from "@mui/icons-material/Group";
 import EntityActionsMenu from "../../../../components/EntityActionsMenu";
 
-const statusColors: Record<
-  DriverOrganizationStatus,
-  { bg: string; color: string }
-> = {
-  active: { bg: "rgba(34, 197, 94, 0.2)", color: "#22c55e" },
-  inactive: { bg: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" },
-};
+const activeChip = {
+  bg: "rgba(34, 197, 94, 0.2)",
+  color: "#22c55e",
+} as const;
+const inactiveChip = {
+  bg: "rgba(255,255,255,0.08)",
+  color: "rgba(255,255,255,0.6)",
+} as const;
 
 type Props = {
   organization: DriverOrganization;
@@ -36,7 +34,7 @@ export default function DriverOrganizationCard({
   onEdit,
   onDelete,
 }: Props) {
-  const statusStyle = statusColors[o.status];
+  const statusStyle = o.status ? activeChip : inactiveChip;
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
 
   const openMenu = (e: React.MouseEvent<HTMLElement>) => {
@@ -165,7 +163,7 @@ export default function DriverOrganizationCard({
         }}
       >
         <Chip
-          label={o.status}
+          label={o.status ? "active" : "inactive"}
           size="small"
           sx={{
             bgcolor: statusStyle.bg,
@@ -176,7 +174,7 @@ export default function DriverOrganizationCard({
           }}
         />
         <Typography variant="caption" sx={{ color: "text.secondary" }} noWrap>
-          {o.serviceArea}
+          {o.serviceAreas}
         </Typography>
       </Box>
     </Paper>

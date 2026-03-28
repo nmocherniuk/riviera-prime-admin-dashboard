@@ -2,28 +2,20 @@ import { z } from "zod";
 
 export const organizationTypeSchema = z.enum(["CHAUFFEUR", "SECURITY"]);
 
-export const organizationStatusInputSchema = z.enum(["active", "inactive"]);
-
 export const chauffeurOrganizationDetailsInputSchema = z
   .object({
     // Company Information
-    companyName: z.string().optional(),
     legalForm: z.string().optional(),
     sirenOrSiret: z.string().optional(),
     vatNumber: z.string().optional(),
     registrationDate: z.coerce.date().optional(),
     registrationCountry: z.string().optional(),
     registeredAddress: z.string().optional(),
-    mailingAddress: z.string().optional(),
     sameAsRegisteredAddress: z.boolean().optional(),
+    mailingAddress: z.string().optional(),
     websiteUrl: z.string().url().optional(),
-    generalEmail: z.string().email().optional(),
-    companyPhoneNumber: z.string().optional(),
     directorFullName: z.string().optional(),
     directorPosition: z.string().optional(),
-    primaryContactName: z.string().optional(),
-    primaryContactEmail: z.string().email().optional(),
-    primaryContactPhone: z.string().optional(),
 
     // Documents metadata
     kbisUploaded: z.boolean().optional(),
@@ -37,7 +29,6 @@ export const chauffeurOrganizationDetailsInputSchema = z
     documentNotes: z.string().optional(),
 
     // Operations
-    serviceAreas: z.string().optional(),
     serviceTypes: z.array(z.string()).optional(),
     workingHours: z.string().optional(),
     support24_7: z.boolean().optional(),
@@ -123,12 +114,12 @@ export const securityOrganizationDetailsInputSchema = z
   .partial();
 
 export const createOrganizationSchema = z.object({
-  title: z.string().min(1),
+  organizationName: z.string().min(1),
   email: z.string().email(),
   phone: z.string().min(1),
   contactPerson: z.string().min(1),
-  serviceArea: z.string().default(""),
-  status: organizationStatusInputSchema,
+  serviceAreas: z.string().default(""),
+  status: z.boolean(),
   type: organizationTypeSchema,
   chauffeurDetails: chauffeurOrganizationDetailsInputSchema.optional(),
   securityDetails: securityOrganizationDetailsInputSchema.optional(),

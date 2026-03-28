@@ -1,7 +1,12 @@
-import type { DriverOrganization } from "../../data/types";
+import type { DriverOrganizationFormValues } from "../../data/types";
 
-export const defaultFormValues: DriverOrganization = {
+export const defaultFormValues: DriverOrganizationFormValues = {
   id: "",
+  organizationName: "",
+  email: "",
+  phone: "",
+  contactPerson: "",
+  status: true,
 
   legalForm: "",
   sirenOrSiret: "",
@@ -9,16 +14,10 @@ export const defaultFormValues: DriverOrganization = {
   registrationDate: "",
   registrationCountry: "France",
   registeredAddress: "",
-  mailingAddress: "",
   sameAsRegisteredAddress: false,
   websiteUrl: "",
-  generalEmail: "",
-  companyPhoneNumber: "",
   directorFullName: "",
   directorPosition: "",
-  primaryContactName: "",
-  primaryContactEmail: "",
-  primaryContactPhone: "",
 
   kbisUploaded: false,
   rcProInsuranceUploaded: false,
@@ -41,7 +40,7 @@ export const defaultFormValues: DriverOrganization = {
   cancellationPolicy: "",
   specialConditionsNotes: "",
 
-  cooperationType: null,
+  cooperationType: "",
   bankAccountIban: "",
   paymentTerms: "",
   commissionPercent: "",

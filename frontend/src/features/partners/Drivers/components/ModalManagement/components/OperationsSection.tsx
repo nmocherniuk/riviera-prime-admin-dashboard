@@ -13,13 +13,13 @@ import {
 } from "../../../../../../components/ui/modalStyles";
 import DetailField from "../../../../../../components/DetailField";
 import { LANGUAGE_OPTIONS, SERVICE_TYPES } from "../constants";
-import type { DriverOrganization } from "../../../data/types";
+import type { DriverOrganizationFormValues } from "../../../data/types";
 
 type Props = {
   readOnly: boolean;
-  formValues: DriverOrganization;
+  formValues: DriverOrganizationFormValues;
   handleChange: (
-    field: keyof DriverOrganization,
+    field: keyof DriverOrganizationFormValues,
   ) => (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
@@ -28,26 +28,6 @@ const OperationsSection = ({ readOnly, formValues, handleChange }: Props) => {
     <>
       <Typography sx={sectionLabelSx}>Operations</Typography>
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 12 }}>
-          {readOnly ? (
-            <DetailField
-              label="Service areas"
-              value={formValues.serviceAreas}
-            />
-          ) : (
-            <TextField
-              fullWidth
-              size="small"
-              label="Service areas"
-              value={formValues.serviceAreas}
-              onChange={handleChange("serviceAreas")}
-              multiline
-              minRows={2}
-              sx={modalTextFieldSx}
-            />
-          )}
-        </Grid>
-
         <Grid size={{ xs: 12 }}>
           {readOnly ? (
             <DetailField

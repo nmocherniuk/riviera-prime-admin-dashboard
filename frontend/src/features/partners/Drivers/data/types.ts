@@ -1,7 +1,15 @@
+/** API / display labels only; form and `DriverOrganization` use `boolean` (`true` = active). */
 export type DriverOrganizationStatus = "active" | "inactive";
 
-export type DriverOrganization = {
-  id: string;
+export type DriverOrganizationFormValues = {
+  // Basic Information
+  id?: string;
+  organizationName: string;
+  email: string;
+  phone: string;
+  serviceAreas: string;
+  contactPerson: string;
+  status: boolean;
 
   // Company Information
   legalForm?: string | null;
@@ -10,16 +18,10 @@ export type DriverOrganization = {
   registrationDate?: string | null;
   registrationCountry?: string | null;
   registeredAddress?: string | null;
-  mailingAddress?: string | null;
   sameAsRegisteredAddress?: boolean;
   websiteUrl?: string | null;
-  generalEmail?: string | null;
-  companyPhoneNumber?: string | null;
   directorFullName?: string | null;
   directorPosition?: string | null;
-  primaryContactName?: string | null;
-  primaryContactEmail?: string | null;
-  primaryContactPhone?: string | null;
 
   // Documents metadata
   kbisUploaded?: boolean;
@@ -33,7 +35,6 @@ export type DriverOrganization = {
   documentNotes?: string | null;
 
   // Operations
-  serviceAreas?: string | null;
   serviceTypes?: string[];
   workingHours?: string | null;
   support24_7?: boolean;
@@ -45,7 +46,7 @@ export type DriverOrganization = {
   specialConditionsNotes?: string | null;
 
   // Commercial & Financial
-  cooperationType?: "COMMISSION" | "FIXED_RATE" | "CUSTOM" | null;
+  cooperationType?: "" | "COMMISSION" | "FIXED_RATE" | "CUSTOM" | null;
   bankAccountIban?: string | null;
   paymentTerms?: string | null;
   commissionPercent?: number | string | null;
@@ -56,4 +57,61 @@ export type DriverOrganization = {
   nightSurchargePercent?: number | string | null;
   holidaySurchargePercent?: number | string | null;
   waitingTimeFee?: number | string | null;
+};
+
+export type DriverOrganization = {
+  id?: string;
+  organizationName: string;
+  email: string;
+  phone: string;
+  contactPerson: string;
+  serviceAreas: string;
+  status: boolean;
+  type: "CHAUFFEUR";
+
+  chauffeurDetails: {
+    legalForm?: string;
+    sirenOrSiret?: string;
+    vatNumber?: string;
+    registrationDate?: string;
+    registrationCountry?: string;
+    registeredAddress?: string;
+    sameAsRegisteredAddress?: boolean;
+    websiteUrl?: string;
+    directorFullName?: string;
+    directorPosition?: string;
+
+    kbisUploaded?: boolean;
+    rcProInsuranceUploaded?: boolean;
+    transportInsuranceUploaded?: boolean;
+    operatingLicenseProvided?: boolean;
+    bankDetailsProvided?: boolean;
+    directorIdCopyProvided?: boolean;
+    signedPartnershipAgreement?: boolean;
+    additionalCertifications?: string;
+    documentNotes?: string;
+
+    serviceAreas?: string;
+    serviceTypes?: string[];
+    workingHours?: string;
+    support24_7?: boolean;
+    languagesSpoken?: string[];
+    maxConcurrentBookings?: number;
+    minAdvanceBookingHours?: number;
+    acceptsUrgentBookings?: boolean;
+    cancellationPolicy?: string;
+    specialConditionsNotes?: string;
+
+    cooperationType?: "COMMISSION" | "FIXED_RATE" | "CUSTOM";
+    bankAccountIban?: string;
+    paymentTerms?: string;
+    commissionPercent?: number;
+    currency?: string;
+    minimumFare?: number;
+    hourlyRate?: number;
+    transferBaseRate?: number;
+    nightSurchargePercent?: number;
+    holidaySurchargePercent?: number;
+    waitingTimeFee?: number;
+  };
 };

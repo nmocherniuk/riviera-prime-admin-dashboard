@@ -12,13 +12,13 @@ import {
   Typography,
 } from "@mui/material";
 import { DOCUMENTS_OPTIONS } from "../constants";
-import type { DriverOrganization } from "../../../data/types";
+import type { DriverOrganizationFormValues } from "../../../data/types";
 
 type Props = {
   readOnly: boolean;
-  formValues: DriverOrganization;
+  formValues: DriverOrganizationFormValues;
   handleChange: (
-    field: keyof DriverOrganization,
+    field: keyof DriverOrganizationFormValues,
   ) => (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
@@ -28,14 +28,14 @@ const DocumentsSection = ({ readOnly, formValues, handleChange }: Props) => {
       <Typography sx={sectionLabelSx}>Documents</Typography>
       <Grid container spacing={2} sx={{ mb: 2 }}>
         {DOCUMENTS_OPTIONS.map((d, index) => {
-          const val = formValues[d.key];
+          const val = formValues[d.key as keyof DriverOrganizationFormValues];
           const isLastOdd =
             DOCUMENTS_OPTIONS.length % 2 !== 0 &&
             index === DOCUMENTS_OPTIONS.length - 1;
 
           if (readOnly) {
             return (
-              <Grid size={{ xs: 12, md: isLastOdd ? 12 : 6 }}>
+              <Grid key={d.key} size={{ xs: 12, md: isLastOdd ? 12 : 6 }}>
                 <DetailField label={d.label} value={val ? "Yes" : "No"} />
               </Grid>
             );
@@ -47,7 +47,7 @@ const DocumentsSection = ({ readOnly, formValues, handleChange }: Props) => {
                 control={
                   <Checkbox
                     checked={Boolean(val)}
-                    onChange={handleChange(d.key as keyof DriverOrganization)}
+                    onChange={handleChange(d.key as keyof DriverOrganizationFormValues)}
                   />
                 }
                 label={d.label}

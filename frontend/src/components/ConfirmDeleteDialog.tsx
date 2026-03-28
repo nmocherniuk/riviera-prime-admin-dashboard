@@ -10,10 +10,10 @@ type Props = {
   confirmLabel?: string;
 };
 
-const defaultTitle = "Видалити запис?";
+const defaultTitle = "Delete record?";
 const defaultMessage =
-  "Цю дію не можна скасувати. Запис буде видалено назавжди.";
-const defaultConfirmLabel = "Видалити";
+  "This action cannot be undone. The record will be deleted permanently.";
+const defaultConfirmLabel = "Delete";
 
 export default function ConfirmDeleteDialog({
   open,
@@ -44,17 +44,17 @@ export default function ConfirmDeleteDialog({
             onClick={onClose}
             sx={{ borderRadius: 2, textTransform: "none" }}
           >
-            Скасувати
+            Cancel
           </Button>
           <Button
             variant="contained"
             color="error"
             onClick={async () => {
               try {
-                await Promise.resolve(onConfirm());
+                await onConfirm();
                 onClose();
-              } catch {
-                // keep dialog open on failure
+              } catch (e) {
+                console.error(e);
               }
             }}
             sx={{ borderRadius: 2, textTransform: "none" }}

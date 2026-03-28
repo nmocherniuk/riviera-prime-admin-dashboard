@@ -7,17 +7,8 @@ import {
   updateOrganization,
 } from "./organization.service.js";
 import type { AuthedRequest } from "../../middleware/requireAuth.js";
+import { isPrismaUniqueViolation } from "./organization.utils.js";
 
-function isPrismaUniqueViolation(
-  error: unknown,
-): error is { code: string; meta?: { target?: unknown } } {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error as { code: string }).code === "P2002"
-  );
-}
 
 export async function createOrganizationController(
   req: AuthedRequest,
@@ -52,6 +43,7 @@ export async function listOrganizationsController(
     return res.json({ organizations });
   } catch (error) {
     const message = error instanceof Error ? error.message : "List failed";
+    console.error("listOrganizationsController error", error);
     return res.status(500).json({ message });
   }
 }
@@ -62,8 +54,8 @@ export async function getOrganizationByIdController(
 ) {
   try {
     const { id } = req.params as { id: string };
-    const { type } = req.query as { type?: "CHAUFFEUR" | "SECURITY" };
-    const organization = await getOrganizationById(id, type);
+
+    const organization = await getOrganizationById(id);
     if (!organization) {
       return res.status(404).json({ message: "Organization not found" });
     }
@@ -80,11 +72,12 @@ export async function updateOrganizationController(
 ) {
   try {
     const { id } = req.params as { id: string };
-    const { type } = req.query as { type?: "CHAUFFEUR" | "SECURITY" };
-    const organization = await updateOrganization(id, req.body, type);
+    const organization = await updateOrganization(id, req.body);
+
     if (!organization) {
       return res.status(404).json({ message: "Organization not found" });
     }
+
     return res.json({ organization });
   } catch (error) {
     if (isPrismaUniqueViolation(error)) {
@@ -108,11 +101,13 @@ export async function deleteOrganizationController(
 ) {
   try {
     const { id } = req.params as { id: string };
-    const { type } = req.query as { type?: "CHAUFFEUR" | "SECURITY" };
-    const deleted = await deleteOrganization(id, type);
+
+    const deleted = await deleteOrganization(id);
+
     if (!deleted) {
       return res.status(404).json({ message: "Organization not found" });
     }
+
     return res.status(204).send();
   } catch (error) {
     const message = error instanceof Error ? error.message : "Delete failed";

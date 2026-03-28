@@ -10,17 +10,18 @@ import DocumentsSection from "./components/DocumentsSection";
 import OperationsSection from "./components/OperationsSection";
 import FinancialSection from "./components/FinancialSection";
 import { defaultFormValues } from "./driverOrganizationForm.types";
-import { orgToFormValues } from "./driverOrganizationForm.mapper";
+import { driverOrganizationToFormValues } from "./driverOrganizationForm.mapper";
 import BasicInfoSection from "./components/BasicInfoSection";
+import type { DriverOrganizationFormValues } from "../../data/types";
 
 type Props = {
   open: boolean;
   onClose: () => void;
   organization: DriverOrganization | null;
   readOnly?: boolean;
-  onSave?: (
+  onSave: (
     organizationId: string | null,
-    values: DriverOrganization,
+    values: DriverOrganizationFormValues,
   ) => void | Promise<void>;
 };
 
@@ -32,15 +33,15 @@ export default function DriverOrganizationManagementModal({
   onSave,
 }: Props) {
   const [formValues, setFormValues] =
-    useState<DriverOrganization>(defaultFormValues);
+    useState<DriverOrganizationFormValues>(defaultFormValues);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setFormValues(orgToFormValues(organization));
+    setFormValues(driverOrganizationToFormValues(organization));
   }, [organization, open]);
 
   const handleChange =
-    (field: keyof DriverOrganization) => (e: ChangeEvent<HTMLInputElement>) => {
+    (field: keyof DriverOrganizationFormValues) => (e: ChangeEvent<HTMLInputElement>) => {
       const nextValue =
         e.target.type === "checkbox" ? e.target.checked : e.target.value;
       setFormValues(
@@ -48,18 +49,9 @@ export default function DriverOrganizationManagementModal({
           ({
             ...prev,
             [field]: nextValue,
-          }) as DriverOrganization,
+          }) as DriverOrganizationFormValues,
       );
     };
-
-  const handleSave = async () => {
-    try {
-      await Promise.resolve(onSave?.(organization?.id ?? null, formValues));
-      onClose();
-    } catch {
-      // keep modal open on failure
-    }
-  };
 
   return (
     <BaseModal
@@ -107,7 +99,7 @@ export default function DriverOrganizationManagementModal({
               variant="contained"
               color="primary"
               startIcon={<EditIcon />}
-              onClick={handleSave}
+              onClick={() => onSave(organization?.id ?? null, formValues)}
               sx={{
                 borderRadius: 2,
                 textTransform: "none",
@@ -121,7 +113,7 @@ export default function DriverOrganizationManagementModal({
         ) : undefined
       }
     >
-      <BasicInfoSection formValues={formValues} />
+      <BasicInfoSection readOnly={readOnly} formValues={formValues} handleChange={handleChange} />
 
       <Divider sx={{ my: 2 }} />
 

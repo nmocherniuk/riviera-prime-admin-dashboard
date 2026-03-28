@@ -3,23 +3,21 @@ import Chip from "@mui/material/Chip";
 import BusinessIcon from "@mui/icons-material/Business";
 import { useState } from "react";
 import DriverOrganizationCard from "./DriverOrganizationCard";
-import type {
-  DriverOrganization,
-  DriverOrganizationStatus,
-} from "../data/types";
+import type { DriverOrganization } from "../data/types";
 import EntityActionsMenu from "../../../../components/EntityActionsMenu";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { GenericTable } from "../../../../components/GenericTable";
 
-const statusColors: Record<
-  DriverOrganizationStatus,
-  { bg: string; color: string }
-> = {
-  active: { bg: "rgba(34, 197, 94, 0.2)", color: "#22c55e" },
-  inactive: { bg: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" },
-};
+const activeChip = {
+  bg: "rgba(34, 197, 94, 0.2)",
+  color: "#22c55e",
+} as const;
+const inactiveChip = {
+  bg: "rgba(255,255,255,0.08)",
+  color: "rgba(255,255,255,0.6)",
+} as const;
 
 type Props = {
   organizations: DriverOrganization[];
@@ -105,30 +103,33 @@ export default function DriversOrganizationsTable({
       ),
     },
     {
-      key: "serviceArea",
+      key: "serviceAreas",
       label: "Service area",
       render: (org: DriverOrganization) => (
         <Typography variant="body2" sx={{ color: "text.secondary" }}>
-          {org.serviceArea}
+          {org.serviceAreas}
         </Typography>
       ),
     },
     {
       key: "status",
       label: "Status",
-      render: (org: DriverOrganization) => (
-        <Chip
-          label={org.status}
-          size="small"
-          sx={{
-            bgcolor: statusColors[org.status].bg,
-            color: statusColors[org.status].color,
-            fontWeight: 700,
-            fontSize: "0.7rem",
-            textTransform: "capitalize",
-          }}
-        />
-      ),
+      render: (org: DriverOrganization) => {
+        const style = org.status ? activeChip : inactiveChip;
+        return (
+          <Chip
+            label={org.status ? "active" : "inactive"}
+            size="small"
+            sx={{
+              bgcolor: style.bg,
+              color: style.color,
+              fontWeight: 700,
+              fontSize: "0.7rem",
+              textTransform: "capitalize",
+            }}
+          />
+        );
+      },
     },
   ];
 

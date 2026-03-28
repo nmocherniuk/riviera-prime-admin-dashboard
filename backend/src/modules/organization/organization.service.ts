@@ -1,178 +1,156 @@
-import type {
-  Organizations,
-  OrganizationType,
-} from "../../generated/prisma/client.js";
+import type { OrganizationType } from "../../generated/prisma/client.js";
 import {
-  createOrganization as createOrganizationRepo,
+  createGeneralOrganization,
   deleteOrganizationById,
   findOrganizationById,
   findOrganizationsByType,
-  updateOrganization as updateOrganizationRepo,
-  type CreateOrganizationData,
-  upsertChauffeurOrganizationDetails,
-  type ChauffeurOrganizationDetailsUpsertData,
+  updateOrganizationRow,
+  upsertDriverOrganizationDetails,
   upsertSecurityOrganizationDetails,
-  type SecurityOrganizationDetailsUpsertData,
 } from "./organization.repository.js";
+import type {
+  DriverOrganizationDetails,
+  GeneralOrganizationPayload,
+  NewOrganization,
+  Organization,
+} from "./organization.types.js";
 
-export type PublicOrganization = {
-  id: string;
-  title: string;
-  email: string;
-  phone: string;
-  contactPerson: string;
-  serviceArea: string;
-  status: "active" | "inactive";
-  type: OrganizationType;
-  createdAt: string;
-  chauffeurDetails?: ChauffeurOrganizationDetailsUpsertData | null;
-  securityDetails?: SecurityOrganizationDetailsUpsertData | null;
-};
+import { stripUndefined } from "./organization.utils.js";
 
-function statusFromBool(status: boolean): "active" | "inactive" {
-  return status ? "active" : "inactive";
-}
 
-function stripUndefined<T extends Record<string, unknown>>(obj: T): Partial<T> {
-  const out: Partial<T> = {};
-  for (const [k, v] of Object.entries(obj)) {
-    if (v !== undefined) out[k as keyof T] = v as T[keyof T];
-  }
-  return out;
-}
 
-export function toPublicOrganization(row: Organizations & {
-  chauffeurDetails?: ChauffeurOrganizationDetailsUpsertData | null;
-  securityDetails?: SecurityOrganizationDetailsUpsertData | null;
-}): PublicOrganization {
-  return {
-    id: row.id,
-    title: row.title,
-    email: row.email,
-    phone: row.phone,
-    contactPerson: row.contactPerson,
-    serviceArea: row.serviceArea,
-    status: statusFromBool(row.status),
-    type: row.type,
-    createdAt: row.createdAt.toISOString(),
-    chauffeurDetails: row.chauffeurDetails ?? null,
-    securityDetails: row.securityDetails ?? null,
-  };
-}
 
-export function statusInputToBool(status: "active" | "inactive"): boolean {
-  return status === "active";
-}
+
+// export function toPublicOrganization(row: Organizations & {
+//   chauffeurDetails?: ChauffeurOrganizationDetailsUpsertData | null;
+//   securityDetails?: SecurityOrganizationDetailsUpsertData | null;
+// }): PublicOrganization {
+//   return {
+//     id: row.id,
+//     title: row.title,
+//     email: row.email,
+//     phone: row.phone,
+//     contactPerson: row.contactPerson,
+//     serviceAreas: row.serviceAreas,
+//     status: statusFromBool(row.status),
+//     type: row.type,
+//     createdAt: row.createdAt.toISOString(),
+//     chauffeurDetails: row.chauffeurDetails ?? null,
+//     securityDetails: row.securityDetails ?? null,
+//   };
+// }
+
+
+
 
 export async function createOrganization(
-  input: Omit<CreateOrganizationData, "status"> & {
-    status: "active" | "inactive";
-    chauffeurDetails?: ChauffeurOrganizationDetailsUpsertData;
-    securityDetails?: SecurityOrganizationDetailsUpsertData;
-  },
-) {
-  const data: CreateOrganizationData = {
-    ...input,
-    status: statusInputToBool(input.status),
+  data: NewOrganization,
+): Promise<Organization> {
+  const generalOrganizationPayload: GeneralOrganizationPayload = {
+    organizationName: data.organizationName,
+    email: data.email,
+    phone: data.phone,
+    contactPerson: data.contactPerson,
+    serviceAreas: data.serviceAreas,
+    status: data.status,
+    type: data.type,
   };
-  const row = await createOrganizationRepo(data);
+
+  const generalOrganization = await createGeneralOrganization(generalOrganizationPayload);
 
   // CHAUFFEUR extension table
-  if (input.type === "CHAUFFEUR" && input.chauffeurDetails) {
-    await upsertChauffeurOrganizationDetails(row.id, stripUndefined(input.chauffeurDetails));
-    const fresh = await findOrganizationById(row.id);
-    return fresh ? toPublicOrganization(fresh) : toPublicOrganization(row);
+  if (data.type === "CHAUFFEUR" && data.chauffeurDetails) {
+    await upsertDriverOrganizationDetails(
+      generalOrganization.id,
+      stripUndefined(data.chauffeurDetails),
+    );
   }
 
   // SECURITY extension table
-  if (input.type === "SECURITY" && input.securityDetails) {
-    await upsertSecurityOrganizationDetails(
-      row.id,
-      stripUndefined(input.securityDetails),
-    );
-    const fresh = await findOrganizationById(row.id);
-    return fresh ? toPublicOrganization(fresh) : toPublicOrganization(row);
-  }
+  // if (input.type === "SECURITY" && input.securityDetails) {
+  //   await upsertSecurityOrganizationDetails(
+  //     row.id,
+  //     stripUndefined(input.securityDetails),
+  //   );
+  //   const fresh = await findOrganizationById(row.id);
+  //   return fresh ? toPublicOrganization(fresh) : toPublicOrganization(row);
+  // }
 
-  return toPublicOrganization(row);
+  return { ...data, id: generalOrganization.id };
 }
 
 export async function listOrganizations(type: OrganizationType) {
-  const rows = await findOrganizationsByType(type);
-  return rows.map(toPublicOrganization);
-}
-
-export async function getOrganizationById(
-  id: string,
-  typeFilter?: OrganizationType,
-) {
-  const row = await findOrganizationById(id);
-  if (!row) {
-    return null;
-  }
-  if (typeFilter !== undefined && row.type !== typeFilter) {
-    return null;
-  }
-  return toPublicOrganization(row);
+  const organizations = await findOrganizationsByType(type);
+  return organizations;
 }
 
 export async function updateOrganization(
   id: string,
-  input: Omit<CreateOrganizationData, "type" | "status"> & {
-    status: "active" | "inactive";
-    chauffeurDetails?: ChauffeurOrganizationDetailsUpsertData;
-    securityDetails?: SecurityOrganizationDetailsUpsertData;
-  },
-  typeFilter?: OrganizationType,
-) {
+  data: Organization,
+): Promise<Organization | null> {
   const row = await findOrganizationById(id);
+
   if (!row) {
     return null;
   }
-  if (typeFilter !== undefined && row.type !== typeFilter) {
+
+  if (data.type !== undefined && row.type !== data.type) {
     return null;
   }
-  const updated = await updateOrganizationRepo(id, {
-    title: input.title,
-    email: input.email,
-    phone: input.phone,
-    contactPerson: input.contactPerson,
-    serviceArea: input.serviceArea,
-    status: statusInputToBool(input.status),
+
+  await updateOrganizationRow(id, {
+    organizationName: data.organizationName,
+    email: data.email,
+    phone: data.phone,
+    contactPerson: data.contactPerson,
+    serviceAreas: data.serviceAreas,
+    status: data.status,
   });
 
-  if (typeFilter === "CHAUFFEUR" && input.chauffeurDetails) {
-    await upsertChauffeurOrganizationDetails(
-      updated.id,
-      stripUndefined(input.chauffeurDetails),
+  if (row.type === "CHAUFFEUR" && data.chauffeurDetails) {
+    await upsertDriverOrganizationDetails(
+      id,
+      stripUndefined(data.chauffeurDetails) as DriverOrganizationDetails,
     );
-    const fresh = await findOrganizationById(updated.id);
-    return fresh ? toPublicOrganization(fresh) : toPublicOrganization(updated);
   }
 
-  if (typeFilter === "SECURITY" && input.securityDetails) {
+  if (row.type === "SECURITY" && data.securityDetails) {
     await upsertSecurityOrganizationDetails(
-      updated.id,
-      stripUndefined(input.securityDetails),
+      id,
+      stripUndefined(data.securityDetails),
     );
-    const fresh = await findOrganizationById(updated.id);
-    return fresh ? toPublicOrganization(fresh) : toPublicOrganization(updated);
   }
 
-  return toPublicOrganization(updated);
+  return {
+    ...data,
+    id,
+    type: row.type,
+  };
 }
+
+export async function getOrganizationById(
+  id: string,
+) {
+  const row = await findOrganizationById(id);
+
+  if (!row) {
+    return null;
+  }
+
+  return row;
+}
+
+
 
 export async function deleteOrganization(
   id: string,
-  typeFilter?: OrganizationType,
 ) {
   const row = await findOrganizationById(id);
+
   if (!row) {
     return null;
   }
-  if (typeFilter !== undefined && row.type !== typeFilter) {
-    return null;
-  }
+
   await deleteOrganizationById(id);
   return true;
 }

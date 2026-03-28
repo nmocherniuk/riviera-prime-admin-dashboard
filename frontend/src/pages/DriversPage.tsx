@@ -19,7 +19,7 @@ import DriversTable from "../features/partners/Drivers/components/drivers/Driver
 import DriversHeader from "../features/partners/Drivers/components/drivers/DriversHeader";
 import DriversStats from "../features/partners/Drivers/components/drivers/DriversStats";
 import {
-  dtoToDriverOrganization,
+  // toGeneralInfoDriverOrganization,
   getApiErrorMessage,
   getOrganization,
   isNotFoundError,
@@ -57,7 +57,7 @@ async function fetchDriversPageData(
   organizationId: string,
 ): Promise<DriversPageData> {
   const dto = await getOrganization(organizationId, "CHAUFFEUR");
-  const org = dtoToDriverOrganization(dto);
+  // const org = toGeneralInfoDriverOrganization(dto);
   let rows: DriverDto[] = [];
   let vehicles: VehicleDto[] = [];
   try {
@@ -124,9 +124,9 @@ export default function DriversPage() {
       ? isNotFoundError(driversPageQuery.error)
         ? "No results"
         : getApiErrorMessage(
-            driversPageQuery.error,
-            "Failed to load drivers page",
-          )
+          driversPageQuery.error,
+          "Failed to load drivers page",
+        )
       : null;
 
   const [driversError, setDriversError] = useState<string | null>(null);

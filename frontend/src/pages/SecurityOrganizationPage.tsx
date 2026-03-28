@@ -13,7 +13,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import PageHeader from "../components/PageHeader";
 
 import ConfirmDeleteDialog from "../components/ConfirmDeleteDialog";
-import type { Bodyguard, Partner } from "../features/partners/Security/data/types";
+import type { Bodyguard, SecurityOrganization } from "../features/partners/Security/data/types";
 import BodyguardsTable from "../features/partners/Security/components/bodyguards/BodyguardsTable";
 import BodyguardManagementModal from "../features/partners/Security/components/bodyguards/ModalManagement/BodyguardManagementModal";
 import type { SecurityAgentFormValues } from "../features/partners/Security/components/bodyguards/ModalManagement/bodyguardForm.types";
@@ -31,7 +31,6 @@ import {
   type SecurityAgentDto,
 } from "../api/securityAgents";
 import {
-  dtoToPartner,
   getApiErrorMessage,
   getOrganization,
   isNotFoundError,
@@ -39,7 +38,7 @@ import {
 import { queryKeys } from "../api/queryKeys";
 
 type BodyguardsSectionProps = {
-  partner: Partner;
+  partner: SecurityOrganization;
   partnerId: string;
 };
 
@@ -105,7 +104,7 @@ function SecurityBodyguardsSection({ partner, partnerId }: BodyguardsSectionProp
     <>
       <Box sx={{ pt: { xs: 1, md: 2 } }}>
         <PageHeader
-          title={partner.companyName}
+          // title={partner.companyName}
           subtitle={`Manage bodyguards for ${partner.contactPerson}`}
           titleSx={{ fontWeight: 800, letterSpacing: "-0.02em" }}
           subtitleSx={{ fontSize: { xs: "0.875rem", md: "1rem" } }}
@@ -193,7 +192,7 @@ export default function SecurityOrganizationPage() {
       : ["organizations", "detail", "SECURITY", "none"],
     queryFn: () => getOrganization(partnerId!, "SECURITY"),
     enabled: Boolean(partnerId),
-    select: (dto) => dtoToPartner(dto),
+    // select: (dto) => dtoToPartner(dto),
   });
 
   const partner = partnerQuery.data ?? null;
@@ -262,7 +261,7 @@ export default function SecurityOrganizationPage() {
       >
         <SecurityBodyguardsSection
           key={partnerId}
-          partner={partner}
+          // partner={partner}
           partnerId={partnerId}
         />
       </Container>

@@ -57,8 +57,9 @@ export default function BaseModal({
           overflowY: "auto",
         }}
       >
-        {children}
-
+        <Box sx={{ pt: 2.5 }}>
+          {children}
+        </Box>
         {actions && (
           <Box
             sx={{
