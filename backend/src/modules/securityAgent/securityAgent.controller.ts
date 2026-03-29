@@ -1,6 +1,5 @@
 import type { Response } from "express";
 import type { AuthedRequest } from "../../middleware/requireAuth.js";
-import type { Prisma } from "../../generated/prisma/client.js";
 import {
   createSecurityAgent,
   deleteSecurityAgent,
@@ -8,12 +7,8 @@ import {
   listSecurityAgents,
   updateSecurityAgent,
 } from "./securityAgent.service.js";
-
-function isPrismaKnownError(
-  error: unknown,
-): error is { code: string; meta?: { target?: unknown } } {
-  return typeof error === "object" && error !== null && "code" in error;
-}
+import { isPrismaKnownError } from "./securityAgent.utils.js";
+import type { Prisma } from "../../generated/prisma/client.js";
 
 export async function listSecurityAgentsController(
   req: AuthedRequest,
@@ -21,7 +16,9 @@ export async function listSecurityAgentsController(
 ) {
   try {
     const { organizationId } = req.query as { organizationId?: string };
+
     const agents = await listSecurityAgents(organizationId);
+
     return res.json({ agents });
   } catch (error) {
     const message = error instanceof Error ? error.message : "List failed";
@@ -35,11 +32,13 @@ export async function getSecurityAgentByIdController(
 ) {
   try {
     const { id } = req.params as { id: string };
-    const { organizationId } = req.query as { organizationId?: string };
-    const agent = await getSecurityAgentById(id, organizationId);
+
+    const agent = await getSecurityAgentById(id)
+
     if (!agent) {
       return res.status(404).json({ message: "Security agent not found" });
     }
+
     return res.json({ agent });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Get failed";
@@ -53,7 +52,9 @@ export async function createSecurityAgentController(
 ) {
   try {
     const data = req.body as Prisma.SecurityAgentsUncheckedCreateInput;
+
     const agent = await createSecurityAgent(data);
+
     return res.status(201).json({ agent });
   } catch (error) {
     if (isPrismaKnownError(error) && error.code === "P2003") {
@@ -70,9 +71,11 @@ export async function updateSecurityAgentController(
 ) {
   try {
     const { id } = req.params as { id: string };
-    const { organizationId } = req.query as { organizationId?: string };
+
     const data = req.body as Prisma.SecurityAgentsUncheckedUpdateInput;
-    const agent = await updateSecurityAgent(id, data, organizationId);
+
+    const agent = await updateSecurityAgent(id, data);
+
     if (!agent) {
       return res.status(404).json({ message: "Security agent not found" });
     }
@@ -89,8 +92,9 @@ export async function deleteSecurityAgentController(
 ) {
   try {
     const { id } = req.params as { id: string };
-    const { organizationId } = req.query as { organizationId?: string };
-    const deleted = await deleteSecurityAgent(id, organizationId);
+
+    const deleted = await deleteSecurityAgent(id);
+
     if (!deleted) {
       return res.status(404).json({ message: "Security agent not found" });
     }

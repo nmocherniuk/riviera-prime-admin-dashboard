@@ -12,8 +12,8 @@ import {
   sectionLabelSx,
 } from "../../../../../../../components/ui/modalStyles";
 import { memo } from "react";
-import type { SecurityAgentFormValues } from "../bodyguardForm.types";
-import { EMPLOYMENT_STATUS_OPTIONS, PHYSICAL_LEVEL_OPTIONS } from "../bodyguardConstants";
+import type { SecurityAgentFormValues } from "../securityAgentForm.types";
+import { EMPLOYMENT_STATUS_OPTIONS, PHYSICAL_LEVEL_OPTIONS } from "../constants";
 
 type Props = {
   readOnly: boolean;
@@ -23,7 +23,7 @@ type Props = {
   ) => (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
-function BodyguardProfessionalSection({
+function SecurityAgentProfessionalSection({
   readOnly,
   formValues,
   onChange,
@@ -242,4 +242,4 @@ function BodyguardProfessionalSection({
   );
 }
 
-export default memo(BodyguardProfessionalSection);
+export default memo(SecurityAgentProfessionalSection);

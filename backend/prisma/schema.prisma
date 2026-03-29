@@ -247,12 +247,6 @@ enum PhysicalLevel {
   HIGH
 }
 
-enum AgentAvailabilityStatus {
-  AVAILABLE
-  ON_ASSIGNMENT
-  OFF_DUTY
-}
-
 model Bookings {
   id            String        @id @default(uuid())
   clientName    String
@@ -396,7 +390,7 @@ model SecurityAgents {
   canTravelWithClient    Boolean @default(true)
   canDoDriverSecurity    Boolean @default(false)
 
-  availabilityStatus AgentAvailabilityStatus @default(AVAILABLE)
+  status             Boolean @default(true)
   notes              String?
 
   createdAt DateTime @default(now())

@@ -14,7 +14,6 @@ export const securityAgentByIdQuerySchema = z.object({
 
 const employment = z.enum(["EMPLOYEE", "FREELANCE", "SUBCONTRACTOR"]);
 const physical = z.enum(["LOW", "MEDIUM", "HIGH"]);
-const availability = z.enum(["AVAILABLE", "ON_ASSIGNMENT", "OFF_DUTY"]);
 
 const agentFields = {
   firstName: z.string().min(1),
@@ -62,7 +61,7 @@ const agentFields = {
   canWorkInTeam: z.boolean().optional(),
   canTravelWithClient: z.boolean().optional(),
   canDoDriverSecurity: z.boolean().optional(),
-  availabilityStatus: availability.optional(),
+  status: z.boolean().optional(),
   notes: z.string().optional().nullable(),
 };
 

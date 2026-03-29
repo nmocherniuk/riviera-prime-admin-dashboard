@@ -7,8 +7,8 @@ import {
 import DetailField from "../../../../../../../components/DetailField";
 import { sectionLabelSx } from "../../../../../../../components/ui/modalStyles";
 import { memo } from "react";
-import type { SecurityAgentFormValues } from "../bodyguardForm.types";
-import { DOCUMENT_PROVIDED_OPTIONS } from "../bodyguardConstants";
+import type { SecurityAgentFormValues } from "../securityAgentForm.types";
+import { DOCUMENT_PROVIDED_OPTIONS } from "../constants";
 
 type Props = {
   readOnly: boolean;
@@ -18,7 +18,7 @@ type Props = {
   ) => (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
-function BodyguardDocumentsSection({
+function SecurityAgentDocumentsSection({
   readOnly,
   formValues,
   onChange,
@@ -58,4 +58,4 @@ function BodyguardDocumentsSection({
   );
 }
 
-export default memo(BodyguardDocumentsSection);
+export default memo(SecurityAgentDocumentsSection);

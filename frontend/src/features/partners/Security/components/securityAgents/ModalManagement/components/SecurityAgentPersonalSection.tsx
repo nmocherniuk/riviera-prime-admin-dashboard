@@ -1,11 +1,12 @@
-import { Grid, TextField, Typography } from "@mui/material";
+import { Grid, MenuItem, TextField, Typography } from "@mui/material";
 import DetailField from "../../../../../../../components/DetailField";
 import {
   modalTextFieldSx,
   sectionLabelSx,
 } from "../../../../../../../components/ui/modalStyles";
-import { memo } from "react";
-import type { SecurityAgentFormValues } from "../bodyguardForm.types";
+import { memo, type ChangeEvent } from "react";
+import type { SecurityAgentFormValues } from "../securityAgentForm.types";
+import { LANGUAGE_OPTIONS } from "../../../ModalManagement/constants";
 
 type Props = {
   readOnly: boolean;
@@ -15,7 +16,7 @@ type Props = {
   ) => (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
-function BodyguardPersonalSection({ readOnly, formValues, onChange }: Props) {
+function SecurityAgentPersonalSection({ readOnly, formValues, onChange }: Props) {
   return (
     <>
       <Typography sx={sectionLabelSx}>Personal</Typography>
@@ -125,22 +126,31 @@ function BodyguardPersonalSection({ readOnly, formValues, onChange }: Props) {
             />
           )}
         </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid size={{ xs: 12 }}>
           {readOnly ? (
             <DetailField
-              label="Languages"
-              value={formValues.languages}
+              label="Languages spoken"
+              value={(formValues.languages ?? []).join(", ")}
             />
           ) : (
             <TextField
               fullWidth
               size="small"
-              label="Languages"
-              placeholder="Comma-separated"
-              value={formValues.languages}
-              onChange={onChange("languages")}
+              select
+              label="Languages spoken"
+              value={formValues.languages ?? []}
+              SelectProps={{ multiple: true }}
+              onChange={(e) =>
+                onChange("languages")(e as ChangeEvent<HTMLInputElement>)
+              }
               sx={modalTextFieldSx}
-            />
+            >
+              {LANGUAGE_OPTIONS.map((l) => (
+                <MenuItem key={l} value={l}>
+                  {l}
+                </MenuItem>
+              ))}
+            </TextField>
           )}
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
@@ -182,4 +192,4 @@ function BodyguardPersonalSection({ readOnly, formValues, onChange }: Props) {
   );
 }
 
-export default memo(BodyguardPersonalSection);
+export default memo(SecurityAgentPersonalSection);

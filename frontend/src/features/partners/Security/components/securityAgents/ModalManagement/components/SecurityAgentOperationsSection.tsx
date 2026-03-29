@@ -11,9 +11,9 @@ import {
   modalTextFieldSx,
   sectionLabelSx,
 } from "../../../../../../../components/ui/modalStyles";
-import { memo } from "react";
-import type { SecurityAgentFormValues } from "../bodyguardForm.types";
-import { AVAILABILITY_STATUS_OPTIONS } from "../bodyguardConstants";
+import { memo, type ChangeEvent } from "react";
+import type { SecurityAgentFormValues } from "../securityAgentForm.types";
+import { OPERATIONS_OPTIONS } from "../constants";
 
 type Props = {
   readOnly: boolean;
@@ -23,7 +23,7 @@ type Props = {
   ) => (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
-function BodyguardOperationsSection({
+function SecurityAgentOperationsSection({
   readOnly,
   formValues,
   onChange,
@@ -86,27 +86,30 @@ function BodyguardOperationsSection({
           {readOnly ? (
             <DetailField
               label="Status"
-              value={
-                AVAILABILITY_STATUS_OPTIONS.find(
-                  (o) => o.value === formValues.availabilityStatus,
-                )?.label ?? formValues.availabilityStatus
-              }
+              value={formValues.status ? "Active" : "Inactive"}
             />
           ) : (
             <TextField
               fullWidth
               size="small"
               select
-              label="Availability status"
-              value={formValues.availabilityStatus}
-              onChange={onChange("availabilityStatus")}
+              label="Status"
+              value={formValues.status ? "active" : "inactive"}
+              onChange={(e) => {
+                const checked = e.target.value === "active";
+                onChange("status")({
+                  target: {
+                    type: "checkbox",
+                    checked,
+                    name: "status",
+                    value: "",
+                  },
+                } as ChangeEvent<HTMLInputElement>);
+              }}
               sx={modalTextFieldSx}
             >
-              {AVAILABILITY_STATUS_OPTIONS.map((o) => (
-                <MenuItem key={o.value} value={o.value}>
-                  {o.label}
-                </MenuItem>
-              ))}
+              <MenuItem value="active">Active</MenuItem>
+              <MenuItem value="inactive">Inactive</MenuItem>
             </TextField>
           )}
         </Grid>
@@ -153,13 +156,7 @@ function BodyguardOperationsSection({
           )}
         </Grid>
 
-        {(
-          [
-            ["canWorkInTeam", "Can work in team"],
-            ["canTravelWithClient", "Can travel with client"],
-            ["canDoDriverSecurity", "Driver security"],
-          ] as const
-        ).map(([key, label]) => (
+        {OPERATIONS_OPTIONS.map(([key, label]) => (
           <Grid key={key} size={{ xs: 12, md: 6 }}>
             {readOnly ? (
               <DetailField
@@ -201,4 +198,4 @@ function BodyguardOperationsSection({
   );
 }
 
-export default memo(BodyguardOperationsSection);
+export default memo(SecurityAgentOperationsSection);

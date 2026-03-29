@@ -9,7 +9,7 @@ import FleetPage from "./pages/FleetPage";
 import PricingPage from "./pages/PricingPage";
 import PaymentsPage from "./pages/PaymentsPage";
 import SecurityOrganizationsPage from "./pages/SecurityOrganizationsPage";
-import SecurityOrganizationPage from "./pages/SecurityOrganizationPage";
+import SecurityAgentsPage from "./pages/SecurityAgentsPage";
 import DriverOrganizationsPage from "./pages/DriverOrganizationsPage";
 import DriversPage from "./pages/DriversPage";
 import AuthBootstrap from "./components/auth/AuthBootstrap";
@@ -48,8 +48,8 @@ function App() {
                   element={<SecurityOrganizationsPage />}
                 />
                 <Route
-                  path="/security-partners/:partnerId"
-                  element={<SecurityOrganizationPage />}
+                  path="/security-partners/:organizationId"
+                  element={<SecurityAgentsPage />}
                 />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Route>

@@ -6,20 +6,20 @@ import { useEffect, useState, type ChangeEvent } from "react";
 import BaseModal from "../../../../../../components/BaseModal";
 import {
   defaultSecurityAgentFormValues,
+  type SecurityAgent,
   type SecurityAgentFormValues,
-} from "./bodyguardForm.types";
-import { dtoToFormValues } from "./bodyguardForm.mapper";
-import type { SecurityAgentDto } from "../../../../../../api/securityAgents";
+} from "./securityAgentForm.types";
 import { sectionLabelSx } from "../../../../../../components/ui/modalStyles";
-import BodyguardPersonalSection from "./components/BodyguardPersonalSection";
-import BodyguardProfessionalSection from "./components/BodyguardProfessionalSection";
-import BodyguardDocumentsSection from "./components/BodyguardDocumentsSection";
-import BodyguardOperationsSection from "./components/BodyguardOperationsSection";
+import SecurityAgentPersonalSection from "./components/SecurityAgentPersonalSection";
+import SecurityAgentProfessionalSection from "./components/SecurityAgentProfessionalSection";
+import SecurityAgentDocumentsSection from "./components/SecurityAgentDocumentsSection";
+import SecurityAgentOperationsSection from "./components/SecurityAgentOperationsSection";
+import { securityAgentToFormValues } from "./securityAgent.mapper";
 
 type Props = {
   open: boolean;
   onClose: () => void;
-  agent: SecurityAgentDto | null;
+  securityAgent: SecurityAgent | null;
   readOnly?: boolean;
   onSave?: (
     agentId: string | null,
@@ -27,10 +27,10 @@ type Props = {
   ) => void | Promise<void>;
 };
 
-export default function BodyguardManagementModal({
+export default function SecurityAgentManagementModal({
   open,
   onClose,
-  agent,
+  securityAgent,
   readOnly = false,
   onSave,
 }: Props) {
@@ -39,25 +39,23 @@ export default function BodyguardManagementModal({
   );
 
   useEffect(() => {
-    setFormValues(dtoToFormValues(agent));
-  }, [agent, open]);
+    if (!open) return;
+    if (!securityAgent) {
+      setFormValues(defaultSecurityAgentFormValues);
+      return;
+    }
+    setFormValues(
+      securityAgentToFormValues(securityAgent),
+    );
+  }, [securityAgent, open]);
 
   const handleChange =
     <K extends keyof SecurityAgentFormValues>(field: K) =>
-    (e: ChangeEvent<HTMLInputElement>) => {
-      const nextValue =
-        e.target.type === "checkbox" ? e.target.checked : e.target.value;
-      setFormValues((prev) => ({ ...prev, [field]: nextValue }));
-    };
-
-  const handleSave = async () => {
-    try {
-      await Promise.resolve(onSave?.(agent?.id ?? null, formValues));
-      onClose();
-    } catch {
-      // keep modal open on failure
-    }
-  };
+      (e: ChangeEvent<HTMLInputElement>) => {
+        const nextValue =
+          e.target.type === "checkbox" ? e.target.checked : e.target.value;
+        setFormValues((prev) => ({ ...prev, [field]: nextValue }));
+      };
 
   return (
     <BaseModal
@@ -73,10 +71,10 @@ export default function BodyguardManagementModal({
             sx={{ fontWeight: 700, color: "text.primary" }}
           >
             {readOnly
-              ? "Bodyguard details"
-              : agent
-                ? "Edit bodyguard"
-                : "Add bodyguard"}
+              ? "Security agent details"
+              : securityAgent
+                ? "Edit security agent"
+                : "Add security agent"}
           </Typography>
         </>
       }
@@ -105,7 +103,7 @@ export default function BodyguardManagementModal({
               variant="contained"
               color="primary"
               startIcon={<EditIcon />}
-              onClick={handleSave}
+              onClick={() => onSave?.(securityAgent?.id ?? null, formValues)}
               sx={{
                 borderRadius: 2,
                 textTransform: "none",
@@ -113,40 +111,40 @@ export default function BodyguardManagementModal({
                 px: 2,
               }}
             >
-              {agent ? "Save changes" : "Add bodyguard"}
+              {securityAgent ? "Save changes" : "Add security agent"}
             </Button>
           </>
         ) : undefined
       }
     >
-      {agent ? (
+      {securityAgent ? (
         <>
-          <Typography sx={sectionLabelSx}>Agent ID</Typography>
+          <Typography sx={sectionLabelSx}>Security agent ID</Typography>
           <Typography variant="body2" sx={{ mb: 1, color: "text.primary" }}>
-            #{agent.id}
+            #{securityAgent.id}
           </Typography>
         </>
       ) : null}
 
-      <BodyguardPersonalSection
+      <SecurityAgentPersonalSection
         readOnly={readOnly}
         formValues={formValues}
         onChange={handleChange}
       />
       <Divider sx={{ my: 2 }} />
-      <BodyguardProfessionalSection
+      <SecurityAgentProfessionalSection
         readOnly={readOnly}
         formValues={formValues}
         onChange={handleChange}
       />
       <Divider sx={{ my: 2 }} />
-      <BodyguardDocumentsSection
+      <SecurityAgentDocumentsSection
         readOnly={readOnly}
         formValues={formValues}
         onChange={handleChange}
       />
       <Divider sx={{ my: 2 }} />
-      <BodyguardOperationsSection
+      <SecurityAgentOperationsSection
         readOnly={readOnly}
         formValues={formValues}
         onChange={handleChange}

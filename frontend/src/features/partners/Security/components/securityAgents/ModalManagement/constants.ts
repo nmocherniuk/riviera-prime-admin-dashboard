@@ -1,4 +1,4 @@
-import type { SecurityAgentFormValues } from "./bodyguardForm.types";
+import type { SecurityAgentFormValues } from "./securityAgentForm.types";
 
 export const EMPLOYMENT_STATUS_OPTIONS = [
   { value: "", label: "—" },
@@ -12,12 +12,6 @@ export const PHYSICAL_LEVEL_OPTIONS = [
   { value: "LOW", label: "Low" },
   { value: "MEDIUM", label: "Medium" },
   { value: "HIGH", label: "High" },
-] as const;
-
-export const AVAILABILITY_STATUS_OPTIONS = [
-  { value: "AVAILABLE", label: "Available" },
-  { value: "ON_ASSIGNMENT", label: "On assignment" },
-  { value: "OFF_DUTY", label: "Off duty" },
 ] as const;
 
 export const DOCUMENT_PROVIDED_OPTIONS: {
@@ -35,3 +29,9 @@ export const DOCUMENT_PROVIDED_OPTIONS: {
     { key: "profilePhotoProvided", label: "Profile photo" },
     { key: "signedContractProvided", label: "Signed contract" },
   ];
+
+export const OPERATIONS_OPTIONS = [
+  ["canWorkInTeam", "Can work in team"],
+  ["canTravelWithClient", "Can travel with client"],
+  ["canDoDriverSecurity", "Driver security"],
+] as const
