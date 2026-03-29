@@ -61,20 +61,6 @@ export default function PricingEditModal({
       actions={
         <>
           <Button
-            variant="contained"
-            color="primary"
-            startIcon={<EditIcon />}
-            onClick={handleSave}
-            sx={{
-              borderRadius: 2,
-              textTransform: "none",
-              fontWeight: 700,
-              px: 2,
-            }}
-          >
-            Save
-          </Button>
-          <Button
             variant="outlined"
             startIcon={<CloseIcon />}
             onClick={onClose}
@@ -91,6 +77,20 @@ export default function PricingEditModal({
             }}
           >
             Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<EditIcon />}
+            onClick={handleSave}
+            sx={{
+              borderRadius: 2,
+              textTransform: "none",
+              fontWeight: 700,
+              px: 2,
+            }}
+          >
+            Save
           </Button>
         </>
       }

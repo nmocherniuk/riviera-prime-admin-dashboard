@@ -16,11 +16,11 @@ const classColors: Record<FleetClass, { bg: string; color: string }> = {
 };
 
 type Props = {
-  rows: VehiclePricing[];
+  pricingData: VehiclePricing[];
   onEditRow: (row: VehiclePricing) => void;
 };
 
-export default function PricingTable({ rows, onEditRow }: Props) {
+export default function PricingTable({ pricingData, onEditRow }: Props) {
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [selected, setSelected] = useState<VehiclePricing | null>(null);
 
@@ -77,8 +77,8 @@ export default function PricingTable({ rows, onEditRow }: Props) {
           label={row.vehicle.class}
           size="small"
           sx={{
-            bgcolor: classColors[row.vehicle.class].bg,
-            color: classColors[row.vehicle.class].color,
+            bgcolor: classColors[row.vehicle.class as FleetClass].bg,
+            color: classColors[row.vehicle.class as FleetClass].color,
             fontWeight: 600,
             fontSize: "0.75rem",
           }}
@@ -110,7 +110,7 @@ export default function PricingTable({ rows, onEditRow }: Props) {
       <GenericTable
         title="Vehicle pricing"
         columns={columns}
-        data={rows}
+        data={pricingData}
         actions={openMenu}
         withPagination={{ pageSize: 6 }}
         renderMobileCard={(row: VehiclePricing) => (

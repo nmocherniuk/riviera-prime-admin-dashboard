@@ -4,41 +4,26 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import PricingHeader from "../features/Pricing/components/PricingHeader";
 import PricingTable from "../features/Pricing/components/PricingTable";
 import PricingEditModal from "../features/Pricing/components/PricingEditModal";
-import type { VehiclePricing } from "../features/Pricing/data/pricingData";
-import {
-  dtoToVehiclePricing,
-  listPricingRows,
-  savePricingRow,
-} from "../api/pricing";
+import { listPricingRows, savePricingRow } from "../api/pricing";
 import { getApiErrorMessage, isNotFoundError } from "../api/organizations";
 import { queryKeys } from "../api/queryKeys";
+import type { VehiclePricing } from "../features/Pricing/data/pricingData";
+import { useToast } from "../providers/ToastProvider";
 
 export default function PricingPage() {
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   const [editRow, setEditRow] = useState<VehiclePricing | null>(null);
-
-  const pricingQuery = useQuery({
+  const { showToast } = useToast();
+  const { data: pricingData = [], isPending, error: pricingError } = useQuery({
     queryKey: queryKeys.pricing.list(),
     queryFn: listPricingRows,
   });
 
-  const rows = useMemo(() => {
-    if (
-      pricingQuery.isError &&
-      pricingQuery.error &&
-      isNotFoundError(pricingQuery.error)
-    ) {
-      return [];
-    }
-    if (!pricingQuery.data) return [];
-    return pricingQuery.data.map(dtoToVehiclePricing);
-  }, [pricingQuery.data, pricingQuery.isError, pricingQuery.error]);
-
-  const loading = pricingQuery.isPending;
+  const loading = isPending;
   const listError =
-    pricingQuery.error && !isNotFoundError(pricingQuery.error)
-      ? getApiErrorMessage(pricingQuery.error, "Failed to load pricing")
+    pricingError && !isNotFoundError(pricingError)
+      ? getApiErrorMessage(pricingError, "Failed to load pricing")
       : null;
 
   const onEditRow = useCallback((row: VehiclePricing) => {
@@ -48,11 +33,17 @@ export default function PricingPage() {
   const onSaveEdit = useCallback(
     async (vehicleId: string, perHour: string, perKm: string) => {
       try {
-        setError(null);
         await savePricingRow(vehicleId, perHour, perKm);
         await queryClient.invalidateQueries({ queryKey: queryKeys.pricing.all });
+        showToast({
+          message: "Pricing saved successfully",
+          severity: "success",
+        });
       } catch (e) {
-        setError(getApiErrorMessage(e, "Failed to save pricing"));
+        showToast({
+          message: "Failed to save pricing",
+          severity: "error",
+        });
         throw e;
       }
     },
@@ -81,12 +72,12 @@ export default function PricingPage() {
             <Box sx={{ py: 8, textAlign: "center", color: "text.secondary" }}>
               Unable to load pricing.
             </Box>
-          ) : rows.length === 0 ? (
+          ) : pricingData.length === 0 ? (
             <Box sx={{ py: 8, textAlign: "center", color: "text.secondary" }}>
               No results
             </Box>
           ) : (
-            <PricingTable rows={rows} onEditRow={onEditRow} />
+            <PricingTable pricingData={pricingData} onEditRow={onEditRow} />
           )}
         </Box>
         <PricingEditModal
