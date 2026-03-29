@@ -1,20 +1,7 @@
-import type { VehicleClass, VehicleStatus } from "../../generated/prisma/client.js";
+import type { Prisma } from "../../generated/prisma/client.js";
 import { prisma } from "../../lib/prisma.js";
 
-export type CreateVehicleData = {
-  organizationId: string;
-  driverId?: string | null;
-  vehicleName: string;
-  yearColor: string;
-  licensePlate: string;
-  class: VehicleClass;
-  status: VehicleStatus;
-  nextService: string;
-};
-
-export type UpdateVehicleData = Omit<CreateVehicleData, "organizationId">;
-
-export async function createVehicle(data: CreateVehicleData) {
+export async function createVehicle(data: Prisma.VehiclesUncheckedCreateInput) {
   return prisma.vehicles.create({ data });
 }
 
@@ -40,7 +27,10 @@ export async function findVehicleById(id: string) {
   return prisma.vehicles.findUnique({ where: { id } });
 }
 
-export async function updateVehicle(id: string, data: UpdateVehicleData) {
+export async function updateVehicle(
+  id: string,
+  data: Prisma.VehiclesUncheckedUpdateInput,
+) {
   return prisma.vehicles.update({
     where: { id },
     data,

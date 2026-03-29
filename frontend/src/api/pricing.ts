@@ -33,14 +33,14 @@ export function dtoToVehiclePricing(row: PricingRowDto): VehiclePricing {
   return {
     vehicle: {
       id: row.vehicle.id,
-      organizationId: "",
+      organizationId: null,
       driverId: null,
       vehicleName: row.vehicle.vehicleName,
-      yearColor: "",
+      year: "",
+      color: "",
       licensePlate: row.vehicle.licensePlate,
       class: row.vehicle.class,
-      status: "AVAILABLE",
-      nextService: "",
+      status: "ACTIVE",
     },
     perHour: row.perHour,
     perKm: row.perKm,

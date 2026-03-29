@@ -14,7 +14,12 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
-import type { FleetVehicle, FleetClass, FleetStatus } from "../data/dummyFleet";
+import {
+  FLEET_STATUS_LABELS,
+  type FleetClass,
+  type FleetStatus,
+} from "../data/dummyFleet";
+import type { FleetVehicle } from "./ModalManagement/fleetManagementForm.types";
 
 const classColors: Record<FleetClass, { bg: string; color: string }> = {
   Comfort: { bg: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.9)" },
@@ -23,8 +28,8 @@ const classColors: Record<FleetClass, { bg: string; color: string }> = {
 };
 
 const statusColors: Record<FleetStatus, { bg: string; color: string }> = {
-  AVAILABLE: { bg: "rgba(34, 197, 94, 0.2)", color: "#22c55e" },
-  "ON TRIP": { bg: "rgba(249, 115, 22, 0.2)", color: "#f97316" },
+  ACTIVE: { bg: "rgba(34, 197, 94, 0.2)", color: "#22c55e" },
+  INACTIVE: { bg: "rgba(148, 163, 184, 0.25)", color: "#94a3b8" },
 };
 
 type Props = {
@@ -91,7 +96,8 @@ export default function FleetCard({ vehicle: v, onView, onEdit, onDelete }: Prop
               {v.vehicleName}
             </Typography>
             <Typography variant="caption" sx={{ color: "text.secondary" }}>
-              {v.yearColor}
+              {v.year}
+              {v.color ? ` · ${v.color}` : ""}
             </Typography>
             <Typography variant="caption" sx={{ color: "text.secondary", display: "block" }}>
               ID: {v.id}
@@ -151,7 +157,7 @@ export default function FleetCard({ vehicle: v, onView, onEdit, onDelete }: Prop
           }}
         />
         <Chip
-          label={v.status}
+          label={FLEET_STATUS_LABELS[v.status]}
           size="small"
           sx={{
             bgcolor: statusStyle.bg,
@@ -163,9 +169,6 @@ export default function FleetCard({ vehicle: v, onView, onEdit, onDelete }: Prop
         />
         <Typography variant="caption" sx={{ color: "text.secondary" }}>
           {v.licensePlate}
-        </Typography>
-        <Typography variant="caption" sx={{ color: "text.primary", fontWeight: 600 }}>
-          Next: {v.nextService}
         </Typography>
       </Box>
     </Paper>

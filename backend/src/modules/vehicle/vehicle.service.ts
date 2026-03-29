@@ -11,78 +11,49 @@ import {
   findVehicleById,
   findVehicles,
   updateVehicle as updateVehicleRepo,
-  type CreateVehicleData,
 } from "./vehicle.repository.js";
+import type { CreateVehicleBody } from "./vehicle.schemas.js";
+import type { VehicleJson } from "./vehicle.types.js";
+import { toDbClass, toPublicClass } from "./vehicle.utils.js";
 
-export type PublicVehicleClass = "Comfort" | "Business" | "Van";
-export type PublicVehicleStatus = "AVAILABLE" | "ON TRIP";
 
-export type PublicVehicle = {
-  id: string;
-  organizationId: string;
-  driverId: string | null;
-  vehicleName: string;
-  yearColor: string;
-  licensePlate: string;
-  class: PublicVehicleClass;
-  status: PublicVehicleStatus;
-  nextService: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
-function toPublicClass(value: VehicleClass): PublicVehicleClass {
-  if (value === "COMFORT") return "Comfort";
-  if (value === "BUSINESS") return "Business";
-  return "Van";
-}
-
-function toDbClass(value: PublicVehicleClass): VehicleClass {
-  if (value === "Comfort") return "COMFORT";
-  if (value === "Business") return "BUSINESS";
-  return "VAN";
-}
-
-function toPublicStatus(value: VehicleStatus): PublicVehicleStatus {
-  return value === "ON_TRIP" ? "ON TRIP" : "AVAILABLE";
-}
-
-function toDbStatus(value: PublicVehicleStatus): VehicleStatus {
-  return value === "ON TRIP" ? "ON_TRIP" : "AVAILABLE";
-}
-
-export function toPublicVehicle(row: Vehicles): PublicVehicle {
+function toPublicVehicle(row: Vehicles): VehicleJson {
   return {
     id: row.id,
     organizationId: row.organizationId,
-    driverId: row.driverId ?? null,
+    driverId: row.driverId,
     vehicleName: row.vehicleName,
-    yearColor: row.yearColor,
+    year: row.year,
+    color: row.color,
     licensePlate: row.licensePlate,
     class: toPublicClass(row.class),
-    status: toPublicStatus(row.status),
-    nextService: row.nextService,
+    status: row.status,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
 }
 
 async function validateOrgAndDriverLink(
-  organizationId: string,
+  organizationId: string | null | undefined,
   driverId?: string | null,
 ) {
-  const org = await prisma.organizations.findUnique({ where: { id: organizationId } });
-  if (!org) {
-    throw new Error("Organization not found");
+  const orgId = organizationId ?? null;
+  const drvId = driverId ?? null;
+
+  if (orgId) {
+    const org = await prisma.organizations.findUnique({ where: { id: orgId } });
+    if (!org) {
+      throw new Error("Organization not found");
+    }
   }
 
-  if (!driverId) return;
+  if (!drvId) return;
 
-  const driver = await prisma.drivers.findUnique({ where: { id: driverId } });
+  const driver = await prisma.drivers.findUnique({ where: { id: drvId } });
   if (!driver) {
     throw new Error("Driver not found");
   }
-  if (driver.organizationId !== organizationId) {
+  if (orgId && driver.organizationId !== orgId) {
     throw new Error("Driver does not belong to organization");
   }
 }
@@ -91,52 +62,66 @@ export async function listVehiclesService(filters?: {
   organizationId?: string;
   driverId?: string;
 }) {
-  const rows = await findVehicles(filters);
-  return rows.map(toPublicVehicle);
+  const data = await findVehicles(filters);
+  return data.map(toPublicVehicle);
 }
 
 export async function getVehicleByIdService(id: string) {
-  const row = await findVehicleById(id);
-  if (!row) return null;
-  return toPublicVehicle(row);
+  const data = await findVehicleById(id);
+  if (!data) return null;
+  return toPublicVehicle(data);
 }
 
-export async function createVehicleService(
-  input: Omit<CreateVehicleData, "class" | "status"> & {
-    class: PublicVehicleClass;
-    status: PublicVehicleStatus;
-  },
-) {
-  await validateOrgAndDriverLink(input.organizationId, input.driverId);
+export async function createVehicleService(body: CreateVehicleBody) {
+  const organizationId = body.organizationId ?? null;
+  const driverId = body.driverId ?? null;
+
+  await validateOrgAndDriverLink(organizationId, driverId);
+
   const row = await createVehicleRepo({
-    ...input,
-    class: toDbClass(input.class),
-    status: toDbStatus(input.status),
+    organizationId,
+    driverId,
+    vehicleName: body.vehicleName,
+    year: body.year,
+    color: body.color,
+    licensePlate: body.licensePlate,
+    class: toDbClass(body.class),
+    status: body.status,
   });
+
   return toPublicVehicle(row);
 }
 
 export async function updateVehicleService(
   id: string,
-  input: Omit<CreateVehicleData, "organizationId" | "class" | "status"> & {
-    class: PublicVehicleClass;
-    status: PublicVehicleStatus;
-    driverId?: string | null;
+  body: {
+    organizationId: string | null;
+    driverId: string | null;
+    vehicleName: string;
+    year: string;
+    color: string;
+    licensePlate: string;
+    class: VehicleJson["class"];
+    status: VehicleStatus;
   },
 ) {
   const existing = await findVehicleById(id);
   if (!existing) return null;
 
-  await validateOrgAndDriverLink(existing.organizationId, input.driverId);
+  const organizationId = body.organizationId ?? null;
+  const driverId = body.driverId ?? null;
+
+  await validateOrgAndDriverLink(organizationId, driverId);
 
   const updated = await updateVehicleRepo(id, {
-    driverId: input.driverId ?? null,
-    vehicleName: input.vehicleName,
-    yearColor: input.yearColor,
-    licensePlate: input.licensePlate,
-    class: toDbClass(input.class),
-    status: toDbStatus(input.status),
-    nextService: input.nextService,
+    organizationId,
+    driverId,
+    vehicleName: body.vehicleName,
+    year: body.year,
+    color: body.color,
+    licensePlate: body.licensePlate,
+    class: toDbClass(body.class),
+    status: body.status,
   });
 
   return toPublicVehicle(updated);
@@ -156,8 +141,10 @@ export async function assignDriverToVehicleService(
 }
 
 export async function deleteVehicleService(id: string) {
-  const row = await findVehicleById(id);
-  if (!row) return null;
+  const data = await findVehicleById(id);
+
+  if (!data) return null;
+
   await deleteVehicleById(id);
   return true;
 }

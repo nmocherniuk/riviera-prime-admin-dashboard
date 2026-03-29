@@ -8,17 +8,9 @@ import {
   listVehiclesService,
   updateVehicleService,
 } from "./vehicle.service.js";
+import type { CreateVehicleBody } from "./vehicle.schemas.js";
+import { isPrismaUniqueError } from "./vehicle.utils.js";
 
-function isPrismaUniqueError(
-  error: unknown,
-): error is { code: string; meta?: { target?: unknown } } {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error as { code: string }).code === "P2002"
-  );
-}
 
 export async function listVehiclesController(req: AuthedRequest, res: Response) {
   try {
@@ -27,8 +19,10 @@ export async function listVehiclesController(req: AuthedRequest, res: Response) 
       driverId?: string;
     };
     const filters: { organizationId?: string; driverId?: string } = {};
+
     if (organizationId !== undefined) filters.organizationId = organizationId;
     if (driverId !== undefined) filters.driverId = driverId;
+
     const vehicles = await listVehiclesService(filters);
     return res.json({ vehicles });
   } catch (error) {
@@ -43,7 +37,9 @@ export async function getVehicleByIdController(
 ) {
   try {
     const { id } = req.params as { id: string };
+
     const vehicle = await getVehicleByIdService(id);
+
     if (!vehicle) {
       return res.status(404).json({ message: "Vehicle not found" });
     }
@@ -59,7 +55,8 @@ export async function createVehicleController(
   res: Response,
 ) {
   try {
-    const vehicle = await createVehicleService(req.body);
+    const vehicle = await createVehicleService(req.body as CreateVehicleBody);
+
     return res.status(201).json({ vehicle });
   } catch (error) {
     if (isPrismaUniqueError(error)) {
@@ -68,8 +65,8 @@ export async function createVehicleController(
     const message = error instanceof Error ? error.message : "Create failed";
     const code =
       message === "Organization not found" ||
-      message === "Driver not found" ||
-      message === "Driver does not belong to organization"
+        message === "Driver not found" ||
+        message === "Driver does not belong to organization"
         ? 400
         : 500;
     return res.status(code).json({ message });
@@ -83,9 +80,11 @@ export async function updateVehicleController(
   try {
     const { id } = req.params as { id: string };
     const vehicle = await updateVehicleService(id, req.body);
+
     if (!vehicle) {
       return res.status(404).json({ message: "Vehicle not found" });
     }
+
     return res.json({ vehicle });
   } catch (error) {
     if (isPrismaUniqueError(error)) {
@@ -94,8 +93,8 @@ export async function updateVehicleController(
     const message = error instanceof Error ? error.message : "Update failed";
     const code =
       message === "Organization not found" ||
-      message === "Driver not found" ||
-      message === "Driver does not belong to organization"
+        message === "Driver not found" ||
+        message === "Driver does not belong to organization"
         ? 400
         : 500;
     return res.status(code).json({ message });
@@ -108,8 +107,11 @@ export async function assignDriverToVehicleController(
 ) {
   try {
     const { id } = req.params as { id: string };
+
     const { driverId } = req.body as { driverId: string | null };
+
     const vehicle = await assignDriverToVehicleService(id, driverId);
+
     if (!vehicle) {
       return res.status(404).json({ message: "Vehicle not found" });
     }
@@ -118,8 +120,8 @@ export async function assignDriverToVehicleController(
     const message = error instanceof Error ? error.message : "Assign failed";
     const code =
       message === "Organization not found" ||
-      message === "Driver not found" ||
-      message === "Driver does not belong to organization"
+        message === "Driver not found" ||
+        message === "Driver does not belong to organization"
         ? 400
         : 500;
     return res.status(code).json({ message });
@@ -132,7 +134,9 @@ export async function deleteVehicleController(
 ) {
   try {
     const { id } = req.params as { id: string };
+
     const deleted = await deleteVehicleService(id);
+
     if (!deleted) {
       return res.status(404).json({ message: "Vehicle not found" });
     }

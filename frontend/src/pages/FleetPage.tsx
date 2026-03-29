@@ -5,10 +5,12 @@ import FleetHeader from "../features/Fleet/components/FleetHeader";
 import FleetStats from "../features/Fleet/components/FleetStats";
 import FleetToolbar from "../features/Fleet/components/FleetToolbar";
 import FleetTable from "../features/Fleet/components/FleetTable";
-import FleetManagementModal from "../features/Fleet/components/FleetManagementModal";
+import FleetManagementModal from "../features/Fleet/components/ModalManagement/FleetManagementModal";
 import ConfirmDeleteDialog from "../components/ConfirmDeleteDialog";
-import type { FleetVehicle } from "../features/Fleet/data/dummyFleet";
-import type { FleetFormValues } from "../features/Fleet/components/FleetManagementModal";
+import type {
+  FleetFormValues,
+  FleetVehicle,
+} from "../features/Fleet/components/ModalManagement/fleetManagementForm.types";
 import {
   createVehicle,
   deleteVehicle,
@@ -25,6 +27,7 @@ import {
 } from "../api/organizations";
 import { listDrivers } from "../api/drivers";
 import { queryKeys } from "../api/queryKeys";
+import { useToast } from "../providers/ToastProvider";
 
 export default function FleetPage() {
   const queryClient = useQueryClient();
@@ -38,6 +41,7 @@ export default function FleetPage() {
     vehicle: null,
     readOnly: false,
   });
+  const { showToast } = useToast();
   const [vehicleToDelete, setVehicleToDelete] = useState<FleetVehicle | null>(
     null,
   );
@@ -71,20 +75,24 @@ export default function FleetPage() {
 
   const organizationOptions = useMemo(
     () =>
-      (organizationsForFleetQuery.data ?? []).map((o) => ({
-        id: o.id,
-        name: o.title,
-      })),
+      (organizationsForFleetQuery.data ?? [])
+        .filter((o): o is typeof o & { id: string } => typeof o.id === "string" && o.id.length > 0)
+        .map((o) => ({
+          id: o.id,
+          name: o.organizationName,
+        })),
     [organizationsForFleetQuery.data],
   );
 
   const driverOptions = useMemo(
     () =>
-      (driversQuery.data ?? []).map((d) => ({
-        id: d.id,
-        name: d.name,
-        organizationId: d.organizationId,
-      })),
+      (driversQuery.data ?? [])
+        .filter((d): d is typeof d & { id: string } => typeof d.id === "string" && d.id.length > 0)
+        .map((d) => ({
+          id: d.id,
+          name: d.name,
+          organizationId: d.organizationId,
+        })),
     [driversQuery.data],
   );
 
@@ -100,7 +108,7 @@ export default function FleetPage() {
   };
 
   const handleConfirmDelete = async () => {
-    if (vehicleToDelete) {
+    if (vehicleToDelete?.id) {
       setError(null);
       try {
         await deleteVehicle(vehicleToDelete.id);
@@ -111,8 +119,16 @@ export default function FleetPage() {
           queryKey: queryKeys.drivers.all,
         });
         setVehicleToDelete(null);
+
+        showToast({
+          message: "Vehicle has been deleted successfully",
+          severity: "success",
+        });
       } catch (e) {
-        setError(getApiErrorMessage(e, "Failed to delete vehicle"));
+        showToast({
+          message: "Failed to delete vehicle",
+          severity: "error",
+        });
         throw e;
       }
     }
@@ -133,8 +149,17 @@ export default function FleetPage() {
         queryKey: queryKeys.vehicles.all,
       });
       await queryClient.invalidateQueries({ queryKey: queryKeys.drivers.all });
+
+      showToast({
+        message: "Vehicle has been saved successfully",
+        severity: "success",
+      });
+      setFleetModal((prev) => ({ ...prev, open: false }));
     } catch (e) {
-      setError(getApiErrorMessage(e, "Failed to save vehicle"));
+      showToast({
+        message: "Failed to save vehicle",
+        severity: "error",
+      });
       throw e;
     }
   };

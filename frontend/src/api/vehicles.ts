@@ -1,99 +1,28 @@
 import { api } from "./api";
-import type { DriverFormValues } from "../features/partners/Drivers/components/drivers/ModalManagement/driverManagementForm.types";
-import type {
-  FleetClass,
-  FleetStatus,
-  FleetVehicle,
-} from "../features/Fleet/data/dummyFleet";
-import type { FleetFormValues } from "../features/Fleet/components/FleetManagementModal";
-
-export type VehicleDto = {
-  id: string;
-  organizationId: string;
-  driverId: string | null;
-  vehicleName: string;
-  yearColor: string;
-  licensePlate: string;
-  class: FleetClass;
-  status: FleetStatus;
-  nextService: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type CreateVehicleBody = {
-  organizationId: string;
-  driverId?: string | null;
-  vehicleName: string;
-  yearColor: string;
-  licensePlate: string;
-  class: FleetClass;
-  status: FleetStatus;
-  nextService: string;
-};
-
-export type UpdateVehicleBody = Omit<CreateVehicleBody, "organizationId">;
-
-export function dtoToFleetVehicle(dto: VehicleDto): FleetVehicle {
-  return {
-    id: dto.id,
-    organizationId: dto.organizationId,
-    driverId: dto.driverId,
-    vehicleName: dto.vehicleName,
-    yearColor: dto.yearColor,
-    licensePlate: dto.licensePlate,
-    class: dto.class,
-    status: dto.status,
-    nextService: dto.nextService,
-  };
-}
-
-export function fleetFormToCreateBody(
-  values: FleetFormValues,
-): CreateVehicleBody {
-  return {
-    organizationId: values.organizationId.trim(),
-    driverId: values.driverId.trim() || null,
-    vehicleName: values.vehicleName.trim(),
-    yearColor: values.yearColor.trim(),
-    licensePlate: values.licensePlate.trim(),
-    class: values.class,
-    status: values.status,
-    nextService: values.nextService.trim(),
-  };
-}
-
-export function fleetFormToUpdateBody(
-  values: FleetFormValues,
-): UpdateVehicleBody {
-  return {
-    driverId: values.driverId.trim() || null,
-    vehicleName: values.vehicleName.trim(),
-    yearColor: values.yearColor.trim(),
-    licensePlate: values.licensePlate.trim(),
-    class: values.class,
-    status: values.status,
-    nextService: values.nextService.trim(),
-  };
-}
+import type { FleetFormValues, FleetVehicle } from "../features/Fleet/components/ModalManagement/fleetManagementForm.types";
+import type { DriverFormValues } from "../features/partners/Drivers/components/drivers/types";
+import { FormValuesToCreateBody } from "../features/Fleet/components/ModalManagement/fleetManagementForm.mapper";
 
 export async function listVehicles(filters?: {
   organizationId?: string;
   driverId?: string;
 }) {
-  const { data } = await api.get<{ vehicles: VehicleDto[] }>("/vehicles", {
+  const { data } = await api.get<{ vehicles: FleetVehicle[] }>("/vehicles", {
     params: filters ?? {},
   });
   return data.vehicles;
 }
 
-export async function createVehicle(body: CreateVehicleBody) {
-  const { data } = await api.post<{ vehicle: VehicleDto }>("/vehicles", body);
+export async function createVehicle(body: FleetVehicle) {
+  const { data } = await api.post<{ vehicle: FleetVehicle }>("/vehicles", body);
   return data.vehicle;
 }
 
-export async function updateVehicle(id: string, body: UpdateVehicleBody) {
-  const { data } = await api.patch<{ vehicle: VehicleDto }>(
+export async function updateVehicle(
+  id: string,
+  body: Omit<FleetVehicle, "id">,
+) {
+  const { data } = await api.patch<{ vehicle: FleetVehicle }>(
     `/vehicles/${id}`,
     body,
   );
@@ -104,7 +33,7 @@ export async function assignDriverToVehicle(
   vehicleId: string,
   driverId: string | null,
 ) {
-  const { data } = await api.patch<{ vehicle: VehicleDto }>(
+  const { data } = await api.patch<{ vehicle: FleetVehicle }>(
     `/vehicles/${vehicleId}/assign-driver`,
     { driverId },
   );
@@ -115,6 +44,28 @@ export async function deleteVehicle(id: string) {
   await api.delete(`/vehicles/${id}`);
 }
 
+export function dtoToFleetVehicle(v: FleetVehicle): FleetVehicle {
+  return v;
+}
+
+export function fleetFormToCreateBody(values: FleetFormValues): FleetVehicle {
+  return FormValuesToCreateBody(values);
+}
+
+export function fleetFormToUpdateBody(values: FleetFormValues): Omit<FleetVehicle, "id"> {
+  const b = FormValuesToCreateBody(values);
+  return {
+    organizationId: b.organizationId,
+    driverId: b.driverId,
+    vehicleName: b.vehicleName,
+    year: b.year,
+    color: b.color,
+    licensePlate: b.licensePlate,
+    class: b.class,
+    status: b.status,
+  };
+}
+
 export function getVehicleIdFromDriverForm(values: DriverFormValues): string {
-  return values.vehicleId.trim();
+  return (values.vehicleId ?? "").trim();
 }

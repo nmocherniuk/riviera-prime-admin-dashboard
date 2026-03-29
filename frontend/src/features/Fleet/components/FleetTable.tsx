@@ -9,24 +9,14 @@ import Chip from "@mui/material/Chip";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
-import type { FleetVehicle, FleetClass, FleetStatus } from "../data/dummyFleet";
+
 
 import { GenericTable } from "../../../components/GenericTable";
 import EntityActionsMenu from "../../../components/EntityActionsMenu";
 import FleetCard from "./FleetCard";
-
-
-
-const classColors: Record<FleetClass, { bg: string; color: string }> = {
-  Comfort: { bg: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.9)" },
-  Business: { bg: "rgba(212,175,53,0.2)", color: "#D4AF35" },
-  Van: { bg: "rgba(59, 130, 246, 0.2)", color: "#3b82f6" },
-};
-
-const statusColors: Record<FleetStatus, { bg: string; color: string }> = {
-  AVAILABLE: { bg: "rgba(34, 197, 94, 0.2)", color: "#22c55e" },
-  "ON TRIP": { bg: "rgba(249, 115, 22, 0.2)", color: "#f97316" },
-};
+import type { FleetVehicle } from "./ModalManagement/fleetManagementForm.types";
+import { FLEET_STATUS_LABELS, type FleetClass, type FleetStatus } from "../data/dummyFleet";
+import { classColors, statusColors } from "./ModalManagement/constants";
 
 type Props = {
   vehicles: FleetVehicle[];
@@ -79,7 +69,8 @@ export default function FleetTable({
               {v.vehicleName}
             </Typography>
             <Typography variant="caption" sx={{ color: "text.secondary" }}>
-              {v.yearColor}
+              {v.year}
+              {v.color ? ` · ${v.color}` : ""}
             </Typography>
             <Typography variant="caption" sx={{ color: "text.secondary", display: "block" }}>
               ID: {v.id}
@@ -105,8 +96,8 @@ export default function FleetTable({
           label={v.class}
           size="small"
           sx={{
-            bgcolor: classColors[v.class].bg,
-            color: classColors[v.class].color,
+            bgcolor: classColors[v.class as FleetClass].bg,
+            color: classColors[v.class as FleetClass].color,
             fontWeight: 700,
             fontSize: "0.7rem",
           }}
@@ -118,11 +109,11 @@ export default function FleetTable({
       label: "Status",
       render: (v: FleetVehicle) => (
         <Chip
-          label={v.status}
+          label={FLEET_STATUS_LABELS[v.status as FleetStatus]}
           size="small"
           sx={{
-            bgcolor: statusColors[v.status].bg,
-            color: statusColors[v.status].color,
+            bgcolor: statusColors[v.status as FleetStatus].bg,
+            color: statusColors[v.status as FleetStatus].color,
             fontWeight: 700,
             fontSize: "0.7rem",
             letterSpacing: 0.5,
@@ -131,11 +122,11 @@ export default function FleetTable({
       )
     },
     {
-      key: "actions",
-      label: "Next Service",
+      key: "color",
+      label: "Color",
       render: (v: FleetVehicle) => (
         <Typography variant="body2" sx={{ color: "text.primary" }}>
-          {v.nextService}
+          {v.color || "—"}
         </Typography>
       )
     }

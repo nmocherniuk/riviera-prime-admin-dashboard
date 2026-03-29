@@ -3,50 +3,16 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import EditIcon from "@mui/icons-material/Edit";
 import { useState, useEffect, useMemo } from "react";
-import type { FleetVehicle, FleetClass, FleetStatus } from "../data/dummyFleet";
 import {
   sectionLabelSx,
   valueBoxSx,
   modalTextFieldSx,
-} from "../../../components/ui/modalStyles";
-import DetailField from "../../../components/DetailField";
-import BaseModal from "../../../components/BaseModal";
-
-export type FleetFormValues = {
-  organizationId: string;
-  driverId: string;
-  vehicleName: string;
-  yearColor: string;
-  licensePlate: string;
-  class: FleetClass;
-  status: FleetStatus;
-  nextService: string;
-};
-
-const defaultFormValues: FleetFormValues = {
-  organizationId: "",
-  driverId: "",
-  vehicleName: "",
-  yearColor: "",
-  licensePlate: "",
-  class: "Business",
-  status: "AVAILABLE",
-  nextService: "",
-};
-
-function fleetToFormValues(vehicle: FleetVehicle | null): FleetFormValues {
-  if (!vehicle) return defaultFormValues;
-  return {
-    organizationId: vehicle.organizationId || "",
-    driverId: vehicle.driverId || "",
-    vehicleName: vehicle.vehicleName || "",
-    yearColor: vehicle.yearColor || "",
-    licensePlate: vehicle.licensePlate || "",
-    class: vehicle.class,
-    status: vehicle.status,
-    nextService: vehicle.nextService || "",
-  };
-}
+} from "../../../../components/ui/modalStyles";
+import DetailField from "../../../../components/DetailField";
+import BaseModal from "../../../../components/BaseModal";
+import { defaultFormValues, FLEET_CLASSES, FLEET_STATUSES, type FleetFormValues, type FleetVehicle } from "./fleetManagementForm.types";
+import { fleetToFormValues } from "./fleetManagementForm.mapper";
+import { FLEET_STATUS_LABELS } from "../../data/dummyFleet";
 
 type Props = {
   open: boolean;
@@ -61,9 +27,6 @@ type Props = {
   ) => void | Promise<void>;
 };
 
-const FLEET_CLASSES: FleetClass[] = ["Comfort", "Business", "Van"];
-const FLEET_STATUSES: FleetStatus[] = ["AVAILABLE", "ON TRIP"];
-
 export default function FleetManagementModal({
   open,
   onClose,
@@ -75,23 +38,15 @@ export default function FleetManagementModal({
 }: Props) {
   const [formValues, setFormValues] =
     useState<FleetFormValues>(defaultFormValues);
-
   useEffect(() => {
     setFormValues(fleetToFormValues(vehicle));
   }, [vehicle, open]);
 
   const handleChange =
     (field: keyof FleetFormValues) =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setFormValues((prev) => ({ ...prev, [field]: e.target.value }));
-    };
-
-  const filteredDrivers = useMemo(() => {
-    if (!formValues.organizationId) return drivers;
-    return drivers.filter(
-      (d) => d.organizationId === formValues.organizationId,
-    );
-  }, [drivers, formValues.organizationId]);
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormValues((prev) => ({ ...prev, [field]: e.target.value }));
+      };
 
   const selectedOrganization = useMemo(
     () => organizations.find((o) => o.id === formValues.organizationId) ?? null,
@@ -125,15 +80,6 @@ export default function FleetManagementModal({
       driverId,
       organizationId: driver ? driver.organizationId : prev.organizationId,
     }));
-  };
-
-  const handleSave = async () => {
-    try {
-      await Promise.resolve(onSave?.(vehicle?.id ?? null, formValues));
-      onClose();
-    } catch {
-      // keep modal open on failure
-    }
   };
 
   return (
@@ -182,7 +128,7 @@ export default function FleetManagementModal({
               variant="contained"
               color="primary"
               startIcon={<EditIcon />}
-              onClick={handleSave}
+              onClick={() => void Promise.resolve(onSave?.(vehicle?.id ?? null, formValues))}
               sx={{
                 borderRadius: 2,
                 textTransform: "none",
@@ -200,63 +146,6 @@ export default function FleetManagementModal({
       <Typography variant="body1" sx={valueBoxSx}>
         #{vehicle?.id ?? "—"}
       </Typography>
-
-      <Typography sx={sectionLabelSx}>Entity binding</Typography>
-      <Grid container spacing={1.5}>
-        <Grid size={{ xs: 12, md: 6 }}>
-          {readOnly ? (
-            <DetailField
-              label="Organization"
-              value={
-                selectedOrganization
-                  ? selectedOrganization.name
-                  : formValues.organizationId
-              }
-            />
-          ) : (
-            <TextField
-              fullWidth
-              size="small"
-              select
-              label="Organization"
-              value={formValues.organizationId}
-              onChange={handleOrganizationSelect}
-              sx={modalTextFieldSx}
-            >
-              {organizations.map((org) => (
-                <MenuItem key={org.id} value={org.id}>
-                  {org.name}
-                </MenuItem>
-              ))}
-            </TextField>
-          )}
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          {readOnly ? (
-            <DetailField
-              label="Driver"
-              value={selectedDriver ? selectedDriver.name : formValues.driverId}
-            />
-          ) : (
-            <TextField
-              fullWidth
-              size="small"
-              select
-              label="Driver (optional)"
-              value={formValues.driverId}
-              onChange={handleDriverSelect}
-              sx={modalTextFieldSx}
-            >
-              <MenuItem value="">Not assigned</MenuItem>
-              {filteredDrivers.map((driver) => (
-                <MenuItem key={driver.id} value={driver.id}>
-                  {driver.name}
-                </MenuItem>
-              ))}
-            </TextField>
-          )}
-        </Grid>
-      </Grid>
 
       <Typography sx={sectionLabelSx}>Vehicle Information</Typography>
       <Grid container spacing={1.5}>
@@ -277,15 +166,30 @@ export default function FleetManagementModal({
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
-            <DetailField label="Year & color" value={formValues.yearColor} />
+            <DetailField label="Year" value={formValues.year} />
           ) : (
             <TextField
               fullWidth
               size="small"
-              label="Year & color"
-              placeholder="e.g. 2024 Black Metallic"
-              value={formValues.yearColor}
-              onChange={handleChange("yearColor")}
+              label="Year"
+              placeholder="e.g. 2024"
+              value={formValues.year}
+              onChange={handleChange("year")}
+              sx={modalTextFieldSx}
+            />
+          )}
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          {readOnly ? (
+            <DetailField label="Color" value={formValues.color} />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              label="Color"
+              placeholder="Enter vehicle color"
+              value={formValues.color}
+              onChange={handleChange("color")}
               sx={modalTextFieldSx}
             />
           )}
@@ -337,7 +241,7 @@ export default function FleetManagementModal({
           {readOnly ? (
             <DetailField
               label="Status"
-              value={formValues.status}
+              value={FLEET_STATUS_LABELS[formValues.status]}
               emptyAsDash={false}
             />
           ) : (
@@ -352,7 +256,46 @@ export default function FleetManagementModal({
             >
               {FLEET_STATUSES.map((s) => (
                 <MenuItem key={s} value={s}>
-                  {s}
+                  {FLEET_STATUS_LABELS[s]}
+                </MenuItem>
+              ))}
+            </TextField>
+          )}
+        </Grid>
+      </Grid>
+      <Typography sx={sectionLabelSx}>Entity binding</Typography>
+      <Grid container spacing={1.5}>
+        <Grid size={{ xs: 12, md: 6 }}>
+          {readOnly ? (
+            <DetailField
+              label="Organization"
+              value={
+                selectedOrganization
+                  ? selectedOrganization.name
+                  : formValues.organizationId
+              }
+            />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              select
+              label="Organization (optional)"
+              value={formValues.organizationId}
+              onChange={handleOrganizationSelect}
+              helperText={
+                !organizations.length && !readOnly
+                  ? "No chauffeur organizations yet — create one in Partners first"
+                  : ""
+              }
+              sx={modalTextFieldSx}
+            >
+              <MenuItem value="">
+                <em>None</em>
+              </MenuItem>
+              {organizations.map((org) => (
+                <MenuItem key={org.id} value={org.id}>
+                  {org.name}
                 </MenuItem>
               ))}
             </TextField>
@@ -360,17 +303,27 @@ export default function FleetManagementModal({
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
-            <DetailField label="Next service" value={formValues.nextService} />
+            <DetailField
+              label="Driver"
+              value={selectedDriver ? selectedDriver.name : formValues.driverId}
+            />
           ) : (
             <TextField
               fullWidth
               size="small"
-              label="Next service"
-              placeholder="e.g. Oct 12, 2026"
-              value={formValues.nextService}
-              onChange={handleChange("nextService")}
+              select
+              label="Driver (optional)"
+              value={formValues.driverId}
+              onChange={handleDriverSelect}
               sx={modalTextFieldSx}
-            />
+            >
+              <MenuItem value="">Not assigned</MenuItem>
+              {drivers.map((driver) => (
+                <MenuItem key={driver.id} value={driver.id}>
+                  {driver.name}
+                </MenuItem>
+              ))}
+            </TextField>
           )}
         </Grid>
       </Grid>

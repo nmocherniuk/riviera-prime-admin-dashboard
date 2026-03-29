@@ -195,22 +195,22 @@ enum VehicleClass {
 }
 
 enum VehicleStatus {
-  AVAILABLE
-  ON_TRIP
+  ACTIVE
+  INACTIVE
 }
 
 model Vehicles {
-  id             String        @id @default(uuid())
-  organizationId String
-  organization   Organizations @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  id             String          @id @default(uuid())
+  organizationId String?
+  organization   Organizations?  @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   driverId       String?
   driver         Drivers?      @relation(fields: [driverId], references: [id], onDelete: SetNull)
   vehicleName    String
-  yearColor      String
+  year           String
+  color          String
   licensePlate   String        @unique
   class          VehicleClass
-  status         VehicleStatus @default(AVAILABLE)
-  nextService    String        @default("")
+  status         VehicleStatus @default(ACTIVE)
   pricing        VehiclePricings?
   bookings       Bookings[]
   createdAt      DateTime      @default(now())

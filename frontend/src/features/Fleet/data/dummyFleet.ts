@@ -1,17 +1,14 @@
-export type FleetClass = "Comfort" | "Business" | "Van";
-export type FleetStatus = "AVAILABLE" | "ON TRIP";
+import type { FleetVehicle } from "../components/ModalManagement/fleetManagementForm.types";
 
-export type FleetVehicle = {
-  id: string;
-  organizationId: string;
-  driverId?: string | null;
-  vehicleName: string;
-  yearColor: string;
-  licensePlate: string;
-  class: FleetClass;
-  status: FleetStatus;
-  nextService: string;
+export type FleetClass = "Comfort" | "Business" | "Van";
+export type FleetStatus = "ACTIVE" | "INACTIVE";
+
+export const FLEET_STATUS_LABELS: Record<FleetStatus, string> = {
+  ACTIVE: "Active",
+  INACTIVE: "Inactive",
 };
+
+
 
 export const DUMMY_FLEET: FleetVehicle[] = [
   {
@@ -19,54 +16,54 @@ export const DUMMY_FLEET: FleetVehicle[] = [
     organizationId: "",
     driverId: null,
     vehicleName: "BMW 7 Series",
-    yearColor: "2023 Black Metallic",
+    year: "2023",
+    color: "Black Metallic",
     licensePlate: "AV-2023-XD",
     class: "Business",
-    status: "AVAILABLE",
-    nextService: "Oct 12, 2026",
+    status: "ACTIVE",
   },
   {
     id: "DRV-002",
     organizationId: "",
     driverId: null,
     vehicleName: "Mercedes-Benz S-Class",
-    yearColor: "2024 Navy Blue",
+    year: "2024",
+    color: "Navy Blue",
     licensePlate: "BV-2024-MB",
     class: "Business",
-    status: "ON TRIP",
-    nextService: "Nov 5, 2026",
+    status: "INACTIVE",
   },
   {
     id: "DRV-003",
     organizationId: "",
     driverId: null,
     vehicleName: "Audi A8",
-    yearColor: "2023 Silver",
+    year: "2023",
+    color: "Silver",
     licensePlate: "CV-2023-AU",
     class: "Comfort",
-    status: "AVAILABLE",
-    nextService: "Sep 28, 2026",
+    status: "ACTIVE",
   },
   {
     id: "DRV-004",
     organizationId: "",
     driverId: null,
     vehicleName: "Mercedes V-Class",
-    yearColor: "2024 White",
+    year: "2024",
+    color: "White",
     licensePlate: "DV-2024-VC",
     class: "Van",
-    status: "AVAILABLE",
-    nextService: "Dec 1, 2026",
+    status: "ACTIVE",
   },
   {
     id: "DRV-005",
     organizationId: "",
     driverId: null,
     vehicleName: "Range Rover Sentinel",
-    yearColor: "2023 Black",
+    year: "2023",
+    color: "Black",
     licensePlate: "EV-2023-RR",
     class: "Business",
-    status: "ON TRIP",
-    nextService: "Jan 15, 2027",
+    status: "INACTIVE",
   },
 ];

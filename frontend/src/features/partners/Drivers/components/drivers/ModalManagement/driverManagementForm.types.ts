@@ -39,6 +39,7 @@ export const defaultFormValues: DriverFormValues = {
   availabilityDays: [],
   availabilityHours: "",
   hasOwnVehicle: false,
+  vehicleId: "",
   vehicle: "",
   vehiclePlate: "",
   vehicleColor: "",

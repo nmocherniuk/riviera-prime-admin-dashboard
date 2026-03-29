@@ -1,10 +1,10 @@
 import { Box } from "@mui/material";
-import BuildCircleIcon from "@mui/icons-material/BuildCircle";
+import BlockIcon from "@mui/icons-material/Block";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import LocalTaxiIcon from "@mui/icons-material/LocalTaxi";
 import CardStat from "../../../components/CardStat";
 import { useMemo } from "react";
-import type { FleetVehicle } from "../data/dummyFleet";
+import type { FleetVehicle } from "./ModalManagement/fleetManagementForm.types";
 
 type Props = {
   vehicles: FleetVehicle[];
@@ -12,25 +12,25 @@ type Props = {
 
 export default function FleetStats({ vehicles }: Props) {
   const stats = useMemo(() => {
-    const available = vehicles.filter((v) => v.status === "AVAILABLE").length;
-    const onTrip = vehicles.filter((v) => v.status === "ON TRIP").length;
-    const maintenance = Math.max(0, vehicles.length - available - onTrip);
+    const active = vehicles.filter((v) => v.status === "ACTIVE").length;
+    const inactive = vehicles.filter((v) => v.status === "INACTIVE").length;
+    const total = vehicles.length;
 
     return [
       {
-        label: "Available",
-        value: String(available),
+        label: "Active",
+        value: String(active),
         icon: DirectionsCarIcon,
       },
       {
-        label: "On Trip",
-        value: String(onTrip),
-        icon: LocalTaxiIcon,
+        label: "Inactive",
+        value: String(inactive),
+        icon: BlockIcon,
       },
       {
-        label: "Maintenance",
-        value: String(maintenance),
-        icon: BuildCircleIcon,
+        label: "Total fleet",
+        value: String(total),
+        icon: LocalTaxiIcon,
       },
     ];
   }, [vehicles]);

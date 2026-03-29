@@ -91,7 +91,10 @@ async function validateDriverAndVehicle(input: {
 
   const driver = await prisma.drivers.findUnique({ where: { id: input.driverId } });
   if (!driver) throw new Error("Driver not found");
-  if (driver.organizationId !== vehicle.organizationId) {
+  if (
+    vehicle.organizationId != null &&
+    driver.organizationId !== vehicle.organizationId
+  ) {
     throw new Error("Driver does not belong to vehicle organization");
   }
 }

@@ -40,6 +40,7 @@ export type Driver = {
     availabilityDays?: string[];
     availabilityHours?: string | null;
     hasOwnVehicle?: boolean;
+    vehicleId?: string;
     vehicle?: string;
     vehiclePlate?: string;
     vehicleColor?: string;
