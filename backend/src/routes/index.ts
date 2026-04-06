@@ -7,6 +7,7 @@ import organizationRoutes from "./organization.routes.js";
 import pricingRoutes from "./pricing.routes.js";
 import vehicleRoutes from "./vehicle.routes.js";
 import securityAgentRoutes from "./securityAgent.routes.js";
+import whatsappRoutes from "./whatsapp.routes.js";
 
 const routes = Router();
 
@@ -22,5 +23,6 @@ routes.use("/vehicles", vehicleRoutes);
 routes.use("/pricing", pricingRoutes);
 routes.use("/bookings", bookingRoutes);
 routes.use("/dashboard", dashboardRoutes);
+routes.use("/webhook/whatsapp", whatsappRoutes);
 
 export default routes;
