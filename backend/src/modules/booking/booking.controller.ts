@@ -46,7 +46,8 @@ export async function createBookingController(req: AuthedRequest, res: Response)
     const code =
       message === "Vehicle not found" ||
       message === "Driver not found" ||
-      message === "Driver does not belong to vehicle organization"
+      message === "Driver does not belong to vehicle organization" ||
+      message === "Provide vehicleId or vehicleClass"
         ? 400
         : 500;
     return res.status(code).json({ message });
@@ -64,7 +65,8 @@ export async function updateBookingController(req: AuthedRequest, res: Response)
     const code =
       message === "Vehicle not found" ||
       message === "Driver not found" ||
-      message === "Driver does not belong to vehicle organization"
+      message === "Driver does not belong to vehicle organization" ||
+      message === "Provide vehicleId or vehicleClass"
         ? 400
         : 500;
     return res.status(code).json({ message });

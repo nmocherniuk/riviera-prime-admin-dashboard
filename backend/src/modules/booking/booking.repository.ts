@@ -1,12 +1,48 @@
-import type { BookingStatus, PaymentStatus } from "../../generated/prisma/client.js";
+import type {
+  BookingStatus,
+  PaymentStatus,
+  VehicleClass,
+} from "../../generated/prisma/client.js";
 import { prisma } from "../../lib/prisma.js";
+
+/**
+ * Scalar + relations needed for API — omits `whatsappPaidTemplateSentAt` so INSERT/RETURNING
+ * works when that migration has not been applied yet.
+ */
+export const bookingPayloadSelect = {
+  id: true,
+  clientName: true,
+  clientEmail: true,
+  clientPhone: true,
+  tripType: true,
+  notesForDriver: true,
+  vehicleClass: true,
+  vehicleId: true,
+  driverId: true,
+  bookingAt: true,
+  from: true,
+  to: true,
+  durationMin: true,
+  status: true,
+  paymentStatus: true,
+  createdAt: true,
+  updatedAt: true,
+  driver: { select: { id: true, name: true } },
+  vehicle: { select: { id: true, vehicleName: true } },
+} as const;
 
 export type CreateBookingData = {
   clientName: string;
-  vehicleId: string;
+  clientEmail: string;
+  clientPhone: string;
+  tripType: string;
+  notesForDriver: string;
+  vehicleId: string | null;
+  vehicleClass: VehicleClass | null;
   driverId?: string | null;
   bookingAt: Date;
-  route: string;
+  from: string;
+  to: string;
   durationMin: number;
   status: BookingStatus;
   paymentStatus: PaymentStatus;
@@ -21,10 +57,7 @@ export async function listBookings(filters?: { driverId?: string; vehicleId?: st
 
   return prisma.bookings.findMany({
     where,
-    include: {
-      driver: true,
-      vehicle: true,
-    },
+    select: bookingPayloadSelect,
     orderBy: { bookingAt: "asc" },
   });
 }
@@ -32,20 +65,14 @@ export async function listBookings(filters?: { driverId?: string; vehicleId?: st
 export async function findBookingById(id: string) {
   return prisma.bookings.findUnique({
     where: { id },
-    include: {
-      driver: true,
-      vehicle: true,
-    },
+    select: bookingPayloadSelect,
   });
 }
 
 export async function createBooking(data: CreateBookingData) {
   return prisma.bookings.create({
     data,
-    include: {
-      driver: true,
-      vehicle: true,
-    },
+    select: bookingPayloadSelect,
   });
 }
 
@@ -53,18 +80,17 @@ export async function updateBooking(id: string, data: UpdateBookingData) {
   return prisma.bookings.update({
     where: { id },
     data,
-    include: {
-      driver: true,
-      vehicle: true,
-    },
+    select: bookingPayloadSelect,
   });
 }
 
 export async function deleteBookingById(id: string) {
-  return prisma.bookings.delete({ where: { id } });
+  return prisma.bookings.delete({
+    where: { id },
+    select: { id: true },
+  });
 }
 
 export async function countBookings() {
   return prisma.bookings.count();
 }
-

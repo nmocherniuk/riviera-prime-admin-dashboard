@@ -250,15 +250,29 @@ enum PhysicalLevel {
 model Bookings {
   id            String        @id @default(uuid())
   clientName    String
-  vehicleId     String
-  vehicle       Vehicles      @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  clientEmail  String
+  clientPhone  String
+
+  tripType     String
+  notesForDriver     String      @default("")
+
+  from          String        
+  to            String       
+  bookingAt     DateTime
+
+  /** Set when the client picks a class only; assign a concrete vehicle later. */
+  vehicleClass  VehicleClass?
+  vehicleId     String?
+  vehicle       Vehicles?     @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
   driverId      String?
   driver        Drivers?      @relation(fields: [driverId], references: [id], onDelete: SetNull)
-  bookingAt     DateTime
-  route         String        @default("")
+
+
   durationMin   Int           @default(60)
   status        BookingStatus @default(PENDING)
   paymentStatus PaymentStatus @default(UNPAID)
+  whatsappPaidTemplateSentAt DateTime?
+
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 

@@ -15,7 +15,8 @@ function matchesSearch(b: Booking, search: string): boolean {
   return (
     b.id.toLowerCase().includes(q) ||
     b.clientName.toLowerCase().includes(q) ||
-    b.route.toLowerCase().includes(q)
+    b.from.toLowerCase().includes(q) ||
+    b.to.toLowerCase().includes(q)
   );
 }
 

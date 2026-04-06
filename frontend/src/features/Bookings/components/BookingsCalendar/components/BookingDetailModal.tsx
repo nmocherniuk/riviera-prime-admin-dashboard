@@ -1,6 +1,6 @@
 import { Box, Typography, Button } from "@mui/material";
 import type { EventClickArg } from "@fullcalendar/core";
-import type { Booking, BookingStatus } from "../data/dummyBookings";
+import { bookingRouteLabel, type Booking, type BookingStatus } from "../data/dummyBookings";
 import { STATUS_LABELS } from "../constants";
 import { formatEventTime } from "../utils/utils";
 import { parseDurationToMinutes, addMinutesToTime } from "../../../utils/dateUtils";
@@ -41,7 +41,11 @@ export function BookingDetailModal({
       const start = e.start!;
       const end = e.end!;
       const clientName = (e.extendedProps?.clientName ?? e.title) as string;
-      const route = (e.extendedProps?.route ?? "—") as string;
+      const ep = e.extendedProps as { from?: string; to?: string };
+      const route = bookingRouteLabel({
+        from: typeof ep.from === "string" ? ep.from : "",
+        to: typeof ep.to === "string" ? ep.to : "",
+      });
       const car = (e.extendedProps?.car ?? "—") as string;
       const status = (e.extendedProps?.status ?? "assigned") as BookingStatus;
       const duration = (e.extendedProps?.duration ?? "") as string;
@@ -64,7 +68,7 @@ export function BookingDetailModal({
           timeStr,
           duration: b.duration,
           clientName: b.clientName,
-          route: b.route || "—",
+          route: bookingRouteLabel(b),
           car: b.car || "—",
           status: (b.status ?? "assigned") as BookingStatus,
         };

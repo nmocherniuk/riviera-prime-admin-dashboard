@@ -8,6 +8,7 @@ import pricingRoutes from "./pricing.routes.js";
 import vehicleRoutes from "./vehicle.routes.js";
 import securityAgentRoutes from "./securityAgent.routes.js";
 import whatsappRoutes from "./whatsapp.routes.js";
+import publicBookingRoutes from "./publicBooking.routes.js";
 
 const routes = Router();
 
@@ -15,6 +16,7 @@ routes.get("/", (_req, res) => {
   res.json({ message: "API is running" });
 });
 
+routes.use("/public", publicBookingRoutes);
 routes.use("/auth", authRoutes);
 routes.use("/organizations", organizationRoutes);
 routes.use("/drivers", driverRoutes);

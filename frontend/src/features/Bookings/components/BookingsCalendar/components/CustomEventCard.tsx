@@ -1,13 +1,17 @@
 import { Box, Typography } from "@mui/material";
 import type { EventContentArg } from "@fullcalendar/core";
-import type { BookingStatus } from "../data/dummyBookings";
+import { bookingRouteLabel, type BookingStatus } from "../data/dummyBookings";
 import { STATUS_STYLES, DEFAULT_STATUS_STYLE, STATUS_LABELS } from "../constants";
 import { formatEventTime } from "../utils/utils";
 
 export function CustomEventCard({ arg }: { arg: EventContentArg }) {
   const event = arg.event;
   const clientName = event.extendedProps?.clientName ?? event.title;
-  const route = event.extendedProps?.route ?? "";
+  const ep = event.extendedProps as { from?: string; to?: string };
+  const route = bookingRouteLabel({
+    from: typeof ep.from === "string" ? ep.from : "",
+    to: typeof ep.to === "string" ? ep.to : "",
+  });
   const car = event.extendedProps?.car ?? "";
   const status = (event.extendedProps?.status ?? "assigned") as BookingStatus;
   const timeStr = formatEventTime(event.start!);

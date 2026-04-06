@@ -1,10 +1,13 @@
 /*
-  Warnings:
-
-  - You are about to drop the column `title` on the `Organizations` table. All the data in the column will be lost.
-  - Added the required column `organizationName` to the `Organizations` table without a default value. This is not possible if the table is not empty.
-
+  Replaces title with organizationName. Safe when Organizations already has rows:
+  add nullable column → backfill from title → NOT NULL → drop title.
 */
--- AlterTable
-ALTER TABLE "Organizations" DROP COLUMN "title",
-ADD COLUMN     "organizationName" TEXT NOT NULL;
+ALTER TABLE "Organizations" ADD COLUMN IF NOT EXISTS "organizationName" TEXT;
+
+UPDATE "Organizations"
+SET "organizationName" = COALESCE("title", 'Organization')
+WHERE "organizationName" IS NULL;
+
+ALTER TABLE "Organizations" ALTER COLUMN "organizationName" SET NOT NULL;
+
+ALTER TABLE "Organizations" DROP COLUMN IF EXISTS "title";

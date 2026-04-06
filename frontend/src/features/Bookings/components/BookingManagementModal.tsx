@@ -16,21 +16,26 @@ import BaseModal from "../../../components/BaseModal";
 export type BookingFormValues = {
   clientName: string;
   vehicleId: string;
+  /** comfort | business | van — used when no concrete vehicle UUID is set */
+  vehicleClass: string;
   driverId: string;
   date: string;
   startTime: string;
   duration: string;
-  route: string;
+  from: string;
+  to: string;
 };
 
 const defaultFormValues: BookingFormValues = {
   clientName: "",
   vehicleId: "",
+  vehicleClass: "",
   driverId: "",
   date: "",
   startTime: "",
   duration: "",
-  route: "",
+  from: "",
+  to: "",
 };
 
 function bookingToFormValues(booking: Booking | null): BookingFormValues {
@@ -38,11 +43,13 @@ function bookingToFormValues(booking: Booking | null): BookingFormValues {
   return {
     clientName: booking.clientName || "",
     vehicleId: booking.vehicleId || "",
+    vehicleClass: booking.vehicleClass || "",
     driverId: booking.driverId || "",
     date: booking.date || "",
     startTime: booking.startTime || "",
     duration: booking.duration || "",
-    route: booking.route || "",
+    from: booking.from || "",
+    to: booking.to || "",
   };
 }
 
@@ -144,11 +151,28 @@ export default function BookingManagementModal({
             fullWidth
             size="small"
             label="Vehicle ID"
-            placeholder="Vehicle UUID"
+            placeholder="Vehicle UUID (optional if class below)"
             value={formValues.vehicleId}
             onChange={handleChange("vehicleId")}
             sx={modalTextFieldSx}
           />
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <TextField
+            fullWidth
+            select
+            size="small"
+            label="Vehicle class"
+            value={formValues.vehicleClass}
+            onChange={handleChange("vehicleClass")}
+            SelectProps={{ native: true }}
+            sx={modalTextFieldSx}
+          >
+            <option value="">—</option>
+            <option value="comfort">Comfort</option>
+            <option value="business">Business</option>
+            <option value="van">Van</option>
+          </TextField>
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           <TextField
@@ -200,16 +224,27 @@ export default function BookingManagementModal({
         </Grid>
       </Grid>
 
-      <Typography sx={sectionLabelSx}>Route & Duration</Typography>
+      <Typography sx={sectionLabelSx}>From / To</Typography>
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             fullWidth
             size="small"
-            label="Route"
-            placeholder="Enter pickup and destination"
-            value={formValues.route}
-            onChange={handleChange("route")}
+            label="From"
+            placeholder="Pickup location"
+            value={formValues.from}
+            onChange={handleChange("from")}
+            sx={modalTextFieldSx}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <TextField
+            fullWidth
+            size="small"
+            label="To"
+            placeholder="Destination"
+            value={formValues.to}
+            onChange={handleChange("to")}
             sx={modalTextFieldSx}
           />
         </Grid>

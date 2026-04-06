@@ -1,5 +1,5 @@
 import { Box, Typography } from "@mui/material";
-import type { Booking, BookingStatus } from "./BookingsCalendar/data/dummyBookings";
+import { bookingRouteLabel, type Booking, type BookingStatus } from "./BookingsCalendar/data/dummyBookings";
 import {
   STATUS_STYLES,
   DEFAULT_STATUS_STYLE,
@@ -78,7 +78,7 @@ export default function BookingListCard({ booking, onClick }: BookingListCardPro
             whiteSpace: "nowrap",
           }}
         >
-          {booking.route || "—"}
+          {bookingRouteLabel(booking)}
         </Typography>
         <Box
           sx={{

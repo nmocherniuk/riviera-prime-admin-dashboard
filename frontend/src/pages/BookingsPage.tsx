@@ -20,6 +20,8 @@ import {
   listBookings,
   updateBooking,
   type BookingDto,
+  type CreateBookingBody,
+  type PublicVehicleClass,
 } from "../api/bookings";
 import { queryKeys } from "../api/queryKeys";
 import type { BookingFormValues } from "../features/Bookings/components/BookingManagementModal";
@@ -173,16 +175,30 @@ export default function BookingsPage() {
     const bookingAt = new Date(
       `${values.date}T${values.startTime}:00`,
     ).toISOString();
-    const body = {
+    const vehicleId = values.vehicleId.trim();
+    const vehicleClassRaw = values.vehicleClass.trim();
+    const vehicleClass =
+      vehicleClassRaw === "comfort" ||
+      vehicleClassRaw === "business" ||
+      vehicleClassRaw === "van"
+        ? (vehicleClassRaw as PublicVehicleClass)
+        : null;
+
+    const body: CreateBookingBody = {
       clientName: values.clientName.trim(),
-      vehicleId: values.vehicleId.trim(),
       driverId: values.driverId.trim() || null,
       bookingAt,
-      route: values.route.trim(),
+      from: values.from.trim(),
+      to: values.to.trim(),
       durationMin: parseDurationToMinutes(values.duration),
       status: "pending" as const,
       paymentStatus: "unpaid" as const,
     };
+    if (vehicleId) {
+      body.vehicleId = vehicleId;
+    } else if (vehicleClass) {
+      body.vehicleClass = vehicleClass;
+    }
 
     if (bookingId) {
       await updateBooking(bookingId, body);

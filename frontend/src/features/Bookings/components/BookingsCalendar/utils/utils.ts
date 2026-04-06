@@ -1,6 +1,6 @@
 import { alpha, type SxProps } from "@mui/material/styles";
 import { theme } from "../../../../../theme/theme";
-import type { Booking } from "../data/dummyBookings";
+import { bookingRouteLabel, type Booking } from "../data/dummyBookings";
 import {
   parseDurationToMinutes,
   addMinutesToTime,
@@ -21,12 +21,13 @@ export function bookingToCalendarEvent(b: Booking) {
   const end = `${b.date}T${endTime}:00`;
   return {
     id: b.id,
-    title: `${b.clientName} · ${b.route}`,
+    title: `${b.clientName} · ${bookingRouteLabel(b)}`,
     start,
     end,
     extendedProps: {
       clientName: b.clientName,
-      route: b.route,
+      from: b.from,
+      to: b.to,
       car: b.car,
       status: b.status ?? "assigned",
       duration: b.duration,

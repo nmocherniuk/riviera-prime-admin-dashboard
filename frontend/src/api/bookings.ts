@@ -5,15 +5,23 @@ import type {
   PaymentStatus,
 } from "../features/Bookings/components/BookingsCalendar/data/dummyBookings";
 
+export type PublicVehicleClass = "comfort" | "business" | "van";
+
 export type BookingDto = {
   id: string;
   clientName: string;
-  vehicleId: string;
-  vehicleName: string;
+  clientEmail: string;
+  clientPhone: string;
+  tripType: string;
+  notesForDriver: string;
+  vehicleId: string | null;
+  vehicleName: string | null;
+  vehicleClass: PublicVehicleClass | null;
   driverId: string | null;
   driverName: string | null;
   bookingAt: string;
-  route: string;
+  from: string;
+  to: string;
   durationMin: number;
   status: BookingStatus;
   paymentStatus: PaymentStatus;
@@ -23,10 +31,16 @@ export type BookingDto = {
 
 export type CreateBookingBody = {
   clientName: string;
-  vehicleId: string;
+  clientEmail?: string;
+  clientPhone?: string;
+  tripType?: string;
+  notesForDriver?: string;
+  vehicleId?: string | null;
+  vehicleClass?: PublicVehicleClass | null;
   driverId?: string | null;
   bookingAt: string;
-  route?: string;
+  from?: string;
+  to?: string;
   durationMin?: number;
   status?: BookingStatus;
   paymentStatus?: PaymentStatus;
@@ -42,10 +56,24 @@ function minutesToDurationLabel(minutes: number): string {
   return `${hours}hr ${mins}min`;
 }
 
+function vehicleClassLabel(c: PublicVehicleClass): string {
+  const m: Record<PublicVehicleClass, string> = {
+    comfort: "Comfort",
+    business: "Business",
+    van: "Van",
+  };
+  return m[c];
+}
+
 export function dtoToBooking(dto: BookingDto): Booking {
   const dateObj = new Date(dto.bookingAt);
   const date = dateObj.toISOString().slice(0, 10);
   const startTime = dateObj.toISOString().slice(11, 16);
+
+  const carFromClass =
+    dto.vehicleClass != null
+      ? `${vehicleClassLabel(dto.vehicleClass)} (class)`
+      : undefined;
 
   return {
     id: dto.id,
@@ -53,9 +81,11 @@ export function dtoToBooking(dto: BookingDto): Booking {
     startTime,
     duration: minutesToDurationLabel(dto.durationMin),
     clientName: dto.clientName,
-    route: dto.route ?? "",
-    car: dto.vehicleName,
-    vehicleId: dto.vehicleId,
+    from: dto.from ?? "",
+    to: dto.to ?? "",
+    car: dto.vehicleName ?? carFromClass,
+    vehicleId: dto.vehicleId ?? undefined,
+    vehicleClass: dto.vehicleClass ?? undefined,
     status: dto.status,
     driverId: dto.driverId ?? undefined,
     driverName: dto.driverName ?? undefined,
