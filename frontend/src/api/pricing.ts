@@ -34,7 +34,7 @@ export function dtoToVehiclePricing(row: PricingRowDto): VehiclePricing {
     vehicle: {
       id: row.vehicle.id,
       organizationId: null,
-      driverId: null,
+      driverIds: [],
       vehicleName: row.vehicle.vehicleName,
       year: "",
       color: "",

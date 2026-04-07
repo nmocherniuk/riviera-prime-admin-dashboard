@@ -1,5 +1,7 @@
 import type { FleetVehicle } from "../components/ModalManagement/fleetManagementForm.types";
 
+export type { FleetVehicle };
+
 export type FleetClass = "Comfort" | "Business" | "Van";
 export type FleetStatus = "ACTIVE" | "INACTIVE";
 
@@ -8,13 +10,11 @@ export const FLEET_STATUS_LABELS: Record<FleetStatus, string> = {
   INACTIVE: "Inactive",
 };
 
-
-
 export const DUMMY_FLEET: FleetVehicle[] = [
   {
     id: "DRV-001",
     organizationId: "",
-    driverId: null,
+    driverIds: [],
     vehicleName: "BMW 7 Series",
     year: "2023",
     color: "Black Metallic",
@@ -25,7 +25,7 @@ export const DUMMY_FLEET: FleetVehicle[] = [
   {
     id: "DRV-002",
     organizationId: "",
-    driverId: null,
+    driverIds: [],
     vehicleName: "Mercedes-Benz S-Class",
     year: "2024",
     color: "Navy Blue",
@@ -36,7 +36,7 @@ export const DUMMY_FLEET: FleetVehicle[] = [
   {
     id: "DRV-003",
     organizationId: "",
-    driverId: null,
+    driverIds: [],
     vehicleName: "Audi A8",
     year: "2023",
     color: "Silver",
@@ -47,7 +47,7 @@ export const DUMMY_FLEET: FleetVehicle[] = [
   {
     id: "DRV-004",
     organizationId: "",
-    driverId: null,
+    driverIds: [],
     vehicleName: "Mercedes V-Class",
     year: "2024",
     color: "White",
@@ -58,7 +58,7 @@ export const DUMMY_FLEET: FleetVehicle[] = [
   {
     id: "DRV-005",
     organizationId: "",
-    driverId: null,
+    driverIds: [],
     vehicleName: "Range Rover Sentinel",
     year: "2023",
     color: "Black",

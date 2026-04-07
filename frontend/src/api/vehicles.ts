@@ -1,5 +1,8 @@
 import { api } from "./api";
-import type { FleetFormValues, FleetVehicle } from "../features/Fleet/components/ModalManagement/fleetManagementForm.types";
+import type {
+  FleetFormValues,
+  FleetVehicle,
+} from "../features/Fleet/components/ModalManagement/fleetManagementForm.types";
 import type { DriverFormValues } from "../features/partners/Drivers/components/drivers/types";
 import { FormValuesToCreateBody } from "../features/Fleet/components/ModalManagement/fleetManagementForm.mapper";
 
@@ -31,11 +34,11 @@ export async function updateVehicle(
 
 export async function assignDriverToVehicle(
   vehicleId: string,
-  driverId: string | null,
+  driverIds: string[],
 ) {
   const { data } = await api.patch<{ vehicle: FleetVehicle }>(
     `/vehicles/${vehicleId}/assign-driver`,
-    { driverId },
+    { driverIds },
   );
   return data.vehicle;
 }
@@ -52,11 +55,13 @@ export function fleetFormToCreateBody(values: FleetFormValues): FleetVehicle {
   return FormValuesToCreateBody(values);
 }
 
-export function fleetFormToUpdateBody(values: FleetFormValues): Omit<FleetVehicle, "id"> {
+export function fleetFormToUpdateBody(
+  values: FleetFormValues,
+): Omit<FleetVehicle, "id"> {
   const b = FormValuesToCreateBody(values);
   return {
     organizationId: b.organizationId,
-    driverId: b.driverId,
+    driverIds: b.driverIds,
     vehicleName: b.vehicleName,
     year: b.year,
     color: b.color,
