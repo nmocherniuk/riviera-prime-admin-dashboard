@@ -1,4 +1,16 @@
-import type { WhatsAppReplyPayload } from "./whatsapp.types.js";
+import {
+  findBookingById,
+  parseCandidateDriverIdsJson,
+} from "../booking/booking.repository.js";
+import {
+  listBookingsService,
+  updateBookingService,
+} from "../booking/booking.service.js";
+import { getDriverByPhone } from "../driver/driver.service.js";
+import type {
+  ProcessableMessage,
+  WhatsAppReplyPayload,
+} from "./whatsapp.types.js";
 
 export const WHATSAPP_REPLY_MESSAGES = {
   welcomeHint: "Напиши «menu» або «привіт» — покажемо меню.",
@@ -26,49 +38,236 @@ export const WHATSAPP_REPLY_MESSAGES = {
   defaultEcho: 'Ти написав: "{{text}}". Це відповідь за замовчуванням.',
 } as const;
 
+function parseAcceptBookingIdFromListRow(text: string): string | null {
+  const id = text.split("_")[1]?.trim();
+  return id && id.length > 0 ? id : null;
+}
+
 /** Text on the button that opens the list (≤ 20 characters). */
-export function buildReplyPayload(rawText: string): WhatsAppReplyPayload {
-  const t = rawText.trim();
-  const lower = t.toLowerCase();
+export async function buildReplyPayload(
+  message: ProcessableMessage,
+): Promise<WhatsAppReplyPayload> {
+  const text = message.text?.trim();
+  const lower = text?.toLowerCase();
 
-  if (lower === "reject") {
-    return { body: WHATSAPP_REPLY_MESSAGES.tripRejected };
+  if (text?.startsWith("ACCEPT")) {
+    const bookingId = parseAcceptBookingIdFromListRow(text);
+
+    if (!bookingId) {
+      return { body: "Trip ID not specified." };
+    }
+
+    try {
+      const booking = await findBookingById(bookingId);
+      if (!booking) {
+        return { body: "Booking not found." };
+      }
+
+      if (!message.from) {
+        return { body: "Could not determine sender phone number." };
+      }
+
+      const driver = await getDriverByPhone(message.from);
+      if (!driver) {
+        return { body: "Driver not found." };
+      }
+
+      if (booking.driverId === driver.id) {
+        return { body: "You are already assigned to this booking" };
+      }
+
+      const bookingIsFree =
+        booking.driverId === null && booking.status === "PENDING";
+      if (!bookingIsFree) {
+        return { body: "Booking already assigned to another driver" };
+      }
+
+      const candidates = parseCandidateDriverIdsJson(
+        booking.candidateDriverIds,
+      );
+      await updateBookingService(bookingId, {
+        status: "assigned",
+        driverId: driver.id,
+        candidateDriverIds: candidates.map((d) =>
+          d.driverId !== driver.id
+            ? { driverId: d.driverId, status: "rejected" }
+            : { driverId: d.driverId, status: "accepted" },
+        ),
+      });
+
+      return { body: WHATSAPP_REPLY_MESSAGES.tripAccepted };
+    } catch (error) {
+      console.error("[WhatsApp] accept trip:", error);
+      return { body: "Could not accept trip. Please try again later." };
+    }
   }
 
-  if (lower === "accept") {
-    return { body: WHATSAPP_REPLY_MESSAGES.tripAccepted };
+  if (text?.startsWith("REJECT")) {
+    const bookingId = parseAcceptBookingIdFromListRow(text);
+    if (!bookingId) {
+      return { body: "Trip ID not specified." };
+    }
+
+    try {
+      const booking = await findBookingById(bookingId);
+      if (!booking) {
+        return { body: "Booking not found." };
+      }
+
+      if (!message.from) {
+        return { body: "Could not determine sender phone number." };
+      }
+
+      const driver = await getDriverByPhone(message.from);
+      if (!driver) {
+        return { body: "Driver not found." };
+      }
+
+      if (booking.driverId === driver.id) {
+        return { body: "You are already assigned to this booking" };
+      }
+
+      if (booking.status === "CANCELLED") {
+        return { body: "Booking is already cancelled" };
+      }
+
+      const bookingIsFree =
+        booking.driverId === null && booking.status === "PENDING";
+      if (!bookingIsFree) {
+        return { body: "Booking already assigned to another driver" };
+      }
+
+      const candidates = parseCandidateDriverIdsJson(
+        booking.candidateDriverIds,
+      );
+
+      const myEntry = candidates.find((d) => d.driverId === driver.id);
+      if (!myEntry) {
+        return { body: "You are not on the candidate list for this trip." };
+      }
+      if (myEntry.status !== "pending") {
+        return { body: "You already responded to this offer." };
+      }
+
+      const nextCandidates = candidates.map((d) =>
+        d.driverId === driver.id
+          ? { driverId: d.driverId, status: "rejected" }
+          : d,
+      );
+
+      const allRejected = nextCandidates.every((d) => d.status === "rejected");
+
+      if (allRejected) {
+        await updateBookingService(bookingId, {
+          status: "cancelled",
+          driverId: null,
+          candidateDriverIds: nextCandidates,
+        });
+      } else {
+        await updateBookingService(bookingId, {
+          status: "pending",
+          driverId: null,
+          candidateDriverIds: nextCandidates,
+        });
+      }
+
+      return { body: WHATSAPP_REPLY_MESSAGES.tripRejected };
+    } catch (error) {
+      console.error("[WhatsApp] reject trip:", error);
+      return { body: "Could not reject trip. Please try again later." };
+    }
   }
 
-  if (t === "CURRENT_TRIP") {
+  if (text === "CURRENT_TRIP") {
     return { body: WHATSAPP_REPLY_MESSAGES.currentTrip };
   }
-  if (t === "EARNING") {
+
+  if (text === "EARNING") {
     return { body: WHATSAPP_REPLY_MESSAGES.earning };
   }
-  if (t === "TRIPS") {
-    return { body: WHATSAPP_REPLY_MESSAGES.trips };
+
+  if (text === "TRIPS") {
+    const driver = await getDriverByPhone(message.from);
+
+    if (!driver) {
+      return { body: "Driver not found." };
+    }
+
+    const trips = await listBookingsService({ driverId: driver.id });
+
+    const tripsMessage = trips
+      .map(
+        (trip, idx) => `
+🛫 *Trip #${idx + 1}*
+
+*Client:* ${trip.clientName} (${trip.clientPhone})
+*Email:* ${trip.clientEmail ?? "-"}
+*Type:* ${trip.tripType}
+*From → To:* ${trip.from} → ${trip.to}
+*Vehicle:* ${trip.vehicleName} (${trip.vehicleClass})
+*Booking Date:* ${new Date(trip.bookingAt).toLocaleString()}
+*Duration:* ${trip.durationMin} min
+*Status:* ${trip.status}
+*Payment:* ${trip.paymentStatus}
+*Notes:* ${trip.notesForDriver ?? "-"}
+`,
+      )
+      .join("\n-----------------\n");
+
+    return { body: tripsMessage };
   }
-  if (t === "PROFILE") {
-    return { body: WHATSAPP_REPLY_MESSAGES.profile };
+
+  if (text === "PROFILE") {
+    const driver = await getDriverByPhone(message.from);
+
+    if (!driver) {
+      return { body: "Driver not found." };
+    }
+
+    const profileMessage = `
+👤 *Your Profile*
+
+*Name:* ${driver.name}
+*Phone:* ${driver.phone}
+*Email:* ${driver.email ?? "-"}
+*Address:* ${driver.address ?? "-"}
+
+📄 *Documents*
+Driver License: ${driver.driverLicenseProvided ? "✅" : "❌"}
+VTC Card: ${driver.vtcCardProvided ? "✅" : "❌"}
+Passport: ${driver.passportProvided ? "✅" : "❌"}
+Medical Certificate: ${driver.medicalCertificateProvided ? "✅" : "❌"}
+Insurance Proof: ${driver.insuranceProofProvided ? "✅" : "❌"}
+
+🛣️ *Experience & Options*
+Years of Driving: ${driver.drivingExperienceYears}
+Base City: ${driver.baseCity ?? "-"}
+Working Radius: ${driver.workingRadiusKm} km
+Available for Night Trips: ${driver.acceptsNightTrips ? "✅" : "❌"}
+Available for VIP Clients: ${driver.acceptsVipClients ? "✅" : "❌"}
+Available for Airport Transfers: ${driver.acceptsAirportTransfers ? "✅" : "❌"}
+`;
+
+    return { body: profileMessage };
   }
-  if (t === "HISTORY") {
+  if (text === "HISTORY") {
     return { body: WHATSAPP_REPLY_MESSAGES.history };
   }
-  if (t === "HELP") {
+  if (text === "HELP") {
     return { body: WHATSAPP_REPLY_MESSAGES.help };
   }
-  if (t === "ONLINE") {
+  if (text === "ONLINE") {
     return { body: WHATSAPP_REPLY_MESSAGES.online };
   }
-  if (t === "OFFLINE") {
+  if (text === "OFFLINE") {
     return { body: WHATSAPP_REPLY_MESSAGES.offline };
   }
 
   if (
     lower === "hi" ||
     lower === "hello" ||
-    lower.startsWith("привіт") ||
-    lower.startsWith("privit") ||
+    lower?.startsWith("привіт") ||
+    lower?.startsWith("privit") ||
     lower === "menu" ||
     lower === "меню"
   ) {
@@ -84,7 +283,9 @@ export function buildReplyPayload(rawText: string): WhatsAppReplyPayload {
   return {
     body: WHATSAPP_REPLY_MESSAGES.defaultEcho.replace(
       "{{text}}",
-      t.length > 200 ? `${t.slice(0, 200)}…` : t,
+      text?.length && text.length > 200
+        ? `${text?.slice(0, 200)}…`
+        : (text ?? ""),
     ),
   };
 }

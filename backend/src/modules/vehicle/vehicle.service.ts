@@ -1,27 +1,26 @@
 import type {
   VehicleClass,
   VehicleStatus,
-  Vehicles,
 } from "../../generated/prisma/client.js";
 import { prisma } from "../../lib/prisma.js";
 import {
-  assignDriverToVehicle as assignDriverToVehicleRepo,
   createVehicle as createVehicleRepo,
   deleteVehicleById,
   findVehicleById,
   findVehicles,
+  setVehicleDrivers,
   updateVehicle as updateVehicleRepo,
+  type VehicleWithDriverIds,
 } from "./vehicle.repository.js";
 import type { CreateVehicleBody } from "./vehicle.schemas.js";
 import type { VehicleJson } from "./vehicle.types.js";
 import { toDbClass, toPublicClass } from "./vehicle.utils.js";
 
-
-function toPublicVehicle(row: Vehicles): VehicleJson {
+function toPublicVehicle(row: VehicleWithDriverIds): VehicleJson {
   return {
     id: row.id,
     organizationId: row.organizationId,
-    driverId: row.driverId,
+    driverIds: row.drivers.map((d) => d.id),
     vehicleName: row.vehicleName,
     year: row.year,
     color: row.color,
@@ -33,12 +32,11 @@ function toPublicVehicle(row: Vehicles): VehicleJson {
   };
 }
 
-async function validateOrgAndDriverLink(
+async function validateOrgAndDriversLink(
   organizationId: string | null | undefined,
-  driverId?: string | null,
+  driverIds: string[],
 ) {
   const orgId = organizationId ?? null;
-  const drvId = driverId ?? null;
 
   if (orgId) {
     const org = await prisma.organizations.findUnique({ where: { id: orgId } });
@@ -47,14 +45,14 @@ async function validateOrgAndDriverLink(
     }
   }
 
-  if (!drvId) return;
-
-  const driver = await prisma.drivers.findUnique({ where: { id: drvId } });
-  if (!driver) {
-    throw new Error("Driver not found");
-  }
-  if (orgId && driver.organizationId !== orgId) {
-    throw new Error("Driver does not belong to organization");
+  for (const drvId of driverIds) {
+    const driver = await prisma.drivers.findUnique({ where: { id: drvId } });
+    if (!driver) {
+      throw new Error("Driver not found");
+    }
+    if (orgId && driver.organizationId !== orgId) {
+      throw new Error("Driver does not belong to organization");
+    }
   }
 }
 
@@ -74,13 +72,13 @@ export async function getVehicleByIdService(id: string) {
 
 export async function createVehicleService(body: CreateVehicleBody) {
   const organizationId = body.organizationId ?? null;
-  const driverId = body.driverId ?? null;
+  const driverIds = body.driverIds ?? [];
 
-  await validateOrgAndDriverLink(organizationId, driverId);
+  await validateOrgAndDriversLink(organizationId, driverIds);
 
   const row = await createVehicleRepo({
     organizationId,
-    driverId,
+    driverIds,
     vehicleName: body.vehicleName,
     year: body.year,
     color: body.color,
@@ -96,7 +94,7 @@ export async function updateVehicleService(
   id: string,
   body: {
     organizationId: string | null;
-    driverId: string | null;
+    driverIds: string[];
     vehicleName: string;
     year: string;
     color: string;
@@ -109,13 +107,13 @@ export async function updateVehicleService(
   if (!existing) return null;
 
   const organizationId = body.organizationId ?? null;
-  const driverId = body.driverId ?? null;
+  const driverIds = body.driverIds ?? [];
 
-  await validateOrgAndDriverLink(organizationId, driverId);
+  await validateOrgAndDriversLink(organizationId, driverIds);
 
   const updated = await updateVehicleRepo(id, {
     organizationId,
-    driverId,
+    driverIds,
     vehicleName: body.vehicleName,
     year: body.year,
     color: body.color,
@@ -127,16 +125,16 @@ export async function updateVehicleService(
   return toPublicVehicle(updated);
 }
 
-export async function assignDriverToVehicleService(
+export async function assignDriversToVehicleService(
   vehicleId: string,
-  driverId: string | null,
+  driverIds: string[],
 ) {
   const vehicle = await findVehicleById(vehicleId);
   if (!vehicle) return null;
 
-  await validateOrgAndDriverLink(vehicle.organizationId, driverId);
+  await validateOrgAndDriversLink(vehicle.organizationId, driverIds);
 
-  const updated = await assignDriverToVehicleRepo(vehicleId, driverId);
+  const updated = await setVehicleDrivers(vehicleId, driverIds);
   return toPublicVehicle(updated);
 }
 

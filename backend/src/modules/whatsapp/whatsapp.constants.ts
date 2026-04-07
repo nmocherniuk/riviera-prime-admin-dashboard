@@ -14,3 +14,6 @@ export const MAIN_MENU_LIST_ROWS: Array<{
   { id: "ONLINE", title: "🟢 Online", description: "Go online" },
   { id: "OFFLINE", title: "🔴 Offline", description: "Go offline" },
 ];
+
+export const DEFAULT_TEMPLATE_NAME = "trip_offer_driver";
+export const DEFAULT_LANGUAGE = "en";

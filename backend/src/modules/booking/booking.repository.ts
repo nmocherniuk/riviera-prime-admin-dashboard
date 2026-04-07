@@ -1,6 +1,7 @@
 import type {
   BookingStatus,
   PaymentStatus,
+  Prisma,
   VehicleClass,
 } from "../../generated/prisma/client.js";
 import { prisma } from "../../lib/prisma.js";
@@ -16,6 +17,7 @@ export const bookingPayloadSelect = {
   clientPhone: true,
   tripType: true,
   notesForDriver: true,
+  candidateDriverIds: true,
   vehicleClass: true,
   vehicleId: true,
   driverId: true,
@@ -46,11 +48,32 @@ export type CreateBookingData = {
   durationMin: number;
   status: BookingStatus;
   paymentStatus: PaymentStatus;
+  candidateDriverIds?: Prisma.InputJsonValue;
 };
 
 export type UpdateBookingData = Partial<CreateBookingData>;
 
-export async function listBookings(filters?: { driverId?: string; vehicleId?: string }) {
+/** Parses stored JSON for WhatsApp / notifications (driverId + status per entry). */
+export function parseCandidateDriverIdsJson(
+  value: Prisma.JsonValue | null | undefined,
+): { driverId: string; status: string }[] {
+  if (value == null || !Array.isArray(value)) return [];
+  const out: { driverId: string; status: string }[] = [];
+  for (const item of value) {
+    if (typeof item !== "object" || item === null || !("driverId" in item))
+      continue;
+    const o = item as Record<string, unknown>;
+    const driverId = String(o.driverId ?? "");
+    if (!driverId) continue;
+    out.push({ driverId, status: String(o.status ?? "pending") });
+  }
+  return out;
+}
+
+export async function listBookings(filters?: {
+  driverId?: string;
+  vehicleId?: string;
+}) {
   const where: { driverId?: string; vehicleId?: string } = {};
   if (filters?.driverId !== undefined) where.driverId = filters.driverId;
   if (filters?.vehicleId !== undefined) where.vehicleId = filters.vehicleId;

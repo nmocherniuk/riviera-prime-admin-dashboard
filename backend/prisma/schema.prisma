@@ -179,7 +179,7 @@ model Drivers {
   rides          Int          @default(0)
   todayShift     String       @default("")
 
-  assignedVehicles Vehicles[]
+  vehicles Vehicles[]
   bookings       Bookings[]
 
   createdAt      DateTime     @default(now())
@@ -203,8 +203,7 @@ model Vehicles {
   id             String          @id @default(uuid())
   organizationId String?
   organization   Organizations?  @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  driverId       String?
-  driver         Drivers?      @relation(fields: [driverId], references: [id], onDelete: SetNull)
+  drivers        Drivers[] 
   vehicleName    String
   year           String
   color          String
@@ -260,9 +259,10 @@ model Bookings {
   to            String       
   bookingAt     DateTime
 
-  /** Set when the client picks a class only; assign a concrete vehicle later. */
+  /** Candidate drivers with offer statuses, e.g. [{ driverId, status }]. */
+  candidateDriverIds     Json      @default("[]")
   vehicleClass  VehicleClass?
-  vehicleId     String?
+  vehicleId     String?       @default("")
   vehicle       Vehicles?     @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
   driverId      String?
   driver        Drivers?      @relation(fields: [driverId], references: [id], onDelete: SetNull)

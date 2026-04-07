@@ -24,6 +24,8 @@ function parseCorsOrigins(): string[] {
 
 const corsOrigins = parseCorsOrigins();
 
+console.log("hash", bcrypt.hashSync("123456", 10));
+
 app.use(
   cors({
     origin(origin, callback) {

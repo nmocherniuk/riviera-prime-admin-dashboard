@@ -7,6 +7,7 @@ export async function createPublicBookingController(
 ) {
   try {
     console.log("req.body", req.body);
+
     const booking = await createPublicBookingService(req.body);
     return res.status(201).json({ booking });
   } catch (error) {

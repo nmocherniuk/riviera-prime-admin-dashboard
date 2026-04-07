@@ -1,7 +1,7 @@
 import type { Response } from "express";
 import type { AuthedRequest } from "../../middleware/requireAuth.js";
 import {
-  assignDriverToVehicleService,
+  assignDriversToVehicleService,
   createVehicleService,
   deleteVehicleService,
   getVehicleByIdService,
@@ -11,8 +11,10 @@ import {
 import type { CreateVehicleBody } from "./vehicle.schemas.js";
 import { isPrismaUniqueError } from "./vehicle.utils.js";
 
-
-export async function listVehiclesController(req: AuthedRequest, res: Response) {
+export async function listVehiclesController(
+  req: AuthedRequest,
+  res: Response,
+) {
   try {
     const { organizationId, driverId } = req.query as {
       organizationId?: string;
@@ -65,8 +67,8 @@ export async function createVehicleController(
     const message = error instanceof Error ? error.message : "Create failed";
     const code =
       message === "Organization not found" ||
-        message === "Driver not found" ||
-        message === "Driver does not belong to organization"
+      message === "Driver not found" ||
+      message === "Driver does not belong to organization"
         ? 400
         : 500;
     return res.status(code).json({ message });
@@ -93,8 +95,8 @@ export async function updateVehicleController(
     const message = error instanceof Error ? error.message : "Update failed";
     const code =
       message === "Organization not found" ||
-        message === "Driver not found" ||
-        message === "Driver does not belong to organization"
+      message === "Driver not found" ||
+      message === "Driver does not belong to organization"
         ? 400
         : 500;
     return res.status(code).json({ message });
@@ -108,9 +110,9 @@ export async function assignDriverToVehicleController(
   try {
     const { id } = req.params as { id: string };
 
-    const { driverId } = req.body as { driverId: string | null };
+    const { driverIds } = req.body as { driverIds: string[] };
 
-    const vehicle = await assignDriverToVehicleService(id, driverId);
+    const vehicle = await assignDriversToVehicleService(id, driverIds);
 
     if (!vehicle) {
       return res.status(404).json({ message: "Vehicle not found" });
@@ -120,8 +122,8 @@ export async function assignDriverToVehicleController(
     const message = error instanceof Error ? error.message : "Assign failed";
     const code =
       message === "Organization not found" ||
-        message === "Driver not found" ||
-        message === "Driver does not belong to organization"
+      message === "Driver not found" ||
+      message === "Driver does not belong to organization"
         ? 400
         : 500;
     return res.status(code).json({ message });

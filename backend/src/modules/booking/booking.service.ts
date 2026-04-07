@@ -10,6 +10,7 @@ import {
   deleteBookingById,
   findBookingById,
   listBookings,
+  parseCandidateDriverIdsJson,
   updateBooking,
   type UpdateBookingData,
 } from "./booking.repository.js";
@@ -19,6 +20,7 @@ import {
   toPublicVehicleClass,
   type PublicVehicleClass,
 } from "./booking.vehicleClass.js";
+import { getDriversByVehicleId } from "../driver/driver.service.js";
 
 export type { PublicVehicleClass };
 
@@ -106,6 +108,22 @@ function toPublicBooking(row: BookingWithRelations): PublicBooking {
   };
 }
 
+/** When frontend sends only vehicleId, attach the vehicle owner as driver. */
+async function resolveDriverIdFromVehicle(
+  vehicleId: string | null,
+  explicitDriverId: string | null,
+): Promise<string | null> {
+  if (explicitDriverId) return explicitDriverId;
+  if (!vehicleId) return null;
+  const v = await prisma.vehicles.findUnique({
+    where: { id: vehicleId },
+    select: {
+      drivers: { select: { id: true }, orderBy: { id: "asc" }, take: 1 },
+    },
+  });
+  return v?.drivers[0]?.id ?? null;
+}
+
 async function validateDriverAndVehicle(input: {
   driverId?: string | null | undefined;
   vehicleId: string | null;
@@ -143,8 +161,8 @@ function assertVehicleOrClass(
 }
 
 export async function listBookingsService(filters?: {
-  driverId?: string;
   vehicleId?: string;
+  driverId?: string;
 }) {
   const rows = await listBookings(filters);
   return rows.map(toPublicBooking);
@@ -166,7 +184,7 @@ export async function createPublicBookingService(body: {
   clientPhone?: string;
   tripType?: string;
   notesForDriver?: string;
-  vehicleId?: string | null;
+  vehicleId: string;
   vehicleClass?: PublicVehicleClass | null;
   bookingAt: string;
   from: string;
@@ -180,9 +198,8 @@ export async function createPublicBookingService(body: {
     clientPhone: body.clientPhone ?? "",
     tripType: body.tripType ?? "one-way",
     notesForDriver: body.notesForDriver ?? "",
-    vehicleId: body.vehicleId ?? null,
+    vehicleId: body.vehicleId,
     vehicleClass: body.vehicleClass ?? null,
-    driverId: null,
     bookingAt: body.bookingAt,
     from: body.from,
     to: body.to,
@@ -211,14 +228,21 @@ export type CreateBookingServiceInput = {
 
 export async function createBookingService(input: CreateBookingServiceInput) {
   const vehicleId = input.vehicleId ?? null;
+  console.log("vehicleId", vehicleId);
+
   const vehicleClassDb =
     input.vehicleClass != null ? toDbVehicleClass(input.vehicleClass) : null;
   assertVehicleOrClass(vehicleId, vehicleClassDb);
 
-  await validateDriverAndVehicle({
-    vehicleId,
-    driverId: input.driverId,
-  });
+  const drivers = vehicleId ? await getDriversByVehicleId(vehicleId) : [];
+
+  if (vehicleId && drivers.length === 0)
+    throw new Error("No drivers found for vehicle");
+
+  // await validateDriverAndVehicle({
+  //   vehicleId,
+  //   driverId: input.driverId,
+  // });
 
   const created = await createBooking({
     clientName: input.clientName,
@@ -228,19 +252,25 @@ export async function createBookingService(input: CreateBookingServiceInput) {
     notesForDriver: input.notesForDriver ?? "",
     vehicleId,
     vehicleClass: vehicleClassDb,
-    driverId: input.driverId ?? null,
+    driverId: null,
     bookingAt: new Date(input.bookingAt),
     from: input.from,
     to: input.to,
     durationMin: input.durationMin,
     status: toDbStatus(input.status),
     paymentStatus: toDbPaymentStatus(input.paymentStatus),
+    candidateDriverIds: drivers.map((driver) => {
+      return { driverId: driver.id, status: "pending" };
+    }),
   });
-  void notifyDriverBookingPaidIfNeeded(
+
+  notifyDriverBookingPaidIfNeeded(
     created.id,
     "UNPAID",
     created.paymentStatus,
+    parseCandidateDriverIdsJson(created.candidateDriverIds),
   );
+
   return toPublicBooking(created);
 }
 
@@ -271,8 +301,18 @@ export async function updateBookingService(
 
   assertVehicleOrClass(nextVehicleId, nextVehicleClass);
 
-  const nextDriverId =
+  let nextDriverId =
     input.driverId === undefined ? existing.driverId : input.driverId;
+  const vehicleIdChanged =
+    input.vehicleId !== undefined && input.vehicleId !== existing.vehicleId;
+  if (vehicleIdChanged && input.driverId === undefined) {
+    nextDriverId = null;
+  }
+  // Явний `driverId` у запиті (навіть `null`) — не підставляти водія з авто (наприклад WhatsApp REJECT).
+  if (input.driverId === undefined) {
+    nextDriverId = await resolveDriverIdFromVehicle(nextVehicleId, nextDriverId);
+  }
+
   await validateDriverAndVehicle({
     vehicleId: nextVehicleId,
     driverId: nextDriverId,
@@ -280,8 +320,10 @@ export async function updateBookingService(
 
   const updateData: UpdateBookingData = {};
   if (input.clientName !== undefined) updateData.clientName = input.clientName;
-  if (input.clientEmail !== undefined) updateData.clientEmail = input.clientEmail;
-  if (input.clientPhone !== undefined) updateData.clientPhone = input.clientPhone;
+  if (input.clientEmail !== undefined)
+    updateData.clientEmail = input.clientEmail;
+  if (input.clientPhone !== undefined)
+    updateData.clientPhone = input.clientPhone;
   if (input.tripType !== undefined) updateData.tripType = input.tripType;
   if (input.notesForDriver !== undefined)
     updateData.notesForDriver = input.notesForDriver;
@@ -290,7 +332,9 @@ export async function updateBookingService(
     updateData.vehicleClass =
       input.vehicleClass === null ? null : toDbVehicleClass(input.vehicleClass);
   }
-  if (input.driverId !== undefined) updateData.driverId = input.driverId;
+  if (nextDriverId !== existing.driverId) {
+    updateData.driverId = nextDriverId;
+  }
   if (input.from !== undefined) updateData.from = input.from;
   if (input.to !== undefined) updateData.to = input.to;
   if (input.durationMin !== undefined)
@@ -301,6 +345,9 @@ export async function updateBookingService(
   if (input.paymentStatus !== undefined) {
     updateData.paymentStatus = toDbPaymentStatus(input.paymentStatus);
   }
+  if (input.candidateDriverIds !== undefined) {
+    updateData.candidateDriverIds = input.candidateDriverIds;
+  }
 
   const previousPayment = existing.paymentStatus;
   const updated = await updateBooking(id, updateData);
@@ -308,6 +355,7 @@ export async function updateBookingService(
     id,
     previousPayment,
     updated.paymentStatus,
+    parseCandidateDriverIdsJson(updated.candidateDriverIds),
   );
   return toPublicBooking(updated);
 }

@@ -31,3 +31,13 @@ export async function updateDriverRepo(id: string, data: DriverData) {
 export async function deleteDriverById(id: string) {
   return prisma.drivers.delete({ where: { id } });
 }
+
+export async function findDriverByPhone(phone: string) {
+  return prisma.drivers.findFirst({ where: { phone } });
+}
+
+export async function findDriversByVehicleIdRepo(vehicleId: string) {
+  return prisma.drivers.findMany({
+    where: { vehicles: { some: { id: vehicleId } } },
+  });
+}

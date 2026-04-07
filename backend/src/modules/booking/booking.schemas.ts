@@ -32,18 +32,17 @@ const baseBookingFields = {
 
 export const createBookingSchema = z
   .object(baseBookingFields)
-  .refine(
-    (d) => d.vehicleId != null || d.vehicleClass != null,
-    { message: "Provide vehicleId or vehicleClass", path: ["vehicleId"] },
-  );
+  .refine((d) => d.vehicleId != null || d.vehicleClass != null, {
+    message: "Provide vehicleId or vehicleClass",
+    path: ["vehicleId"],
+  });
 
 export const updateBookingSchema = z
   .object(baseBookingFields)
   .partial()
-  .refine(
-    (value) => Object.keys(value).length > 0,
-    { message: "At least one field is required" },
-  );
+  .refine((value) => Object.keys(value).length > 0, {
+    message: "At least one field is required",
+  });
 
 /** Landing / public widget: no driver assignment; admin assigns later. */
 export const publicCreateBookingSchema = z
@@ -58,11 +57,16 @@ export const publicCreateBookingSchema = z
     bookingAt: z.string().datetime(),
     from: z.string().max(500).default(""),
     to: z.string().max(500).default(""),
-    durationMin: z.number().int().positive().max(24 * 60).default(60),
+    durationMin: z
+      .number()
+      .int()
+      .positive()
+      .max(24 * 60)
+      .default(60),
     /** Test: set `paid` to simulate post-payment booking until Stripe webhook exists. */
     paymentStatus: z.enum(["paid", "unpaid"]).default("unpaid"),
   })
-  .refine(
-    (d) => d.vehicleId != null || d.vehicleClass != null,
-    { message: "Provide vehicleId or vehicleClass", path: ["vehicleId"] },
-  );
+  .refine((d) => d.vehicleId != null || d.vehicleClass != null, {
+    message: "Provide vehicleId or vehicleClass",
+    path: ["vehicleId"],
+  });

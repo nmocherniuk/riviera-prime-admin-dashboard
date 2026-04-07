@@ -14,16 +14,18 @@ export const vehicleListQuerySchema = z.object({
 
 const nullableUuid = z.union([z.string().uuid(), z.null()]);
 
+const driverIdsField = z.array(z.string().uuid()).default([]);
+
 function normalizeCreateBody(raw: unknown) {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return raw;
   const o = raw as Record<string, unknown>;
   const org = o.organizationId;
-  const drv = o.driverId;
   return {
     ...o,
     organizationId:
       org === "" || org === undefined ? null : org,
-    driverId: drv === "" || drv === undefined ? null : drv,
+    driverIds:
+      Array.isArray(o.driverIds) ? o.driverIds : [],
   };
 }
 
@@ -31,18 +33,18 @@ function normalizeUpdateBody(raw: unknown) {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return raw;
   const o = raw as Record<string, unknown>;
   const org = o.organizationId;
-  const drv = o.driverId;
   return {
     ...o,
     organizationId:
       org === "" || org === undefined ? null : org,
-    driverId: drv === "" || drv === undefined ? null : drv,
+    driverIds:
+      Array.isArray(o.driverIds) ? o.driverIds : [],
   };
 }
 
 const createVehicleFields = {
   organizationId: nullableUuid,
-  driverId: nullableUuid,
+  driverIds: driverIdsField,
   vehicleName: z.string().min(1),
   year: z.string().min(1),
   color: z.string().min(1),
@@ -62,7 +64,7 @@ export const updateVehicleSchema = z.preprocess(
   normalizeUpdateBody,
   z.object({
     organizationId: nullableUuid,
-    driverId: nullableUuid,
+    driverIds: driverIdsField,
     vehicleName: z.string().min(1),
     year: z.string().min(1),
     color: z.string().min(1),
@@ -73,7 +75,7 @@ export const updateVehicleSchema = z.preprocess(
 );
 
 export const assignDriverSchema = z.object({
-  driverId: z.string().uuid().nullable(),
+  driverIds: z.array(z.string().uuid()),
 });
 
 export type CreateVehicleBody = z.infer<typeof createVehicleObjectSchema>;

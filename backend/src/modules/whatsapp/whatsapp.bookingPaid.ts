@@ -2,8 +2,11 @@ import type { PaymentStatus } from "../../generated/prisma/client.js";
 import { prisma } from "../../lib/prisma.js";
 import { sendTripOfferDriverTemplateWithMenu } from "./whatsapp.templates.js";
 import { formatBookingDateTimeZone } from "./formatBookingTime.js";
+import { getDriversByVehicleId } from "../driver/driver.service.js";
+import { findDriverById } from "../driver/driver.repository.js";
 
 function normalizeWaTo(raw: string): string {
+  console.log("rsadasdsaaw", raw);
   return raw.replace(/\D/g, "");
 }
 
@@ -63,23 +66,32 @@ export async function notifyDriverBookingPaidIfNeeded(
   bookingId: string,
   previousPaymentStatus: PaymentStatus,
   nextPaymentStatus: PaymentStatus,
+  candidateDriverIds: { driverId: string }[],
 ): Promise<void> {
   if (nextPaymentStatus !== "PAID" || previousPaymentStatus === "PAID") {
     return;
   }
 
   const booking = await findBookingForPaidNotify(bookingId);
+
+  const drivers = await Promise.all(
+    candidateDriverIds.map((d) => findDriverById(d.driverId)),
+  );
+
   if (!booking) return;
+
   if (booking.whatsappPaidTemplateSentAt) return;
 
-  const phoneRaw = booking.driver?.phone;
-  const toDigits = phoneRaw ? normalizeWaTo(phoneRaw) : "380665833124";
-  if (!toDigits) {
+  if (!drivers.length) {
     console.warn(
-      `[WhatsApp] Skip trip_offer_driver: no driver phone for booking ${bookingId}`,
+      `[WhatsApp] Skip trip_offer_driver: no driver found for booking ${bookingId}`,
     );
     return;
   }
+
+  const driverPhones = drivers.map((driver) => {
+    return normalizeWaTo(driver?.phone ?? "");
+  });
 
   const fromRoute = labelOrDash(booking.from);
   const toRoute = labelOrDash(booking.to);
@@ -87,17 +99,19 @@ export async function notifyDriverBookingPaidIfNeeded(
   try {
     const { date, time } = formatBookingDateTimeZone(booking.bookingAt);
 
-    await sendTripOfferDriverTemplateWithMenu(toDigits, {
-      clientName: booking.clientName,
-      tripType: booking.tripType,
-      fromRoute,
-      toRoute,
-      date,
-      time,
-      notesForDriver:
-        booking.notesForDriver.length > 0 ? booking.notesForDriver : "-",
-      amountOrExtra: String(booking.durationMin),
-    });
+    for (const driverPhone of driverPhones) {
+      await sendTripOfferDriverTemplateWithMenu(booking.id, driverPhone, {
+        clientName: booking.clientName,
+        tripType: booking.tripType,
+        fromRoute,
+        toRoute,
+        date,
+        time,
+        notesForDriver:
+          booking.notesForDriver.length > 0 ? booking.notesForDriver : "-",
+        amountOrExtra: String(booking.durationMin),
+      });
+    }
   } catch (e) {
     console.error(
       `[WhatsApp] trip_offer_driver failed for booking ${bookingId} (booking saved, will retry on next paid transition):`,

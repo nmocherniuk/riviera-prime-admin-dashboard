@@ -1,5 +1,6 @@
 import type {
   ProcessableMessage,
+  WhatsAppIncomingMessage,
   WhatsAppReplyPayload,
 } from "./whatsapp.types.js";
 import { buildReplyPayload } from "./whatsapp.replyMessages.js";
@@ -121,10 +122,44 @@ export async function processMessage(
   message: ProcessableMessage,
 ): Promise<void> {
   const text = message.text?.trim();
+
   if (!text) {
     return;
   }
 
-  const response = buildReplyPayload(text);
+  const response = await buildReplyPayload(message);
   await sendReplyPayload(message.from, response);
+}
+
+export function extractFirstMessage(
+  body: unknown,
+): WhatsAppIncomingMessage | null {
+  if (!body || typeof body !== "object") return null;
+  const b = body as Record<string, unknown>;
+  const entry = b.entry;
+  if (!Array.isArray(entry) || entry.length === 0) return null;
+  const firstEntry = entry[0] as Record<string, unknown>;
+  const changes = firstEntry.changes;
+  if (!Array.isArray(changes) || changes.length === 0) return null;
+  const firstChange = changes[0] as Record<string, unknown>;
+  const value = firstChange.value as Record<string, unknown> | undefined;
+  if (!value) return null;
+  const messages = value.messages;
+  if (!Array.isArray(messages) || messages.length === 0) return null;
+  return messages[0] as WhatsAppIncomingMessage;
+}
+
+/** Text, reply button payload, або list row id. */
+export function incomingUserInput(msg: WhatsAppIncomingMessage): string | null {
+  const t = msg.type;
+  if (t === "interactive" && msg.interactive?.type === "list_reply") {
+    return msg.interactive.list_reply?.id?.trim() ?? null;
+  }
+  if (t === "button" && msg.button) {
+    const p = msg.button.payload?.trim();
+    const label = msg.button.text?.trim();
+    return p || label || null;
+  }
+  const body = msg.text?.body?.trim();
+  return body || null;
 }

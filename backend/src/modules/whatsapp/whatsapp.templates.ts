@@ -1,29 +1,19 @@
-/**
- * Outbound WhatsApp message templates (names must match WhatsApp Manager).
- */
-
 import {
-  sendInteractiveReplyWithMenu,
-  sendWhatsAppTemplate,
-} from "./whatsapp.service.js";
+  DEFAULT_LANGUAGE,
+  DEFAULT_TEMPLATE_NAME,
+} from "./whatsapp.constants.js";
+import { sendWhatsAppTemplate } from "./whatsapp.service.js";
 
 export type TripOfferDriverBodyParams = {
   clientName: string;
   tripType: string;
-
   fromRoute: string;
   toRoute: string;
-
   date: string;
   time: string;
-
   notesForDriver: string;
-
   amountOrExtra: string;
 };
-
-const DEFAULT_TEMPLATE_NAME = "trip_offer_driver";
-const DEFAULT_LANGUAGE = "en";
 
 function getTemplateName(): string {
   return (
@@ -40,6 +30,7 @@ function getTemplateLanguage(): string {
  * a follow-up interactive message with the driver menu (UX: return to app flow).
  */
 export async function sendTripOfferDriverTemplateWithMenu(
+  bookingId: string,
   toDigits: string,
   params: TripOfferDriverBodyParams,
 ): Promise<void> {
@@ -59,6 +50,18 @@ export async function sendTripOfferDriverTemplateWithMenu(
         { type: "text", text: params.notesForDriver },
         { type: "text", text: params.amountOrExtra },
       ],
+    },
+    {
+      type: "button",
+      sub_type: "quick_reply",
+      index: 0,
+      parameters: [{ type: "payload", payload: `REJECT_${bookingId}` }],
+    },
+    {
+      type: "button",
+      sub_type: "quick_reply",
+      index: 1,
+      parameters: [{ type: "payload", payload: `ACCEPT_${bookingId}` }],
     },
   ];
 
