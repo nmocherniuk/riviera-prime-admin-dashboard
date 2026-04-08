@@ -32,6 +32,13 @@ export async function deleteDriverById(id: string) {
   return prisma.drivers.delete({ where: { id } });
 }
 
+export async function updateDriverStatus(id: string, status: boolean) {
+  return prisma.drivers.update({
+    where: { id },
+    data: { status },
+  });
+}
+
 export async function findDriverByPhone(phone: string) {
   return prisma.drivers.findFirst({ where: { phone } });
 }

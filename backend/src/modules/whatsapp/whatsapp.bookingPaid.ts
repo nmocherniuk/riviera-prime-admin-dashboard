@@ -74,7 +74,7 @@ export async function notifyDriverBookingPaidIfNeeded(
 
   const booking = await findBookingForPaidNotify(bookingId);
 
-  const drivers = await Promise.all(
+  const allDrivers = await Promise.all(
     candidateDriverIds.map((d) => findDriverById(d.driverId)),
   );
 
@@ -82,15 +82,19 @@ export async function notifyDriverBookingPaidIfNeeded(
 
   if (booking.whatsappPaidTemplateSentAt) return;
 
+  const drivers = allDrivers.filter(
+    (d): d is NonNullable<typeof d> => d != null && d.status === true,
+  );
+
   if (!drivers.length) {
     console.warn(
-      `[WhatsApp] Skip trip_offer_driver: no driver found for booking ${bookingId}`,
+      `[WhatsApp] Skip trip_offer_driver: no online drivers for booking ${bookingId}`,
     );
     return;
   }
 
   const driverPhones = drivers.map((driver) => {
-    return normalizeWaTo(driver?.phone ?? "");
+    return normalizeWaTo(driver.phone ?? "");
   });
 
   const fromRoute = labelOrDash(booking.from);

@@ -85,6 +85,15 @@ export async function listBookings(filters?: {
   });
 }
 
+export async function listCompletedBookings(driverId: string, take = 6) {
+  return prisma.bookings.findMany({
+    where: { driverId, status: "COMPLETED" },
+    select: bookingPayloadSelect,
+    orderBy: { bookingAt: "desc" },
+    take,
+  });
+}
+
 export async function findBookingById(id: string) {
   return prisma.bookings.findUnique({
     where: { id },

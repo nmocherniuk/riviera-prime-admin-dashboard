@@ -6,6 +6,7 @@ import {
   findDriversByOrganizationId,
   findDriversByVehicleIdRepo,
   updateDriverRepo,
+  updateDriverStatus,
 } from "./driver.repository.js";
 import type { DriverData } from "./driver.types.js";
 
@@ -45,6 +46,10 @@ export async function deleteDriver(id: string) {
   await deleteDriverById(id);
 
   return row.id;
+}
+
+export async function setDriverOnlineStatus(id: string, online: boolean) {
+  return updateDriverStatus(id, online);
 }
 
 export async function getDriverByPhone(phone: string) {

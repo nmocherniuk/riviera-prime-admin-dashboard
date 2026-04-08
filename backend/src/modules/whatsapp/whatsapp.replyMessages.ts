@@ -1,5 +1,6 @@
 import {
   findBookingById,
+  listCompletedBookings,
   parseCandidateDriverIdsJson,
 } from "../booking/booking.repository.js";
 import {
@@ -7,7 +8,7 @@ import {
   listBookingsService,
   updateBookingService,
 } from "../booking/booking.service.js";
-import { getDriverByPhone } from "../driver/driver.service.js";
+import { getDriverByPhone, setDriverOnlineStatus } from "../driver/driver.service.js";
 import { formatBookingDateTimeZone } from "./formatBookingTime.js";
 import type {
   ProcessableMessage,
@@ -49,15 +50,14 @@ function formatTripDate(date: Date): string {
 async function buildTripsListReply(
   driverId: string,
 ): Promise<WhatsAppReplyPayload> {
-  const trips = await listBookingsService({ driverId });
+  const all = await listBookingsService({ driverId });
+  const trips = all.filter((t) => t.status === "assigned");
 
   if (trips.length === 0) {
-    return { body: "🚗 No trips found" };
+    return { body: "🚗 No assigned trips." };
   }
 
   const total = trips.length;
-  const active = trips.filter((t) => t.status === "assigned").length;
-  const upcoming = trips.filter((t) => t.status === "pending").length;
 
   const rows = trips.slice(0, 10).map((trip) => ({
     id: `TRIP_${trip.id}`.slice(0, 200),
@@ -66,10 +66,9 @@ async function buildTripsListReply(
   }));
 
   const bodyText = [
-    "🚗 Your trips",
+    "🚗 Your assigned trips",
     "",
     `Total: ${total}`,
-    `Active: ${active} • Upcoming: ${upcoming}`,
     "",
     "Select a trip to view details",
   ].join("\n");
@@ -219,6 +218,39 @@ export async function buildReplyPayload(
     return handleStartTrip(message, bookingId);
   }
 
+  if (text?.startsWith("COMPLETE_")) {
+    const bookingId = text.slice("COMPLETE_".length).trim();
+    if (!bookingId) {
+      return { body: "Trip ID not specified." };
+    }
+
+    const booking = await findBookingById(bookingId);
+    if (!booking) {
+      return { body: "Trip not found." };
+    }
+
+    const driver = await getDriverByPhone(message.from);
+    if (!driver) {
+      return { body: "Driver not found." };
+    }
+
+    if (booking.driverId !== driver.id) {
+      return { body: "This trip is not assigned to you." };
+    }
+
+    if (booking.status === "COMPLETED") {
+      return { body: "This trip is already completed." };
+    }
+
+    if (booking.status !== "IN_PROGRESS") {
+      return { body: "Only an in-progress trip can be completed." };
+    }
+
+    await updateBookingService(bookingId, { status: "completed" });
+
+    return { body: "✅ Trip completed!\nThank you for a safe ride." };
+  }
+
   if (text?.startsWith("ACCEPT")) {
     const bookingId = parseAcceptBookingIdFromListRow(text);
 
@@ -362,7 +394,7 @@ export async function buildReplyPayload(
 
     const { date, time } = formatBookingDateTimeZone(new Date(current.bookingAt));
 
-    const body = [
+    const bodyText = [
       `📍 *Current Trip*`,
       ``,
       `*Client:* ${current.clientName} (${current.clientPhone})`,
@@ -374,7 +406,19 @@ export async function buildReplyPayload(
       `*Notes:* ${current.notesForDriver || "-"}`,
     ].join("\n");
 
-    return { body };
+    return {
+      body: bodyText,
+      interactive: {
+        type: "button",
+        body: { text: bodyText },
+        action: {
+          buttons: [
+            { type: "reply", reply: { id: `COMPLETE_${current.id}`, title: "✅ Complete Trip" } },
+            { type: "reply", reply: { id: "MENU_MAIN", title: "📋 Menu" } },
+          ],
+        },
+      },
+    };
   }
 
   if (text === "EARNING") {
@@ -423,15 +467,53 @@ Available for Airport Transfers: ${driver.acceptsAirportTransfers ? "✅" : "❌
     return { body: profileMessage };
   }
   if (text === "HISTORY") {
-    return { body: WHATSAPP_REPLY_MESSAGES.history };
+    const driver = await getDriverByPhone(message.from);
+    if (!driver) {
+      return { body: "Driver not found." };
+    }
+
+    const completed = await listCompletedBookings(driver.id);
+
+    if (completed.length === 0) {
+      return { body: "🔍 No completed trips yet." };
+    }
+
+    const lines = completed.map((t, idx) => {
+      const { date, time } = formatBookingDateTimeZone(new Date(t.bookingAt));
+      return [
+        `*${idx + 1}.* ${t.from} → ${t.to}`,
+        `   ${date} ${time} • ${t.vehicle?.vehicleName ?? "-"}`,
+        `   ${t.clientName} • ${t.durationMin} min`,
+      ].join("\n");
+    });
+
+    const body = [`🔍 *Trip History* (last ${completed.length})`, ...lines].join("\n\n");
+
+    return { body };
   }
   if (text === "HELP") {
     return { body: WHATSAPP_REPLY_MESSAGES.help };
   }
   if (text === "ONLINE") {
+    const driver = await getDriverByPhone(message.from);
+    if (!driver) {
+      return { body: "Driver not found." };
+    }
+    if (driver.status === true) {
+      return { body: "🟢 You are already online." };
+    }
+    await setDriverOnlineStatus(driver.id, true);
     return { body: WHATSAPP_REPLY_MESSAGES.online };
   }
   if (text === "OFFLINE") {
+    const driver = await getDriverByPhone(message.from);
+    if (!driver) {
+      return { body: "Driver not found." };
+    }
+    if (driver.status === false) {
+      return { body: "🔴 You are already offline." };
+    }
+    await setDriverOnlineStatus(driver.id, false);
     return { body: WHATSAPP_REPLY_MESSAGES.offline };
   }
 
@@ -452,9 +534,9 @@ Available for Airport Transfers: ${driver.acceptsAirportTransfers ? "✅" : "❌
     };
   }
 
-  if (lower === "help" || lower === "допомога" || lower === "?") {
-    return { body: WHATSAPP_REPLY_MESSAGES.help };
-  }
+  // if (lower === "help" || lower === "допомога" || lower === "?") {
+  //   return { body: WHATSAPP_REPLY_MESSAGES.help };
+  // }
 
   return {
     body: WHATSAPP_REPLY_MESSAGES.defaultEcho.replace(
