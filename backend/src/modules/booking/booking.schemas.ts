@@ -4,6 +4,11 @@ export const bookingIdParamsSchema = z.object({
   id: z.string().uuid(),
 });
 
+/** GET /api/public/bookings/:bookingId */
+export const publicBookingIdParamsSchema = z.object({
+  bookingId: z.string().uuid(),
+});
+
 export const bookingListQuerySchema = z.object({
   driverId: z.string().uuid().optional(),
   vehicleId: z.string().uuid().optional(),

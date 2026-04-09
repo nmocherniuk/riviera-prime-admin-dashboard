@@ -447,6 +447,7 @@ export async function buildReplyPayload(
 *Phone:* ${driver.phone}
 *Email:* ${driver.email ?? "-"}
 *Address:* ${driver.address ?? "-"}
+*Status:* ${driver.status ? "🟢 Online" : "🔴 Offline"}
 
 📄 *Documents*
 Driver License: ${driver.driverLicenseProvided ? "✅" : "❌"}

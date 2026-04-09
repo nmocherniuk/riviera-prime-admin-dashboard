@@ -177,6 +177,43 @@ export async function getBookingByIdService(id: string) {
   return toPublicBooking(row);
 }
 
+const DEFAULT_PER_HOUR_EUR = 120;
+
+/** Hourly estimate from vehicle pricing (no distance in DB). */
+async function estimateBookingPriceEur(row: BookingWithRelations): Promise<number> {
+  const hours = row.durationMin / 60;
+  let perHour = DEFAULT_PER_HOUR_EUR;
+  const vehicleId =
+    row.vehicleId && row.vehicleId.trim() !== "" ? row.vehicleId : null;
+  if (vehicleId) {
+    const pricing = await prisma.vehiclePricings.findUnique({
+      where: { vehicleId },
+    });
+    if (pricing) perHour = Number(pricing.perHour);
+  }
+  const raw = hours * perHour;
+  return Math.round(raw * 100) / 100;
+}
+
+export type PublicBookingForPayment = PublicBooking & {
+  price: number;
+  totalPrice: number;
+};
+
+/** For Stripe / payment links: authoritative amount from server (not client). */
+export async function getPublicBookingForPaymentService(
+  id: string,
+): Promise<PublicBookingForPayment | null> {
+  const row = await findBookingById(id);
+  if (!row) return null;
+  const price = await estimateBookingPriceEur(row);
+  return {
+    ...toPublicBooking(row),
+    price,
+    totalPrice: price,
+  };
+}
+
 /**
  * Public landing: always pending, no driver — ops assign in dashboard.
  * Reuses WhatsApp paid notification when paymentStatus is paid.
