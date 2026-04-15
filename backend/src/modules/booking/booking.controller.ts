@@ -4,6 +4,7 @@ import {
   createBookingService,
   deleteBookingService,
   getBookingByIdService,
+  listDriverBookingsGroupedService,
   listBookingsService,
   updateBookingService,
 } from "./booking.service.js";
@@ -33,6 +34,20 @@ export async function getBookingByIdController(req: AuthedRequest, res: Response
     return res.json({ booking });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Get failed";
+    return res.status(500).json({ message });
+  }
+}
+
+export async function listDriverBookingsGroupedController(
+  req: AuthedRequest,
+  res: Response,
+) {
+  try {
+    const { driverId } = req.query as { driverId: string };
+    const grouped = await listDriverBookingsGroupedService(driverId);
+    return res.json(grouped);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "List failed";
     return res.status(500).json({ message });
   }
 }

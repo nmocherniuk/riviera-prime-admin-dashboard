@@ -18,6 +18,7 @@ import {
   notifyDriversNewBooking,
   notifyDriverBookingPaidIfNeeded,
 } from "../whatsapp/whatsapp.bookingPaid.js";
+import { sendBookingPendingEmail } from "./booking.emails.js";
 import {
   toDbVehicleClass,
   toPublicVehicleClass,
@@ -62,6 +63,7 @@ export type PublicBooking = {
   durationMin: number;
   status: PublicBookingStatus;
   paymentStatus: PublicPaymentStatus;
+  driverResponseDeadline: Date | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -109,9 +111,50 @@ function toPublicBooking(row: BookingWithRelations): PublicBooking {
     durationMin: row.durationMin,
     status: toPublicStatus(row.status),
     paymentStatus: toPublicPaymentStatus(row.paymentStatus),
+    driverResponseDeadline: row.driverResponseDeadline ?? null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
+}
+
+function endOfDay(d: Date): Date {
+  const e = new Date(d);
+  e.setHours(23, 59, 59, 999);
+  return e;
+}
+
+/**
+ * Dynamic deadline for driver response.
+ * Keeps backward-compatible statuses by applying logic on PENDING offers.
+ */
+export function computeDriverResponseDeadline(bookingAt: Date): Date {
+  const now = new Date();
+  const minBufferMs = 5 * 60_000;
+  const minAllowed = new Date(now.getTime() + minBufferMs);
+  const diffMs = bookingAt.getTime() - now.getTime();
+  const diffHours = diffMs / 3_600_000;
+
+  let candidate: Date;
+  if (diffHours <= 2) {
+    candidate = new Date(now.getTime() + 13 * 60_000);
+  } else {
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const isToday = bookingAt <= endOfDay(now);
+    const isTomorrow =
+      bookingAt >= new Date(tomorrow.setHours(0, 0, 0, 0)) &&
+      bookingAt <= endOfDay(tomorrow);
+
+    if (isToday) {
+      candidate = new Date(now.getTime() + 60 * 60_000);
+    } else if (isTomorrow) {
+      candidate = new Date(now.getTime() + 6 * 60 * 60_000);
+    } else {
+      candidate = new Date(bookingAt.getTime() - 72 * 60 * 60_000);
+    }
+  }
+
+  return candidate < minAllowed ? minAllowed : candidate;
 }
 
 /** When frontend sends only vehicleId, attach the vehicle owner as driver. */
@@ -172,6 +215,40 @@ export async function listBookingsService(filters?: {
 }) {
   const rows = await listBookings(filters);
   return rows.map(toPublicBooking);
+}
+
+export type GroupedDriverBookings = {
+  paid: PublicBooking[];
+  unpaid: PublicBooking[];
+  pending: PublicBooking[];
+};
+
+export async function listDriverBookingsGroupedService(
+  driverId: string,
+): Promise<GroupedDriverBookings> {
+  const rows = await listBookings();
+  const mapped = rows.map(toPublicBooking);
+  const rowsById = new Map(rows.map((r) => [r.id, r]));
+
+  const pending = mapped.filter((b) => {
+    if (b.status !== "pending") return false;
+    if (b.driverId === driverId) return true;
+    const row = rowsById.get(b.id);
+    if (!row) return false;
+    const candidates = parseCandidateDriverIdsJson(row.candidateDriverIds);
+    return candidates.some(
+      (c) => c.driverId === driverId && c.status.toLowerCase() === "pending",
+    );
+  });
+
+  const acceptedForDriver = mapped.filter(
+    (b) => b.status === "assigned" && b.driverId === driverId,
+  );
+
+  const paid = acceptedForDriver.filter((b) => b.paymentStatus === "paid");
+  const unpaid = acceptedForDriver.filter((b) => b.paymentStatus === "unpaid");
+
+  return { paid, unpaid, pending };
 }
 
 export async function getBookingByIdService(id: string) {
@@ -301,6 +378,7 @@ export async function createBookingService(input: CreateBookingServiceInput) {
     durationMin: input.durationMin,
     status: toDbStatus(input.status),
     paymentStatus: toDbPaymentStatus(input.paymentStatus),
+    driverResponseDeadline: computeDriverResponseDeadline(new Date(input.bookingAt)),
     candidateDriverIds: drivers.map((driver) => {
       return { driverId: driver.id, status: "pending" };
     }),
@@ -310,6 +388,18 @@ export async function createBookingService(input: CreateBookingServiceInput) {
     created.id,
     parseCandidateDriverIdsJson(created.candidateDriverIds),
   );
+
+  if (created.status === "PENDING" && created.clientEmail) {
+    void sendBookingPendingEmail({
+      bookingId: created.id,
+      clientName: created.clientName,
+      clientEmail: created.clientEmail,
+      from: created.from,
+      to: created.to,
+      bookingAt: created.bookingAt,
+      durationMin: created.durationMin,
+    });
+  }
 
   return toPublicBooking(created);
 }

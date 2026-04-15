@@ -14,6 +14,10 @@ export const bookingListQuerySchema = z.object({
   vehicleId: z.string().uuid().optional(),
 });
 
+export const driverBookingsGroupedQuerySchema = z.object({
+  driverId: z.string().uuid(),
+});
+
 const publicVehicleClassEnum = z.enum(["comfort", "business", "van"]);
 
 const baseBookingFields = {

@@ -17,6 +17,7 @@ export type Booking = {
   driverId?: string;
   driverName?: string;
   paymentStatus?: PaymentStatus;
+  driverResponseDeadline?: string;
 };
 
 /** Single-line label for lists and calendar (e.g. "A → B"). */

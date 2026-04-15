@@ -1,5 +1,6 @@
 import {
   findBookingById,
+  listBookings as listBookingsRows,
   listCompletedBookings,
   parseCandidateDriverIdsJson,
 } from "../booking/booking.repository.js";
@@ -51,31 +52,53 @@ function formatTripDate(date: Date): string {
   return `${d} ${time}`;
 }
 
+function formatDeadlineTime(date: Date | null | undefined): string {
+  if (!date) return "—";
+  const d = new Date(date);
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  return `${hh}:${mm}`;
+}
+
 async function buildTripsListReply(
   driverId: string,
 ): Promise<WhatsAppReplyPayload> {
   const all = await listBookingsService({ driverId });
   const trips = all.filter((t) => t.status === "assigned");
+  const paidTrips = trips.filter((t) => t.paymentStatus === "paid");
+  const unpaidTrips = trips.filter((t) => t.paymentStatus === "unpaid");
 
   if (trips.length === 0) {
     return { body: "🚗 No assigned trips." };
   }
 
-  const total = trips.length;
-
-  const rows = trips.slice(0, 10).map((trip) => ({
+  const rowsPaid = paidTrips.slice(0, 10).map((trip) => ({
     id: `TRIP_${trip.id}`.slice(0, 200),
     title: `${trip.from} → ${trip.to}`.slice(0, 24),
-    description: `${formatTripDate(trip.bookingAt)} • ${trip.vehicleName ?? "No vehicle"}`.slice(0, 72),
+    description: `${formatTripDate(trip.bookingAt)} • Confirmed`.slice(0, 72),
+  }));
+  const rowsUnpaid = unpaidTrips.slice(0, 10).map((trip) => ({
+    id: `TRIP_${trip.id}`.slice(0, 200),
+    title: `${trip.from} → ${trip.to}`.slice(0, 24),
+    description: `${formatTripDate(trip.bookingAt)} • Awaiting payment`.slice(0, 72),
   }));
 
   const bodyText = [
-    "🚗 Your assigned trips",
+    "🚗 My trips",
     "",
-    `Total: ${total}`,
+    `✅ Paid: ${paidTrips.length}`,
+    `💰 Awaiting payment: ${unpaidTrips.length}`,
     "",
     "Select a trip to view details",
   ].join("\n");
+
+  const sections: Array<{
+    title: string;
+    rows: Array<{ id: string; title: string; description: string }>;
+  }> = [];
+  if (rowsPaid.length) sections.push({ title: "✅ Paid Trips", rows: rowsPaid });
+  if (rowsUnpaid.length)
+    sections.push({ title: "💰 Awaiting Payment", rows: rowsUnpaid });
 
   return {
     body: bodyText,
@@ -84,19 +107,69 @@ async function buildTripsListReply(
       body: { text: bodyText },
       action: {
         button: "View trips",
-        sections: [{ title: "Trips", rows }, {
-          title: "Navigation",
-          rows: [
-            {
-              id: "MENU_MAIN",
-              title: "⬅ Back to menu",
-              description: "",
-            },
-          ],
-        }],
+        sections: [
+          ...sections,
+          {
+            title: "Navigation",
+            rows: [
+              {
+                id: "PENDING_TRIPS",
+                title: "📋 Pending Trips",
+                description: "Awaiting your response",
+              },
+              {
+                id: "MENU_MAIN",
+                title: "⬅ Back to menu",
+                description: "",
+              },
+            ],
+          },
+        ],
       },
     },
 
+  };
+}
+
+async function buildPendingTripsReply(
+  driverId: string,
+): Promise<WhatsAppReplyPayload> {
+  const all = await listBookingsRows();
+  const now = Date.now();
+  const pending = all.filter((t) => {
+    if (t.status !== "PENDING") return false;
+    if (t.driverId === driverId) return true;
+    const rowCandidates = parseCandidateDriverIdsJson(t.candidateDriverIds);
+    return rowCandidates.some(
+      (c) => c.driverId === driverId && c.status.toLowerCase() === "pending",
+    );
+  });
+
+  const activePending = pending.filter((t) => {
+    if (!t.driverResponseDeadline) return true;
+    return new Date(t.driverResponseDeadline).getTime() > now;
+  });
+
+  if (!activePending.length) {
+    return { body: "📋 No pending trips requiring response." };
+  }
+
+  const rows = activePending.slice(0, 10).map((trip) => ({
+    id: `PENDING_${trip.id}`.slice(0, 200),
+    title: `${trip.from} → ${trip.to}`.slice(0, 24),
+    description: `Accept until: ${formatDeadlineTime(trip.driverResponseDeadline ?? null)}`.slice(
+      0,
+      72,
+    ),
+  }));
+
+  return {
+    body: "📋 Pending Trips\nSelect a trip to ACCEPT or REJECT",
+    interactive: {
+      type: "list",
+      body: { text: "📋 Pending Trips\nSelect a trip to ACCEPT or REJECT" },
+      action: { button: "Pending trips", sections: [{ title: "Pending", rows }] },
+    },
   };
 }
 
@@ -182,6 +255,12 @@ async function handleStartTrip(
     return { body: "This trip cannot be started (current status: " + booking.status.toLowerCase() + ")." };
   }
 
+  if (booking.paymentStatus !== "PAID") {
+    return {
+      body: "This trip is still unpaid. Start is allowed only after payment confirmation.",
+    };
+  }
+
   if (!canStartTrip(booking.bookingAt)) {
 
     return {
@@ -212,6 +291,39 @@ export async function buildReplyPayload(
       return { body: "Trip ID not specified." };
     }
     return buildTripDetailReply(bookingId);
+  }
+
+  if (text?.startsWith("PENDING_")) {
+    const bookingId = text.slice("PENDING_".length).trim();
+    if (!bookingId) {
+      return { body: "Trip ID not specified." };
+    }
+    const booking = await findBookingById(bookingId);
+    if (!booking) {
+      return { body: "Trip not found." };
+    }
+
+    const { date, time } = formatBookingDateTimeZone(new Date(booking.bookingAt));
+    const body = [
+      `🚗 Trip: ${booking.from} → ${booking.to}`,
+      `📅 Time: ${date} ${time}`,
+      `⏳ Accept until: ${formatDeadlineTime(booking.driverResponseDeadline ?? null)}`,
+    ].join("\n");
+
+    return {
+      body,
+      interactive: {
+        type: "button",
+        body: { text: body },
+        action: {
+          buttons: [
+            { type: "reply", reply: { id: `ACCEPT_${booking.id}`, title: "✅ ACCEPT" } },
+            { type: "reply", reply: { id: `REJECT_${booking.id}`, title: "❌ REJECT" } },
+            { type: "reply", reply: { id: "PENDING_TRIPS", title: "📋 Pending Trips" } },
+          ],
+        },
+      },
+    };
   }
 
   if (text?.startsWith("START_")) {
@@ -275,6 +387,23 @@ export async function buildReplyPayload(
       const driver = await getDriverByPhone(message.from);
       if (!driver) {
         return { body: "Driver not found." };
+      }
+
+      if (
+        booking.driverResponseDeadline &&
+        new Date(booking.driverResponseDeadline).getTime() <= Date.now()
+      ) {
+        const candidates = parseCandidateDriverIdsJson(booking.candidateDriverIds);
+        const nextCandidates = candidates.map((d) =>
+          d.driverId === driver.id ? { ...d, status: "rejected" } : d,
+        );
+        const allRejected = nextCandidates.every((d) => d.status === "rejected");
+        await updateBookingService(bookingId, {
+          status: allRejected ? "cancelled" : "pending",
+          driverId: null,
+          candidateDriverIds: nextCandidates,
+        });
+        return { body: "Offer expired. Response deadline has passed." };
       }
 
       if (booking.driverId === driver.id) {
@@ -455,6 +584,14 @@ export async function buildReplyPayload(
       return { body: "Driver not found." };
     }
     return buildTripsListReply(driver.id);
+  }
+
+  if (text === "PENDING_TRIPS") {
+    const driver = await getDriverByPhone(message.from);
+    if (!driver) {
+      return { body: "Driver not found." };
+    }
+    return buildPendingTripsReply(driver.id);
   }
 
   if (text === "PROFILE") {

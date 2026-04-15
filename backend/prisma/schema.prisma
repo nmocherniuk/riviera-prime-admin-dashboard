@@ -8,12 +8,303 @@ datasource db {
 }
 
 model Users {
-  id        String   @id @default(uuid())
-  email     String   @unique
+  id           String   @id @default(uuid())
+  email        String   @unique
   passwordHash String
-  name      String
-  role      Role
+  name         String
+  role         Role
+  createdAt    DateTime @default(now())
+}
+
+model Organizations {
+  id               String                        @id @default(uuid())
+  email            String                        @unique
+  phone            String                        @unique
+  contactPerson    String
+  status           Boolean
+  type             OrganizationType
+  createdAt        DateTime                      @default(now())
+  serviceAreas     String                        @default("")
+  organizationName String
+  chauffeurDetails ChauffeurOrganizationDetails?
+  drivers          Drivers[]
+  securityAgents   SecurityAgents[]
+  securityDetails  SecurityOrganizationDetails?
+  vehicles         Vehicles[]
+
+  @@index([type])
+}
+
+model ChauffeurOrganizationDetails {
+  id                         String           @id @default(uuid())
+  organizationId             String           @unique
+  legalForm                  String?
+  sirenOrSiret               String?
+  vatNumber                  String?
+  registrationDate           DateTime?
+  registrationCountry        String?          @default("France")
+  registeredAddress          String?
+  mailingAddress             String?
+  sameAsRegisteredAddress    Boolean          @default(false)
+  websiteUrl                 String?
+  directorFullName           String?
+  directorPosition           String?
+  kbisUploaded               Boolean          @default(false)
+  rcProInsuranceUploaded     Boolean          @default(false)
+  transportInsuranceUploaded Boolean          @default(false)
+  operatingLicenseProvided   Boolean          @default(false)
+  bankDetailsProvided        Boolean          @default(false)
+  directorIdCopyProvided     Boolean          @default(false)
+  signedPartnershipAgreement Boolean          @default(false)
+  additionalCertifications   String?
+  documentNotes              String?
+  serviceTypes               String[]         @default([])
+  workingHours               String?
+  support24_7                Boolean          @default(false)
+  languagesSpoken            String[]         @default([])
+  maxConcurrentBookings      Int?
+  minAdvanceBookingHours     Int?
+  acceptsUrgentBookings      Boolean          @default(false)
+  cancellationPolicy         String?
+  specialConditionsNotes     String?
+  cooperationType            CooperationType?
+  bankAccountIban            String?
+  paymentTerms               String?
+  commissionPercent          Decimal?         @db.Decimal(5, 2)
+  currency                   String?          @default("EUR")
+  minimumFare                Decimal?         @db.Decimal(10, 2)
+  hourlyRate                 Decimal?         @db.Decimal(10, 2)
+  transferBaseRate           Decimal?         @db.Decimal(10, 2)
+  nightSurchargePercent      Decimal?         @db.Decimal(5, 2)
+  holidaySurchargePercent    Decimal?         @db.Decimal(5, 2)
+  waitingTimeFee             Decimal?         @db.Decimal(10, 2)
+  createdAt                  DateTime         @default(now())
+  updatedAt                  DateTime         @updatedAt
+  organization               Organizations    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+}
+
+model Drivers {
+  id                         String            @id @default(uuid())
+  organizationId             String
+  name                       String
+  vehicle                    String
+  vehiclePlate               String
+  vehicleColor               String
+  status                     Boolean           @default(true)
+  rides                      Int               @default(0)
+  todayShift                 String            @default("")
+  createdAt                  DateTime          @default(now())
+  updatedAt                  DateTime          @updatedAt
+  acceptsAirportTransfers    Boolean           @default(false)
+  acceptsLongDistance        Boolean           @default(false)
+  acceptsNightTrips          Boolean           @default(false)
+  acceptsVipClients          Boolean           @default(false)
+  address                    String?
+  availabilityDays           String[]          @default([])
+  availabilityHours          String?
+  baseCity                   String?
+  birthDate                  DateTime?
+  criminalRecordProvided     Boolean           @default(false)
+  dressCodeReady             Boolean           @default(false)
+  driverLicenseNumber        String?
+  driverLicenseProvided      Boolean           @default(false)
+  drivingExperienceYears     Int?
+  email                      String?
+  emergencyContact           String?
+  employmentStatus           EmploymentStatus?
+  hasEventExperience         Boolean           @default(false)
+  hasOwnVehicle              Boolean           @default(false)
+  hasVipExperience           Boolean           @default(false)
+  insuranceProofProvided     Boolean           @default(false)
+  languageLevel              String?
+  languages                  String[]          @default([])
+  licenseCategory            String?
+  licenseExpiresAt           DateTime?
+  licenseIssuedAt            DateTime?
+  medicalCertificateProvided Boolean           @default(false)
+  nationality                String?
+  passportProvided           Boolean           @default(false)
+  phone                      String?
+  profilePhotoProvided       Boolean           @default(false)
+  signedContractProvided     Boolean           @default(false)
+  vtcCardExpiresAt           DateTime?
+  vtcCardIssuedAt            DateTime?
+  vtcCardNumber              String?
+  vtcCardProvided            Boolean           @default(false)
+  workingRadiusKm            Int?
+  bookings                   Bookings[]
+  organization               Organizations     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  vehicles                   Vehicles[]        @relation("DriversToVehicles")
+
+  @@index([organizationId])
+}
+
+model Vehicles {
+  id             String           @id @default(uuid())
+  organizationId String?
+  vehicleName    String
+  licensePlate   String           @unique
+  class          VehicleClass
+  status         VehicleStatus    @default(ACTIVE)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  year           String
+  color          String
+  bookings       Bookings[]
+  pricing        VehiclePricings?
+  organization   Organizations?   @relation(fields: [organizationId], references: [id])
+  drivers        Drivers[]        @relation("DriversToVehicles")
+
+  @@index([organizationId])
+}
+
+model VehiclePricings {
+  id        String   @id @default(uuid())
+  vehicleId String   @unique
+  perHour   Decimal  @db.Decimal(10, 2)
+  perKm     Decimal  @db.Decimal(10, 2)
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  vehicle   Vehicles @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+}
+
+model Bookings {
+  id                         String        @id @default(uuid())
+  clientName                 String
+  vehicleId                  String?       @default("")
+  driverId                   String?
+  bookingAt                  DateTime
+  durationMin                Int           @default(60)
+  status                     BookingStatus @default(PENDING)
+  paymentStatus              PaymentStatus @default(UNPAID)
+  driverResponseDeadline     DateTime?
+  createdAt                  DateTime      @default(now())
+  updatedAt                  DateTime      @updatedAt
+  whatsappPaidTemplateSentAt DateTime?
+  from                       String
+  to                         String
+  vehicleClass               VehicleClass?
+  clientEmail                String
+  clientPhone                String
+  tripType                   String
+  notesForDriver             String        @default("")
+  /// * Candidate drivers with offer statuses, e.g. [{ driverId, status }].
+  candidateDriverIds         Json          @default("[]")
+  stripePaymentIntentId      String?       @unique
+  driver                     Drivers?      @relation(fields: [driverId], references: [id])
+  vehicle                    Vehicles?     @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@index([vehicleId])
+  @@index([driverId])
+  @@index([bookingAt])
+}
+
+model SecurityOrganizationDetails {
+  id                         String        @id @default(uuid())
+  organizationId             String        @unique
+  legalForm                  String?
+  sirenOrSiret               String?
+  licenseNumber              String?
+  cnapsNumber                String?
+  registrationDate           DateTime?
+  registeredAddress          String?
+  officeAddress              String?
+  websiteUrl                 String?
+  companyPhoneNumber         String?
+  directorFullName           String?
+  kbisUploaded               Boolean       @default(false)
+  licenseUploaded            Boolean       @default(false)
+  rcProInsuranceUploaded     Boolean       @default(false)
+  cnapsAuthorizationUploaded Boolean       @default(false)
+  bankDetailsProvided        Boolean       @default(false)
+  directorIdCopyProvided     Boolean       @default(false)
+  signedPartnershipAgreement Boolean       @default(false)
+  additionalCertifications   String?
+  serviceTypes               String[]      @default([])
+  support24_7                Boolean       @default(false)
+  minBookingHours            Int?
+  mobilizationTimeMinutes    Int?
+  agentsCount                Int?
+  languagesSpoken            String[]      @default([])
+  hasTeamLeader              Boolean       @default(false)
+  armedPersonnelAllowed      Boolean       @default(false)
+  unarmedPersonnelAllowed    Boolean       @default(true)
+  internationalMissions      Boolean       @default(false)
+  specialRequirements        String?
+  hourlyRate                 Decimal?      @db.Decimal(10, 2)
+  dailyRate                  Decimal?      @db.Decimal(10, 2)
+  nightRate                  Decimal?      @db.Decimal(10, 2)
+  eventRate                  Decimal?      @db.Decimal(10, 2)
+  executiveProtectionRate    Decimal?      @db.Decimal(10, 2)
+  minimumBookingAmount       Decimal?      @db.Decimal(10, 2)
+  commissionPercent          Decimal?      @db.Decimal(5, 2)
+  paymentTerms               String?
+  bankAccountIban            String?
+  currency                   String?       @default("EUR")
+  createdAt                  DateTime      @default(now())
+  updatedAt                  DateTime      @updatedAt
+  organization               Organizations @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+}
+
+model SecurityAgents {
+  id                          String            @id @default(uuid())
+  organizationId              String
+  firstName                   String
+  lastName                    String
+  birthDate                   DateTime?
+  nationality                 String?
+  profilePhotoUrl             String?
+  phone                       String?
+  email                       String?
+  address                     String?
+  languages                   String[]          @default([])
+  emergencyContact            String?
+  employmentStatus            EmploymentStatus?
+  professionalCardNumber      String?
+  cnapsNumber                 String?
+  cardIssuedAt                DateTime?
+  cardExpiresAt               DateTime?
+  specializations             String[]          @default([])
+  experienceYears             Int?
+  hasVipExperience            Boolean           @default(false)
+  hasEventExperience          Boolean           @default(false)
+  hasDriverLicenseB           Boolean           @default(false)
+  additionalLicenses          String?
+  physicalLevel               PhysicalLevel?
+  hasFirstAidTraining         Boolean           @default(false)
+  weaponExperience            Boolean           @default(false)
+  readyForTravel              Boolean           @default(false)
+  readyForNightShifts         Boolean           @default(false)
+  passportProvided            Boolean           @default(false)
+  professionalCardProvided    Boolean           @default(false)
+  cnapsProvided               Boolean           @default(false)
+  cvProvided                  Boolean           @default(false)
+  certificatesProvided        Boolean           @default(false)
+  firstAidCertificateProvided Boolean           @default(false)
+  driverLicenseProvided       Boolean           @default(false)
+  backgroundCheckProvided     Boolean           @default(false)
+  profilePhotoProvided        Boolean           @default(false)
+  signedContractProvided      Boolean           @default(false)
+  baseCity                    String?
+  workingRadiusKm             Int?
+  availability                String?
+  hourlyRate                  Decimal?          @db.Decimal(10, 2)
+  dailyRate                   Decimal?          @db.Decimal(10, 2)
+  nightRate                   Decimal?          @db.Decimal(10, 2)
+  canWorkInTeam               Boolean           @default(true)
+  canTravelWithClient         Boolean           @default(true)
+  canDoDriverSecurity         Boolean           @default(false)
+  notes                       String?
+  createdAt                   DateTime          @default(now())
+  updatedAt                   DateTime          @updatedAt
+  status                      Boolean           @default(true)
+  organization                Organizations     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
 }
 
 enum Role {
@@ -28,86 +319,6 @@ enum OrganizationType {
   SECURITY
 }
 
-model Organizations {
-  id             String           @id @default(uuid())
-  organizationName          String
-  email          String           @unique
-  phone          String           @unique
-  contactPerson  String
-  serviceAreas    String           @default("")
-  status         Boolean
-  type           OrganizationType
-  createdAt      DateTime         @default(now())
-
-
-  drivers        Drivers[]
-  vehicles       Vehicles[]
-  chauffeurDetails  ChauffeurOrganizationDetails?
-  securityDetails   SecurityOrganizationDetails?
-  securityAgents    SecurityAgents[]
-
-  @@index([type])
-}
-
-model ChauffeurOrganizationDetails {
-  id                            String         @id @default(uuid())
-  organizationId                String         @unique
-  organization                  Organizations  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  // Company Information
-  legalForm                     String?
-  sirenOrSiret                  String?
-  vatNumber                     String?
-  registrationDate              DateTime?
-  registrationCountry           String?        @default("France")
-  registeredAddress             String?
-  mailingAddress                String?
-  sameAsRegisteredAddress       Boolean        @default(false)
-  websiteUrl                    String?
-  directorFullName              String?
-  directorPosition              String?
-
-  // Documents metadata
-  kbisUploaded                  Boolean        @default(false)
-  rcProInsuranceUploaded        Boolean        @default(false)
-  transportInsuranceUploaded    Boolean        @default(false)
-  operatingLicenseProvided      Boolean        @default(false)
-  bankDetailsProvided           Boolean        @default(false)
-  directorIdCopyProvided        Boolean        @default(false)
-  signedPartnershipAgreement    Boolean        @default(false)
-  additionalCertifications      String?
-  documentNotes                 String?
-
-  // Operations
-  serviceTypes                  String[]       @default([])
-  workingHours                  String?
-  support24_7                   Boolean        @default(false)
-  languagesSpoken               String[]       @default([])
-  maxConcurrentBookings         Int?
-  minAdvanceBookingHours        Int?
-  acceptsUrgentBookings         Boolean        @default(false)
-  cancellationPolicy            String?
-  specialConditionsNotes        String?
-
-  // Commercial & Financial
-  cooperationType               CooperationType?
-  bankAccountIban               String?
-  paymentTerms                  String?
-  commissionPercent             Decimal?       @db.Decimal(5, 2)
-  currency                      String?        @default("EUR")
-  minimumFare                   Decimal?       @db.Decimal(10, 2)
-  hourlyRate                    Decimal?       @db.Decimal(10, 2)
-  transferBaseRate              Decimal?       @db.Decimal(10, 2)
-  nightSurchargePercent         Decimal?       @db.Decimal(5, 2)
-  holidaySurchargePercent       Decimal?       @db.Decimal(5, 2)
-  waitingTimeFee                Decimal?       @db.Decimal(10, 2)
-
-  createdAt                     DateTime       @default(now())
-  updatedAt                     DateTime       @updatedAt
-
-  @@index([organizationId])
-}
-
 enum CooperationType {
   COMMISSION
   FIXED_RATE
@@ -118,74 +329,6 @@ enum EmploymentStatus {
   EMPLOYEE
   FREELANCE
   SUBCONTRACTOR
-}
-
-model Drivers {
-  id             String       @id @default(uuid())
-  organizationId String
-  organization   Organizations @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  // BASIC
-  name           String
-  phone          String?
-  email          String?
-  address        String?
-  nationality    String?
-  birthDate      DateTime?
-  languages      String[]     @default([])
-  emergencyContact String?
-
-  // PROFESSIONAL
-  employmentStatus     EmploymentStatus?
-  vtcCardNumber        String?
-  vtcCardIssuedAt      DateTime?
-  vtcCardExpiresAt     DateTime?
-  driverLicenseNumber  String?
-  licenseCategory      String?
-  licenseIssuedAt      DateTime?
-  licenseExpiresAt     DateTime?
-  drivingExperienceYears Int?
-  hasVipExperience     Boolean @default(false)
-  hasEventExperience   Boolean @default(false)
-  languageLevel        String?
-  dressCodeReady       Boolean @default(false)
-
-  // DOCUMENTS (metadata)
-  passportProvided           Boolean @default(false)
-  driverLicenseProvided      Boolean @default(false)
-  vtcCardProvided            Boolean @default(false)
-  criminalRecordProvided     Boolean @default(false)
-  medicalCertificateProvided Boolean @default(false)
-  insuranceProofProvided     Boolean @default(false)
-  profilePhotoProvided       Boolean @default(false)
-  signedContractProvided     Boolean @default(false)
-
-  // OPERATIONS
-  baseCity                   String?
-  workingRadiusKm            Int?
-  acceptsLongDistance        Boolean @default(false)
-  acceptsNightTrips          Boolean @default(false)
-  acceptsAirportTransfers    Boolean @default(false)
-  acceptsVipClients          Boolean @default(false)
-  availabilityDays           String[] @default([])
-  availabilityHours          String?
-  hasOwnVehicle              Boolean @default(false)
-
-  // EXISTING FIELDS
-  vehicle        String
-  vehiclePlate   String
-  vehicleColor   String
-  status         Boolean      @default(true)
-  rides          Int          @default(0)
-  todayShift     String       @default("")
-
-  vehicles Vehicles[]
-  bookings       Bookings[]
-
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-
-  @@index([organizationId])
 }
 
 enum VehicleClass {
@@ -199,41 +342,12 @@ enum VehicleStatus {
   INACTIVE
 }
 
-model Vehicles {
-  id             String          @id @default(uuid())
-  organizationId String?
-  organization   Organizations?  @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  drivers        Drivers[] 
-  vehicleName    String
-  year           String
-  color          String
-  licensePlate   String        @unique
-  class          VehicleClass
-  status         VehicleStatus @default(ACTIVE)
-  pricing        VehiclePricings?
-  bookings       Bookings[]
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-
-  @@index([organizationId])
-}
-
-model VehiclePricings {
-  id         String   @id @default(uuid())
-  vehicleId  String   @unique
-  vehicle    Vehicles @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-  perHour    Decimal  @db.Decimal(10, 2)
-  perKm      Decimal  @db.Decimal(10, 2)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-}
-
 enum BookingStatus {
   PENDING
   ASSIGNED
-  IN_PROGRESS
   COMPLETED
   CANCELLED
+  IN_PROGRESS
 }
 
 enum PaymentStatus {
@@ -245,176 +359,4 @@ enum PhysicalLevel {
   LOW
   MEDIUM
   HIGH
-}
-
-model Bookings {
-  id            String        @id @default(uuid())
-  clientName    String
-  clientEmail  String
-  clientPhone  String
-
-  tripType     String
-  notesForDriver     String      @default("")
-
-  from          String        
-  to            String       
-  bookingAt     DateTime
-
-  /** Candidate drivers with offer statuses, e.g. [{ driverId, status }]. */
-  candidateDriverIds     Json      @default("[]")
-  vehicleClass  VehicleClass?
-  vehicleId     String?       @default("")
-  vehicle       Vehicles?     @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-  driverId      String?
-  driver        Drivers?      @relation(fields: [driverId], references: [id], onDelete: SetNull)
-
-
-  durationMin   Int           @default(60)
-  status        BookingStatus @default(PENDING)
-  paymentStatus PaymentStatus @default(UNPAID)
-
-
-  stripePaymentIntentId String? @unique
-
-  
-  whatsappPaidTemplateSentAt DateTime?
-
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-
-  @@index([vehicleId])
-  @@index([driverId])
-  @@index([bookingAt])
-}
-
-model SecurityOrganizationDetails {
-  id               String        @id @default(uuid())
-  organizationId   String        @unique
-  organization     Organizations @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  // Company Information
-  legalForm                  String?
-  sirenOrSiret               String?
-  licenseNumber              String? // autorisation d’exercice
-  cnapsNumber                String?
-  registrationDate           DateTime?
-  registeredAddress          String?
-  officeAddress              String?
-  websiteUrl                 String?
-  companyPhoneNumber         String?
-  directorFullName           String?
-
-  // Documents metadata
-  kbisUploaded               Boolean @default(false)
-  licenseUploaded            Boolean @default(false) // autorisation
-  rcProInsuranceUploaded     Boolean @default(false)
-  cnapsAuthorizationUploaded Boolean @default(false)
-  bankDetailsProvided        Boolean @default(false)
-  directorIdCopyProvided     Boolean @default(false)
-  signedPartnershipAgreement Boolean @default(false)
-  additionalCertifications   String?
-
-  // Operations
-  serviceTypes               String[] @default([])
-  support24_7                Boolean @default(false)
-  minBookingHours            Int?
-  mobilizationTimeMinutes    Int?
-  agentsCount                Int?
-  languagesSpoken            String[] @default([])
-  hasTeamLeader              Boolean @default(false)
-  armedPersonnelAllowed      Boolean @default(false)
-  unarmedPersonnelAllowed    Boolean @default(true)
-  internationalMissions      Boolean @default(false)
-  specialRequirements        String?
-
-  // Financial
-  hourlyRate                 Decimal? @db.Decimal(10, 2)
-  dailyRate                  Decimal? @db.Decimal(10, 2)
-  nightRate                  Decimal? @db.Decimal(10, 2)
-  eventRate                  Decimal? @db.Decimal(10, 2)
-  executiveProtectionRate    Decimal? @db.Decimal(10, 2)
-  minimumBookingAmount       Decimal? @db.Decimal(10, 2)
-  commissionPercent          Decimal? @db.Decimal(5, 2)
-  paymentTerms               String?
-  bankAccountIban            String?
-  currency                   String?  @default("EUR")
-
-  createdAt                  DateTime @default(now())
-  updatedAt                  DateTime @updatedAt
-
-  @@index([organizationId])
-}
-
-model SecurityAgents {
-  id             String        @id @default(uuid())
-  organizationId String
-  organization   Organizations @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  // PERSONAL
-  firstName       String
-  lastName        String
-  birthDate       DateTime?
-  nationality     String?
-  profilePhotoUrl String?
-  phone           String?
-  email           String?
-  address         String?
-  languages       String[] @default([])
-  emergencyContact String?
-
-  // PROFESSIONAL
-  employmentStatus       EmploymentStatus?
-  professionalCardNumber String?
-  cnapsNumber            String?
-  cardIssuedAt           DateTime?
-  cardExpiresAt          DateTime?
-
-  specializations        String[] @default([])
-
-  experienceYears        Int?
-  hasVipExperience       Boolean @default(false)
-  hasEventExperience     Boolean @default(false)
-
-  hasDriverLicenseB      Boolean @default(false)
-  additionalLicenses     String?
-
-  physicalLevel          PhysicalLevel?
-  hasFirstAidTraining    Boolean @default(false)
-  weaponExperience       Boolean @default(false)
-
-  readyForTravel         Boolean @default(false)
-  readyForNightShifts    Boolean @default(false)
-
-  // DOCUMENTS (metadata)
-  passportProvided            Boolean @default(false)
-  professionalCardProvided    Boolean @default(false)
-  cnapsProvided               Boolean @default(false)
-  cvProvided                  Boolean @default(false)
-  certificatesProvided        Boolean @default(false)
-  firstAidCertificateProvided Boolean @default(false)
-  driverLicenseProvided       Boolean @default(false)
-  backgroundCheckProvided     Boolean @default(false)
-  profilePhotoProvided        Boolean @default(false)
-  signedContractProvided      Boolean @default(false)
-
-  // OPERATIONS
-  baseCity               String?
-  workingRadiusKm        Int?
-  availability           String?
-
-  hourlyRate             Decimal? @db.Decimal(10, 2)
-  dailyRate              Decimal? @db.Decimal(10, 2)
-  nightRate              Decimal? @db.Decimal(10, 2)
-
-  canWorkInTeam          Boolean @default(true)
-  canTravelWithClient    Boolean @default(true)
-  canDoDriverSecurity    Boolean @default(false)
-
-  status             Boolean @default(true)
-  notes              String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([organizationId])
 }

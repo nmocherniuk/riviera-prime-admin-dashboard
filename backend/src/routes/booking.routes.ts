@@ -5,6 +5,7 @@ import { validateParams } from "../middleware/validateParams.js";
 import { validateQuery } from "../middleware/validateQuery.js";
 import {
   bookingIdParamsSchema,
+  driverBookingsGroupedQuerySchema,
   bookingListQuerySchema,
   createBookingSchema,
   updateBookingSchema,
@@ -13,6 +14,7 @@ import {
   createBookingController,
   deleteBookingController,
   getBookingByIdController,
+  listDriverBookingsGroupedController,
   listBookingsController,
   updateBookingController,
 } from "../modules/booking/booking.controller.js";
@@ -20,6 +22,12 @@ import {
 const router = Router();
 
 router.get("/", requireAuth, validateQuery(bookingListQuerySchema), listBookingsController);
+router.get(
+  "/driver/bookings",
+  requireAuth,
+  validateQuery(driverBookingsGroupedQuerySchema),
+  listDriverBookingsGroupedController,
+);
 router.get("/:id", requireAuth, validateParams(bookingIdParamsSchema), getBookingByIdController);
 router.post("/", requireAuth, validateBody(createBookingSchema), createBookingController);
 router.patch(

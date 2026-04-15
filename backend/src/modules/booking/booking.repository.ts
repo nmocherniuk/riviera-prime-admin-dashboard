@@ -27,12 +27,42 @@ export const bookingPayloadSelect = {
   durationMin: true,
   status: true,
   paymentStatus: true,
+  driverResponseDeadline: true,
   stripePaymentIntentId: true,
   createdAt: true,
   updatedAt: true,
   driver: { select: { id: true, name: true } },
   vehicle: { select: { id: true, vehicleName: true } },
 } as const;
+
+const bookingPayloadSelectWithoutDeadline = {
+  ...bookingPayloadSelect,
+  driverResponseDeadline: false,
+  stripePaymentIntentId: false,
+} as const;
+
+type BookingRow = Prisma.BookingsGetPayload<{
+  select: typeof bookingPayloadSelect;
+}>;
+type BookingRowWithoutDeadline = Prisma.BookingsGetPayload<{
+  select: typeof bookingPayloadSelectWithoutDeadline;
+}>;
+
+function withNullDeadline(row: BookingRowWithoutDeadline): BookingRow {
+  return {
+    ...row,
+    driverResponseDeadline: null,
+    stripePaymentIntentId: null,
+  };
+}
+
+function isMissingDriverResponseDeadlineColumn(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const err = error as { code?: string; message?: string };
+  if (err.code === "P2022") return true;
+  const msg = err.message ?? "";
+  return msg.includes("does not exist") || msg.includes("(not available)");
+}
 
 export type CreateBookingData = {
   clientName: string;
@@ -49,6 +79,7 @@ export type CreateBookingData = {
   durationMin: number;
   status: BookingStatus;
   paymentStatus: PaymentStatus;
+  driverResponseDeadline?: Date | null;
   candidateDriverIds?: Prisma.InputJsonValue;
 };
 
@@ -74,47 +105,103 @@ export function parseCandidateDriverIdsJson(
 export async function listBookings(filters?: {
   driverId?: string;
   vehicleId?: string;
-}) {
+}): Promise<BookingRow[]> {
   const where: { driverId?: string; vehicleId?: string } = {};
   if (filters?.driverId !== undefined) where.driverId = filters.driverId;
   if (filters?.vehicleId !== undefined) where.vehicleId = filters.vehicleId;
-
-  return prisma.bookings.findMany({
-    where,
-    select: bookingPayloadSelect,
-    orderBy: { bookingAt: "asc" },
-  });
+  try {
+    return await prisma.bookings.findMany({
+      where,
+      select: bookingPayloadSelect,
+      orderBy: { bookingAt: "asc" },
+    });
+  } catch (error) {
+    if (!isMissingDriverResponseDeadlineColumn(error)) throw error;
+    const rows = await prisma.bookings.findMany({
+      where,
+      select: bookingPayloadSelectWithoutDeadline,
+      orderBy: { bookingAt: "asc" },
+    });
+    return rows.map(withNullDeadline);
+  }
 }
 
-export async function listCompletedBookings(driverId: string, take = 6) {
-  return prisma.bookings.findMany({
-    where: { driverId, status: "COMPLETED" },
-    select: bookingPayloadSelect,
-    orderBy: { bookingAt: "desc" },
-    take,
-  });
+export async function listCompletedBookings(
+  driverId: string,
+  take = 6,
+): Promise<BookingRow[]> {
+  try {
+    return await prisma.bookings.findMany({
+      where: { driverId, status: "COMPLETED" },
+      select: bookingPayloadSelect,
+      orderBy: { bookingAt: "desc" },
+      take,
+    });
+  } catch (error) {
+    if (!isMissingDriverResponseDeadlineColumn(error)) throw error;
+    const rows = await prisma.bookings.findMany({
+      where: { driverId, status: "COMPLETED" },
+      select: bookingPayloadSelectWithoutDeadline,
+      orderBy: { bookingAt: "desc" },
+      take,
+    });
+    return rows.map(withNullDeadline);
+  }
 }
 
-export async function findBookingById(id: string) {
-  return prisma.bookings.findUnique({
-    where: { id },
-    select: bookingPayloadSelect,
-  });
+export async function findBookingById(id: string): Promise<BookingRow | null> {
+  try {
+    return await prisma.bookings.findUnique({
+      where: { id },
+      select: bookingPayloadSelect,
+    });
+  } catch (error) {
+    if (!isMissingDriverResponseDeadlineColumn(error)) throw error;
+    const row = await prisma.bookings.findUnique({
+      where: { id },
+      select: bookingPayloadSelectWithoutDeadline,
+    });
+    return row ? withNullDeadline(row) : null;
+  }
 }
 
-export async function createBooking(data: CreateBookingData) {
-  return prisma.bookings.create({
-    data,
-    select: bookingPayloadSelect,
-  });
+export async function createBooking(data: CreateBookingData): Promise<BookingRow> {
+  try {
+    return await prisma.bookings.create({
+      data,
+      select: bookingPayloadSelect,
+    });
+  } catch (error) {
+    if (!isMissingDriverResponseDeadlineColumn(error)) throw error;
+    const { driverResponseDeadline, ...fallbackData } = data;
+    const row = await prisma.bookings.create({
+      data: fallbackData,
+      select: bookingPayloadSelectWithoutDeadline,
+    });
+    return withNullDeadline(row);
+  }
 }
 
-export async function updateBooking(id: string, data: UpdateBookingData) {
-  return prisma.bookings.update({
-    where: { id },
-    data,
-    select: bookingPayloadSelect,
-  });
+export async function updateBooking(
+  id: string,
+  data: UpdateBookingData,
+): Promise<BookingRow> {
+  try {
+    return await prisma.bookings.update({
+      where: { id },
+      data,
+      select: bookingPayloadSelect,
+    });
+  } catch (error) {
+    if (!isMissingDriverResponseDeadlineColumn(error)) throw error;
+    const { driverResponseDeadline, ...fallbackData } = data;
+    const row = await prisma.bookings.update({
+      where: { id },
+      data: fallbackData,
+      select: bookingPayloadSelectWithoutDeadline,
+    });
+    return withNullDeadline(row);
+  }
 }
 
 export async function deleteBookingById(id: string) {

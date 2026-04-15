@@ -77,11 +77,20 @@ export default function BookingsPage() {
     () => filterBookings(bookings, filters),
     [bookings, filters],
   );
+  const sortedBookings = useMemo(() => {
+    const rank = (b: Booking): number => {
+      if (b.status === "assigned" && b.paymentStatus === "paid") return 0;
+      if (b.status === "assigned" && b.paymentStatus === "unpaid") return 1;
+      if (b.status === "pending") return 2;
+      return 3;
+    };
+    return [...filteredBookings].sort((a, b) => rank(a) - rank(b));
+  }, [filteredBookings]);
 
   const { allDates, bookingsByDate, todayKey } = useBookingsList({
     listAnchor: getWeekStart(new Date()),
     weeksToShow,
-    bookings: filteredBookings,
+    bookings: sortedBookings,
   });
 
   useScrollSyncWeekStrip({
@@ -230,7 +239,7 @@ export default function BookingsPage() {
         stats={stats}
         filters={filters}
         onFilterChange={setFilter}
-        filteredBookings={filteredBookings}
+        filteredBookings={sortedBookings}
         onNewBooking={() => setBookingModal({ open: true, booking: null })}
       />
 

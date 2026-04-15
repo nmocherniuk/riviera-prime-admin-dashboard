@@ -46,6 +46,46 @@ function wrapLayout(content: string): string {
 }
 
 /**
+ * Sent right after booking creation, while we are finding an available driver.
+ */
+export async function sendBookingPendingEmail(
+  booking: BookingEmailData,
+): Promise<void> {
+  if (!booking.clientEmail) {
+    console.warn(
+      `[booking-email] No client email for booking ${booking.bookingId} — skipping pending email`,
+    );
+    return;
+  }
+
+  const html = wrapLayout(`
+    <h2 style="margin:0 0 8px;color:#141414">We received your booking request</h2>
+    <p style="color:#555;line-height:1.6">
+      Hello <strong>${booking.clientName}</strong>,<br>
+      Thank you for your request. We are currently checking driver availability
+      for your trip.
+    </p>
+    ${tripSummaryHtml(booking)}
+    <p style="color:#555;line-height:1.6">
+      As soon as a driver confirms, we will email you with the next steps for payment.
+    </p>
+    <div style="text-align:center;margin:28px 0">
+      <a href="${FRONTEND_ORIGIN}"
+         style="display:inline-block;padding:14px 40px;background:#141414;color:#D4AF35;
+                font-weight:700;font-size:16px;text-decoration:none;border-radius:8px">
+        Back to website
+      </a>
+    </div>
+  `);
+
+  await sendEmail({
+    to: booking.clientEmail,
+    subject: "Aurevia — your booking request is being processed",
+    html,
+  });
+}
+
+/**
  * Sent when a driver accepts the trip.
  * Contains a secure payment link (JWT-signed, 72h expiry).
  */

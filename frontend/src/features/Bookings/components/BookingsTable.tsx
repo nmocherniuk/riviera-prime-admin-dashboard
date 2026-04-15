@@ -12,6 +12,22 @@ function formatDateTime(date: string, time: string): string {
   return dateObj.toLocaleString();
 }
 
+function getTripState(booking: Booking): {
+  label: string;
+  color: string;
+} {
+  if (booking.status === "assigned" && booking.paymentStatus === "paid") {
+    return { label: "Confirmed", color: "#22C55E" };
+  }
+  if (booking.status === "assigned" && booking.paymentStatus !== "paid") {
+    return { label: "Waiting for payment", color: "#F59E0B" };
+  }
+  if (booking.status === "pending") {
+    return { label: "Awaiting driver action", color: "#6B7280" };
+  }
+  return { label: booking.status ?? "Unknown", color: "#6B7280" };
+}
+
 export default function BookingsTable({ bookings }: Props) {
   const columns = [
     {
@@ -49,6 +65,18 @@ export default function BookingsTable({ bookings }: Props) {
           {formatDateTime(booking.date, booking.startTime)}
         </Typography>
       ),
+    },
+    {
+      key: "tripState",
+      label: "Trip State",
+      render: (booking: Booking) => {
+        const state = getTripState(booking);
+        return (
+          <Typography variant="body2" sx={{ color: state.color, fontWeight: 700 }}>
+            {state.label}
+          </Typography>
+        );
+      },
     },
   ];
 

@@ -1,10 +1,5 @@
 import { Box, Typography } from "@mui/material";
-import { bookingRouteLabel, type Booking, type BookingStatus } from "./BookingsCalendar/data/dummyBookings";
-import {
-  STATUS_STYLES,
-  DEFAULT_STATUS_STYLE,
-  STATUS_LABELS,
-} from "./BookingsCalendar/constants";
+import { bookingRouteLabel, type Booking } from "./BookingsCalendar/data/dummyBookings";
 import { colors } from "../../../theme/colors";
 
 type BookingListCardProps = {
@@ -13,9 +8,24 @@ type BookingListCardProps = {
 };
 
 export default function BookingListCard({ booking, onClick }: BookingListCardProps) {
-  const status = (booking.status ?? "assigned") as BookingStatus;
-  const style = status && STATUS_STYLES[status] ? STATUS_STYLES[status] : DEFAULT_STATUS_STYLE;
-  const statusLabel = STATUS_LABELS[status] ?? status;
+  const isPending = booking.status === "pending";
+  const isAssignedPaid = booking.status === "assigned" && booking.paymentStatus === "paid";
+  const isAssignedUnpaid =
+    booking.status === "assigned" && booking.paymentStatus !== "paid";
+  const style = isAssignedPaid
+    ? { borderColor: "#22C55E", accentColor: "#22C55E", bgColor: "rgba(34, 197, 94, 0.08)" }
+    : isAssignedUnpaid
+      ? { borderColor: "#F59E0B", accentColor: "#F59E0B", bgColor: "rgba(245, 158, 11, 0.08)" }
+      : isPending
+        ? { borderColor: "#9CA3AF", accentColor: "#9CA3AF", bgColor: "rgba(156, 163, 175, 0.08)" }
+        : { borderColor: "#3B82F6", accentColor: "#3B82F6", bgColor: "rgba(59, 130, 246, 0.08)" };
+  const statusLabel = isAssignedPaid
+    ? "Confirmed"
+    : isAssignedUnpaid
+      ? "Waiting for payment"
+      : isPending
+        ? "Awaiting driver action"
+        : booking.status ?? "Unknown";
 
   return (
     <Box

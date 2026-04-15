@@ -25,8 +25,15 @@ export type BookingDto = {
   durationMin: number;
   status: BookingStatus;
   paymentStatus: PaymentStatus;
+  driverResponseDeadline: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+export type DriverBookingsGroupedDto = {
+  paid: BookingDto[];
+  unpaid: BookingDto[];
+  pending: BookingDto[];
 };
 
 export type CreateBookingBody = {
@@ -90,6 +97,7 @@ export function dtoToBooking(dto: BookingDto): Booking {
     driverId: dto.driverId ?? undefined,
     driverName: dto.driverName ?? undefined,
     paymentStatus: dto.paymentStatus,
+    driverResponseDeadline: dto.driverResponseDeadline ?? undefined,
   };
 }
 
@@ -103,6 +111,13 @@ export async function listBookings(filters?: { driverId?: string; vehicleId?: st
 export async function createBooking(body: CreateBookingBody) {
   const { data } = await api.post<{ booking: BookingDto }>("/bookings", body);
   return data.booking;
+}
+
+export async function listDriverBookingsGrouped(driverId: string) {
+  const { data } = await api.get<DriverBookingsGroupedDto>("/bookings/driver/bookings", {
+    params: { driverId },
+  });
+  return data;
 }
 
 export async function updateBooking(id: string, body: UpdateBookingBody) {
