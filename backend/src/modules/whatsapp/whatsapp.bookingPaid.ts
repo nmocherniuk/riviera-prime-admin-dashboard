@@ -59,6 +59,60 @@ async function findBookingForPaidNotify(
 }
 
 /**
+ * Sends trip_offer_driver template to all online candidate drivers
+ * when a new booking is created (before payment).
+ */
+export async function notifyDriversNewBooking(
+  bookingId: string,
+  candidateDriverIds: { driverId: string }[],
+): Promise<void> {
+  const booking = await findBookingForPaidNotify(bookingId);
+  if (!booking) return;
+
+  const allDrivers = await Promise.all(
+    candidateDriverIds.map((d) => findDriverById(d.driverId)),
+  );
+
+  const drivers = allDrivers.filter(
+    (d): d is NonNullable<typeof d> => d != null && d.status === true,
+  );
+
+  if (!drivers.length) {
+    console.warn(
+      `[WhatsApp] No online drivers for new booking ${bookingId}`,
+    );
+    return;
+  }
+
+  const fromRoute = labelOrDash(booking.from);
+  const toRoute = labelOrDash(booking.to);
+
+  try {
+    const { date, time } = formatBookingDateTimeZone(booking.bookingAt);
+
+    for (const driver of drivers) {
+      const phone = normalizeWaTo(driver.phone ?? "");
+      await sendTripOfferDriverTemplateWithMenu(booking.id, phone, {
+        clientName: booking.clientName,
+        tripType: booking.tripType,
+        fromRoute,
+        toRoute,
+        date,
+        time,
+        notesForDriver:
+          booking.notesForDriver.length > 0 ? booking.notesForDriver : "-",
+        amountOrExtra: String(booking.durationMin),
+      });
+    }
+  } catch (e) {
+    console.error(
+      `[WhatsApp] trip_offer_driver failed for new booking ${bookingId}:`,
+      e,
+    );
+  }
+}
+
+/**
  * When payment transitions to PAID (and not yet notified), sends Meta template
  * `trip_offer_driver` + follow-up menu. Sets `whatsappPaidTemplateSentAt` only after success.
  */

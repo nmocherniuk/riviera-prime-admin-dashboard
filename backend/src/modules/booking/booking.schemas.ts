@@ -68,8 +68,6 @@ export const publicCreateBookingSchema = z
       .positive()
       .max(24 * 60)
       .default(60),
-    /** Test: set `paid` to simulate post-payment booking until Stripe webhook exists. */
-    paymentStatus: z.enum(["paid", "unpaid"]).default("unpaid"),
   })
   .refine((d) => d.vehicleId != null || d.vehicleClass != null, {
     message: "Provide vehicleId or vehicleClass",

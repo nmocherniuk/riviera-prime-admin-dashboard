@@ -10,6 +10,10 @@ import {
   createPublicBookingController,
   getPublicBookingByIdController,
 } from "../modules/booking/publicBooking.controller.js";
+import {
+  getPaymentBookingController,
+  createPaymentIntentController,
+} from "../modules/booking/publicPayment.controller.js";
 
 const router = Router();
 
@@ -25,5 +29,8 @@ router.post(
   validateBody(publicCreateBookingSchema),
   createPublicBookingController,
 );
+
+router.get("/pay/:token", getPaymentBookingController);
+router.post("/pay/:token/create-intent", createPaymentIntentController);
 
 export default router;

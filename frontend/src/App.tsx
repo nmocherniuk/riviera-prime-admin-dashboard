@@ -12,6 +12,7 @@ import SecurityOrganizationsPage from "./pages/SecurityOrganizationsPage";
 import SecurityAgentsPage from "./pages/SecurityAgentsPage";
 import DriverOrganizationsPage from "./pages/DriverOrganizationsPage";
 import DriversPage from "./pages/DriversPage";
+import PaymentPage from "./pages/PaymentPage";
 import AuthBootstrap from "./components/auth/AuthBootstrap";
 import RequireAuth from "./components/auth/RequireAuth";
 import GuestOnly from "./components/auth/GuestOnly";
@@ -24,6 +25,8 @@ function App() {
       <ToastProvider>
         <AuthBootstrap>
           <Routes>
+            <Route path="/pay/:token" element={<PaymentPage />} />
+
             <Route element={<GuestOnly />}>
               <Route path="/login" element={<LoginPage />} />
             </Route>

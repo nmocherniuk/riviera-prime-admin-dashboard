@@ -27,6 +27,7 @@ export const bookingPayloadSelect = {
   durationMin: true,
   status: true,
   paymentStatus: true,
+  stripePaymentIntentId: true,
   createdAt: true,
   updatedAt: true,
   driver: { select: { id: true, name: true } },

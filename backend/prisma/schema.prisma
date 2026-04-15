@@ -272,6 +272,11 @@ model Bookings {
   durationMin   Int           @default(60)
   status        BookingStatus @default(PENDING)
   paymentStatus PaymentStatus @default(UNPAID)
+
+
+  stripePaymentIntentId String? @unique
+
+  
   whatsappPaidTemplateSentAt DateTime?
 
   createdAt     DateTime      @default(now())

@@ -14,7 +14,10 @@ import {
   updateBooking,
   type UpdateBookingData,
 } from "./booking.repository.js";
-import { notifyDriverBookingPaidIfNeeded } from "../whatsapp/whatsapp.bookingPaid.js";
+import {
+  notifyDriversNewBooking,
+  notifyDriverBookingPaidIfNeeded,
+} from "../whatsapp/whatsapp.bookingPaid.js";
 import {
   toDbVehicleClass,
   toPublicVehicleClass,
@@ -230,7 +233,6 @@ export async function createPublicBookingService(body: {
   from: string;
   to: string;
   durationMin: number;
-  paymentStatus: PublicPaymentStatus;
 }) {
   return createBookingService({
     clientName: body.clientName,
@@ -245,7 +247,7 @@ export async function createPublicBookingService(body: {
     to: body.to,
     durationMin: body.durationMin,
     status: "pending",
-    paymentStatus: body.paymentStatus,
+    paymentStatus: "unpaid",
   });
 }
 
@@ -304,10 +306,8 @@ export async function createBookingService(input: CreateBookingServiceInput) {
     }),
   });
 
-  notifyDriverBookingPaidIfNeeded(
+  void notifyDriversNewBooking(
     created.id,
-    "UNPAID",
-    created.paymentStatus,
     parseCandidateDriverIdsJson(created.candidateDriverIds),
   );
 

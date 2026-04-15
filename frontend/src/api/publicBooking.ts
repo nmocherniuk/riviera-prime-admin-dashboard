@@ -23,8 +23,6 @@ export type PublicCreateBookingBody = {
   from?: string;
   to?: string;
   durationMin?: number;
-  /** Test: `paid` after mock payment; later set from Stripe success. */
-  paymentStatus?: "paid" | "unpaid";
 };
 
 export type PublicBookingDto = {

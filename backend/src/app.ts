@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import routes from "./routes/index.js";
+import stripeWebhookRoutes from "./routes/stripe.routes.js";
 import bcrypt from "bcryptjs";
 
 const app = express();
@@ -38,6 +39,12 @@ app.use(
     credentials: true,
   }),
 );
+app.use(
+  "/api/webhook/stripe",
+  express.raw({ type: "application/json" }),
+  stripeWebhookRoutes,
+);
+
 app.use(express.json());
 app.use(cookieParser());
 

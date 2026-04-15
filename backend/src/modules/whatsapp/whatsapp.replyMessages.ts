@@ -8,6 +8,10 @@ import {
   listBookingsService,
   updateBookingService,
 } from "../booking/booking.service.js";
+import {
+  sendBookingAcceptedEmail,
+  sendBookingAllRejectedEmail,
+} from "../booking/booking.emails.js";
 import { getDriverByPhone, setDriverOnlineStatus } from "../driver/driver.service.js";
 import { formatBookingDateTimeZone } from "./formatBookingTime.js";
 import type {
@@ -296,6 +300,16 @@ export async function buildReplyPayload(
         ),
       });
 
+      void sendBookingAcceptedEmail({
+        bookingId: booking.id,
+        clientName: booking.clientName,
+        clientEmail: booking.clientEmail,
+        from: booking.from,
+        to: booking.to,
+        bookingAt: booking.bookingAt,
+        durationMin: booking.durationMin,
+      });
+
       return { body: WHATSAPP_REPLY_MESSAGES.tripAccepted };
     } catch (error) {
       console.error("[WhatsApp] accept trip:", error);
@@ -363,6 +377,16 @@ export async function buildReplyPayload(
           status: "cancelled",
           driverId: null,
           candidateDriverIds: nextCandidates,
+        });
+
+        void sendBookingAllRejectedEmail({
+          bookingId: booking.id,
+          clientName: booking.clientName,
+          clientEmail: booking.clientEmail,
+          from: booking.from,
+          to: booking.to,
+          bookingAt: booking.bookingAt,
+          durationMin: booking.durationMin,
         });
       } else {
         await updateBookingService(bookingId, {
