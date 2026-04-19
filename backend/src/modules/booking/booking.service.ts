@@ -295,6 +295,38 @@ export async function getPublicBookingForPaymentService(
   };
 }
 
+export type PublicBookingPaymentLookup =
+  | { status: "ok"; booking: PublicBookingForPayment }
+  | { status: "not_found" }
+  | { status: "already_paid"; booking: PublicBookingForPayment };
+
+/** Single lookup path for public payment / booking-by-id flows (no duplicated fetch logic). */
+export async function lookupPublicBookingForPayment(
+  bookingId: string,
+): Promise<PublicBookingPaymentLookup> {
+  const booking = await getPublicBookingForPaymentService(bookingId);
+  if (!booking) return { status: "not_found" };
+  if (booking.paymentStatus === "paid") {
+    return { status: "already_paid", booking };
+  }
+  return { status: "ok", booking };
+}
+
+/** HTTP status for create/update booking when service throws known validation errors. */
+export function httpStatusForKnownBookingMutationError(
+  message: string,
+): number {
+  if (
+    message === "Vehicle not found" ||
+    message === "Driver not found" ||
+    message === "Driver does not belong to vehicle organization" ||
+    message === "Provide vehicleId or vehicleClass"
+  ) {
+    return 400;
+  }
+  return 500;
+}
+
 /**
  * Public landing: always pending, no driver — ops assign in dashboard.
  * Reuses WhatsApp paid notification when paymentStatus is paid.

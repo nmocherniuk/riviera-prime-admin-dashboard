@@ -1,6 +1,6 @@
 import type { Response } from "express";
-import type { AuthedRequest } from "../../middleware/requireAuth.js";
-import { listPaymentHistory } from "./payments.service.js";
+import type { AuthedRequest } from "../../../../middleware/requireAuth.js";
+import { listPaymentHistory } from "../../payments.service.js";
 
 export async function listPaymentsController(
   _req: AuthedRequest,

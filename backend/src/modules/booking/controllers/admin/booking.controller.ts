@@ -1,13 +1,14 @@
 import type { Response } from "express";
-import type { AuthedRequest } from "../../middleware/requireAuth.js";
+import type { AuthedRequest } from "../../../../middleware/requireAuth.js";
 import {
   createBookingService,
   deleteBookingService,
   getBookingByIdService,
+  httpStatusForKnownBookingMutationError,
   listDriverBookingsGroupedService,
   listBookingsService,
   updateBookingService,
-} from "./booking.service.js";
+} from "../../booking.service.js";
 
 export async function listBookingsController(req: AuthedRequest, res: Response) {
   try {
@@ -58,14 +59,9 @@ export async function createBookingController(req: AuthedRequest, res: Response)
     return res.status(201).json({ booking });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Create failed";
-    const code =
-      message === "Vehicle not found" ||
-      message === "Driver not found" ||
-      message === "Driver does not belong to vehicle organization" ||
-      message === "Provide vehicleId or vehicleClass"
-        ? 400
-        : 500;
-    return res.status(code).json({ message });
+    return res
+      .status(httpStatusForKnownBookingMutationError(message))
+      .json({ message });
   }
 }
 
@@ -77,14 +73,9 @@ export async function updateBookingController(req: AuthedRequest, res: Response)
     return res.json({ booking });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Update failed";
-    const code =
-      message === "Vehicle not found" ||
-      message === "Driver not found" ||
-      message === "Driver does not belong to vehicle organization" ||
-      message === "Provide vehicleId or vehicleClass"
-        ? 400
-        : 500;
-    return res.status(code).json({ message });
+    return res
+      .status(httpStatusForKnownBookingMutationError(message))
+      .json({ message });
   }
 }
 
@@ -99,4 +90,3 @@ export async function deleteBookingController(req: AuthedRequest, res: Response)
     return res.status(500).json({ message });
   }
 }
-

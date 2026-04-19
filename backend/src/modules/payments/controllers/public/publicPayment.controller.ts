@@ -1,11 +1,11 @@
 import type { Request, Response } from "express";
-import { verifyPaymentToken } from "../../lib/paymentToken.js";
-import { getPublicBookingForPaymentService } from "./booking.service.js";
-import { getStripe } from "../../lib/stripe.js";
-import { prisma } from "../../lib/prisma.js";
+import { verifyPaymentToken } from "../../../../lib/paymentToken.js";
+import { lookupPublicBookingForPayment } from "../../../booking/booking.service.js";
+import { getStripe } from "../../../../lib/stripe.js";
+import { prisma } from "../../../../lib/prisma.js";
 
 /**
- * GET /api/public/pay/:token
+ * GET /api/public/security-payment/:token
  * Validates the signed payment token, returns booking data if valid and unpaid.
  */
 export async function getPaymentBookingController(
@@ -22,19 +22,19 @@ export async function getPaymentBookingController(
   }
 
   try {
-    const booking = await getPublicBookingForPaymentService(bookingId);
+    const outcome = await lookupPublicBookingForPayment(bookingId);
 
-    if (!booking) {
+    if (outcome.status === "not_found") {
       return res.status(404).json({ message: "Booking not found" });
     }
 
-    if (booking.paymentStatus === "paid") {
+    if (outcome.status === "already_paid") {
       return res
         .status(409)
-        .json({ message: "Booking already paid", booking });
+        .json({ message: "Booking already paid", booking: outcome.booking });
     }
 
-    return res.json({ booking });
+    return res.json({ booking: outcome.booking });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Lookup failed";
     return res.status(500).json({ message });
@@ -42,7 +42,7 @@ export async function getPaymentBookingController(
 }
 
 /**
- * POST /api/public/pay/:token/create-intent
+ * POST /api/public/security-payment/:token/create-intent
  * Creates (or retrieves existing) Stripe PaymentIntent for a valid unpaid booking.
  * Amount is computed server-side — never trusted from the client.
  */
@@ -60,15 +60,17 @@ export async function createPaymentIntentController(
   }
 
   try {
-    const booking = await getPublicBookingForPaymentService(bookingId);
+    const outcome = await lookupPublicBookingForPayment(bookingId);
 
-    if (!booking) {
+    if (outcome.status === "not_found") {
       return res.status(404).json({ message: "Booking not found" });
     }
 
-    if (booking.paymentStatus === "paid") {
+    if (outcome.status === "already_paid") {
       return res.status(409).json({ message: "Booking already paid" });
     }
+
+    const booking = outcome.booking;
 
     if (booking.status !== "assigned") {
       return res

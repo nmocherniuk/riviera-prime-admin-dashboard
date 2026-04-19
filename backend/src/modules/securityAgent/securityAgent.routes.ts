@@ -1,22 +1,22 @@
 import { Router } from "express";
-import { requireAuth } from "../middleware/requireAuth.js";
-import { validateBody } from "../middleware/validateBody.js";
-import { validateParams } from "../middleware/validateParams.js";
-import { validateQuery } from "../middleware/validateQuery.js";
+import { requireAuth } from "../../middleware/requireAuth.js";
+import { validateBody } from "../../middleware/validateBody.js";
+import { validateParams } from "../../middleware/validateParams.js";
+import { validateQuery } from "../../middleware/validateQuery.js";
 import {
   createSecurityAgentSchema,
   securityAgentByIdQuerySchema,
   securityAgentIdParamsSchema,
   securityAgentListQuerySchema,
   updateSecurityAgentSchema,
-} from "../modules/securityAgent/securityAgent.schemas.js";
+} from "./securityAgent.schemas.js";
 import {
   createSecurityAgentController,
   deleteSecurityAgentController,
   getSecurityAgentByIdController,
   listSecurityAgentsController,
   updateSecurityAgentController,
-} from "../modules/securityAgent/securityAgent.controller.js";
+} from "./securityAgent.controller.js";
 
 const router = Router();
 

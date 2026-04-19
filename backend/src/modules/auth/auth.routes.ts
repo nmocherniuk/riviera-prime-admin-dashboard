@@ -1,14 +1,14 @@
 import { Router } from "express";
-import { validateBody } from "../middleware/validateBody.js";
-import { requireAuth } from "../middleware/requireAuth.js";
+import { validateBody } from "../../middleware/validateBody.js";
+import { requireAuth } from "../../middleware/requireAuth.js";
 import {
   loginController,
   logoutController,
   meController,
   refreshController,
-} from "../modules/auth/auth.controller.js";
-import { loginSchema } from "../modules/auth/auth.schemas.js";
-import type { AuthedRequest } from "../middleware/requireAuth.js";
+} from "./auth.controller.js";
+import { loginSchema } from "./auth.schemas.js";
+import type { AuthedRequest } from "../../middleware/requireAuth.js";
 
 const router = Router();
 

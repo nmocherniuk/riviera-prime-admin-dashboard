@@ -2,7 +2,7 @@ import { Router } from "express";
 import {
   receiveWebhookController,
   verifyWebhookController,
-} from "../modules/whatsapp/whatsapp.controller.js";
+} from "./whatsapp.controller.js";
 
 const router = Router();
 

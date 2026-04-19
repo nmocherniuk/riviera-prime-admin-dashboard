@@ -1,8 +1,9 @@
 import type { Request, Response } from "express";
 import {
   createPublicBookingService,
-  getPublicBookingForPaymentService,
-} from "./booking.service.js";
+  httpStatusForKnownBookingMutationError,
+  lookupPublicBookingForPayment,
+} from "../../booking.service.js";
 
 export async function getPublicBookingByIdController(
   req: Request,
@@ -10,14 +11,14 @@ export async function getPublicBookingByIdController(
 ) {
   try {
     const { bookingId } = req.params as { bookingId: string };
-    const booking = await getPublicBookingForPaymentService(bookingId);
-    if (!booking) {
+    const outcome = await lookupPublicBookingForPayment(bookingId);
+    if (outcome.status === "not_found") {
       return res.status(404).json({ message: "Booking not found" });
     }
-    if (booking.paymentStatus === "paid") {
+    if (outcome.status === "already_paid") {
       return res.status(409).json({ message: "Booking already paid" });
     }
-    return res.json({ booking });
+    return res.json({ booking: outcome.booking });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Lookup failed";
     return res.status(500).json({ message });
@@ -35,13 +36,8 @@ export async function createPublicBookingController(
     return res.status(201).json({ booking });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Create failed";
-    const code =
-      message === "Vehicle not found" ||
-        message === "Driver not found" ||
-        message === "Driver does not belong to vehicle organization" ||
-        message === "Provide vehicleId or vehicleClass"
-        ? 400
-        : 500;
-    return res.status(code).json({ message });
+    return res
+      .status(httpStatusForKnownBookingMutationError(message))
+      .json({ message });
   }
 }

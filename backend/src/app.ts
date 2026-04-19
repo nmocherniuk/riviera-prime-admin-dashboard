@@ -2,8 +2,8 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import routes from "./routes/index.js";
-import stripeWebhookRoutes from "./routes/stripe.routes.js";
+import routes from "./routes.js";
+import stripeWebhookRoutes from "./modules/stripe/stripe.routes.js";
 import bcrypt from "bcryptjs";
 
 const app = express();

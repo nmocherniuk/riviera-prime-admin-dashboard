@@ -1,22 +1,22 @@
 import { Router } from "express";
-import { requireAuth } from "../middleware/requireAuth.js";
-import { validateBody } from "../middleware/validateBody.js";
-import { validateParams } from "../middleware/validateParams.js";
-import { validateQuery } from "../middleware/validateQuery.js";
+import { requireAuth } from "../../middleware/requireAuth.js";
+import { validateBody } from "../../middleware/validateBody.js";
+import { validateParams } from "../../middleware/validateParams.js";
+import { validateQuery } from "../../middleware/validateQuery.js";
 import {
   createDriverSchema,
   driverByIdQuerySchema,
   driverIdParamsSchema,
   driverListQuerySchema,
   updateDriverSchema,
-} from "../modules/driver/driver.schemas.js";
+} from "./driver.schemas.js";
 import {
   createDriverController,
   deleteDriverController,
   getDriverByIdController,
   listDriversController,
   updateDriverController,
-} from "../modules/driver/driver.controller.js";
+} from "./driver.controller.js";
 
 const router = Router();
 

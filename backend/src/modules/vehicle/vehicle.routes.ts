@@ -1,15 +1,15 @@
 import { Router } from "express";
-import { requireAuth } from "../middleware/requireAuth.js";
-import { validateBody } from "../middleware/validateBody.js";
-import { validateParams } from "../middleware/validateParams.js";
-import { validateQuery } from "../middleware/validateQuery.js";
+import { requireAuth } from "../../middleware/requireAuth.js";
+import { validateBody } from "../../middleware/validateBody.js";
+import { validateParams } from "../../middleware/validateParams.js";
+import { validateQuery } from "../../middleware/validateQuery.js";
 import {
   assignDriverSchema,
   createVehicleSchema,
   updateVehicleSchema,
   vehicleIdParamsSchema,
   vehicleListQuerySchema,
-} from "../modules/vehicle/vehicle.schemas.js";
+} from "./vehicle.schemas.js";
 import {
   assignDriverToVehicleController,
   createVehicleController,
@@ -17,7 +17,7 @@ import {
   getVehicleByIdController,
   listVehiclesController,
   updateVehicleController,
-} from "../modules/vehicle/vehicle.controller.js";
+} from "./vehicle.controller.js";
 
 const router = Router();
 

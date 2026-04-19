@@ -1,15 +1,15 @@
 import { Router } from "express";
-import { requireAuth } from "../middleware/requireAuth.js";
-import { validateBody } from "../middleware/validateBody.js";
-import { validateParams } from "../middleware/validateParams.js";
-import { validateQuery } from "../middleware/validateQuery.js";
+import { requireAuth } from "../../../../middleware/requireAuth.js";
+import { validateBody } from "../../../../middleware/validateBody.js";
+import { validateParams } from "../../../../middleware/validateParams.js";
+import { validateQuery } from "../../../../middleware/validateQuery.js";
 import {
   bookingIdParamsSchema,
-  driverBookingsGroupedQuerySchema,
   bookingListQuerySchema,
   createBookingSchema,
+  driverBookingsGroupedQuerySchema,
   updateBookingSchema,
-} from "../modules/booking/booking.schemas.js";
+} from "../../booking.validation.js";
 import {
   createBookingController,
   deleteBookingController,
@@ -17,7 +17,7 @@ import {
   listDriverBookingsGroupedController,
   listBookingsController,
   updateBookingController,
-} from "../modules/booking/booking.controller.js";
+} from "../../controllers/admin/booking.controller.js";
 
 const router = Router();
 
@@ -40,4 +40,3 @@ router.patch(
 router.delete("/:id", requireAuth, validateParams(bookingIdParamsSchema), deleteBookingController);
 
 export default router;
-

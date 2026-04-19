@@ -1,22 +1,22 @@
 import { Router } from "express";
-import { validateBody } from "../middleware/validateBody.js";
-import { validateQuery } from "../middleware/validateQuery.js";
-import { validateParams } from "../middleware/validateParams.js";
-import { requireAuth } from "../middleware/requireAuth.js";
+import { validateBody } from "../../middleware/validateBody.js";
+import { validateQuery } from "../../middleware/validateQuery.js";
+import { validateParams } from "../../middleware/validateParams.js";
+import { requireAuth } from "../../middleware/requireAuth.js";
 import {
   createOrganizationSchema,
   updateOrganizationSchema,
   organizationListQuerySchema,
   organizationByIdQuerySchema,
   organizationIdParamsSchema,
-} from "../modules/organization/organization.schemas.js";
+} from "./organization.schemas.js";
 import {
   createOrganizationController,
   listOrganizationsController,
   getOrganizationByIdController,
   updateOrganizationController,
   deleteOrganizationController,
-} from "../modules/organization/organization.controller.js";
+} from "./organization.controller.js";
 
 const router = Router();
 

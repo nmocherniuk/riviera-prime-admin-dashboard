@@ -39,6 +39,7 @@ const baseBookingFields = {
   paymentStatus: z.enum(["paid", "unpaid"]).default("unpaid"),
 };
 
+/** Admin / JWT: full booking create body. */
 export const createBookingSchema = z
   .object(baseBookingFields)
   .refine((d) => d.vehicleId != null || d.vehicleClass != null, {
@@ -53,7 +54,7 @@ export const updateBookingSchema = z
     message: "At least one field is required",
   });
 
-/** Landing / public widget: no driver assignment; admin assigns later. */
+/** Landing / public widget: limited fields; no driver assignment. */
 export const publicCreateBookingSchema = z
   .object({
     clientName: z.string().min(1).max(200),
