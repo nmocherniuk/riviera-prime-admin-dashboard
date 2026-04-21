@@ -47,22 +47,11 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
           )}
         </Grid>
 
-        <Grid size={{ xs: 12, md: 6 }}>
-          {readOnly ? (
-            <DetailField
-              label="Bank account IBAN"
-              value={formValues.bankAccountIban}
-            />
-          ) : (
-            <TextField
-              fullWidth
-              size="small"
-              label="Bank account IBAN"
-              value={formValues.bankAccountIban}
-              onChange={handleChange("bankAccountIban")}
-              sx={modalTextFieldSx}
-            />
-          )}
+        <Grid size={{ xs: 12 }}>
+          <Typography variant="body2" sx={{ color: "text.secondary", mb: 1 }}>
+            Payout bank details are not collected here. Use Stripe Connect
+            onboarding per driver from the driver profile.
+          </Typography>
         </Grid>
 
         <Grid size={{ xs: 12 }}>

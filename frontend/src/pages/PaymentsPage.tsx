@@ -1,27 +1,35 @@
 import { Box, Container, CircularProgress, Alert } from "@mui/material";
 import { useMemo, useState, useCallback } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import PaymentsHeader from "../features/Payments/components/PaymentsHeader";
 import PaymentsFilters from "../features/Payments/components/PaymentsFilters";
 import PaymentsTable from "../features/Payments/components/PaymentsTable";
 import PaymentDetailModal from "../features/Payments/components/PaymentDetailModal";
 import CardStat from "../components/CardStat";
 import type { Payment } from "../api/payments";
-import { listPayments } from "../api/payments";
+import {
+  getAdminBalance,
+  listPayments,
+  withdrawAdminBalance,
+} from "../api/payments";
 import { queryKeys } from "../api/queryKeys";
 import { DEFAULT_PAYMENTS_FILTERS } from "../features/Payments/constants/filters";
 import type { PaymentsFilterState } from "../features/Payments/constants/filters";
 import { filterPayments } from "../features/Payments/utils/filterPayments";
 import { formatMoney } from "../features/Payments/utils/formatMoney";
+import { useToast } from "../providers/ToastProvider";
 
 export default function PaymentsPage() {
   const [filters, setFilters] = useState<PaymentsFilterState>(
     DEFAULT_PAYMENTS_FILTERS,
   );
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
 
   const {
     data: payments = [],
@@ -31,6 +39,28 @@ export default function PaymentsPage() {
   } = useQuery({
     queryKey: queryKeys.payments.list(),
     queryFn: listPayments,
+  });
+  const { data: adminBalance } = useQuery({
+    queryKey: [...queryKeys.payments.list(), "admin-balance"],
+    queryFn: getAdminBalance,
+  });
+
+  const withdrawMutation = useMutation({
+    mutationFn: withdrawAdminBalance,
+    onSuccess: async (result) => {
+      showToast({
+        message: `Withdrawn ${result.amount.toFixed(2)} ${result.currency}`,
+        severity: "success",
+      });
+      await queryClient.invalidateQueries({
+        queryKey: [...queryKeys.payments.list(), "admin-balance"],
+      });
+    },
+    onError: (err) => {
+      const message =
+        err instanceof Error ? err.message : "Failed to withdraw balance";
+      showToast({ message, severity: "error" });
+    },
   });
 
   const filteredPayments = useMemo(
@@ -59,8 +89,16 @@ export default function PaymentsPage() {
       },
       { label: "Unpaid", value: String(unpaid), icon: HourglassEmptyIcon },
       { label: "Paid", value: String(paid), icon: CheckCircleOutlineIcon },
+      {
+        label: "Available Balance",
+        value: formatMoney(
+          adminBalance?.availableBalance ?? 0,
+          adminBalance?.currency ?? currency,
+        ),
+        icon: AccountBalanceWalletIcon,
+      },
     ];
-  }, [payments]);
+  }, [payments, adminBalance]);
 
   const handleFilterChange = useCallback(
     <K extends keyof PaymentsFilterState>(
@@ -78,7 +116,11 @@ export default function PaymentsPage() {
         maxWidth={false}
         sx={{ px: { xs: 1.5, sm: 2, md: 3 }, maxWidth: "100%" }}
       >
-        <PaymentsHeader />
+        <PaymentsHeader
+          onWithdraw={() => withdrawMutation.mutate()}
+          withdrawing={withdrawMutation.isPending}
+          withdrawDisabled={(adminBalance?.availableBalance ?? 0) <= 0}
+        />
 
         {isError && (
           <Alert severity="error" sx={{ mt: 2 }}>
@@ -99,6 +141,7 @@ export default function PaymentsPage() {
             gridTemplateColumns: {
               xs: "1fr 1fr",
               md: "repeat(3, minmax(0, 1fr))",
+              lg: "repeat(4, minmax(0, 1fr))",
             },
             gap: 2,
           }}

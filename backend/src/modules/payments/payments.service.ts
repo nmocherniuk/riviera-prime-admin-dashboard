@@ -249,3 +249,61 @@ export async function listPaymentHistory(): Promise<AdminPaymentHistoryItem[]> {
 
   return deduped;
 }
+
+export async function getAdminAvailableBalance(): Promise<{
+  availableBalance: number;
+  currency: "EUR";
+}> {
+  const rows = await prisma.bookings.findMany({
+    where: {
+      platformPayoutStatus: "AVAILABLE",
+      platformFee: { not: null },
+    },
+    select: { platformFee: true },
+  });
+  const availableBalance = rows.reduce(
+    (sum, row) => sum + Number(row.platformFee ?? 0),
+    0,
+  );
+  return {
+    availableBalance: Math.round(availableBalance * 100) / 100,
+    currency: "EUR",
+  };
+}
+
+export async function withdrawAdminAvailableBalance(): Promise<{
+  amount: number;
+  currency: "EUR";
+}> {
+  const { availableBalance } = await getAdminAvailableBalance();
+  if (availableBalance <= 0) {
+    throw new Error("No available balance");
+  }
+
+  const stripe = getStripe();
+  const amountCents = Math.round(availableBalance * 100);
+  const payout = await stripe.payouts.create(
+    {
+      amount: amountCents,
+      currency: "eur",
+      metadata: { scope: "platform_commission" },
+    },
+    { idempotencyKey: `admin_withdraw_${amountCents}_${Date.now()}` },
+  );
+
+  await prisma.$transaction([
+    prisma.bookings.updateMany({
+      where: { platformPayoutStatus: "AVAILABLE" },
+      data: { platformPayoutStatus: "PAID" },
+    }),
+    prisma.adminPayouts.create({
+      data: { amount: availableBalance, currency: "EUR" },
+    }),
+  ]);
+
+  console.log(
+    `[admin-withdraw] payout sent amount=${amountCents} payout=${payout.id}`,
+  );
+
+  return { amount: availableBalance, currency: "EUR" };
+}

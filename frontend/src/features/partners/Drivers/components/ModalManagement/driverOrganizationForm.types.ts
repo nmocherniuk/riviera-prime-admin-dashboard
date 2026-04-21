@@ -41,7 +41,6 @@ export const defaultFormValues: DriverOrganizationFormValues = {
   specialConditionsNotes: "",
 
   cooperationType: "",
-  bankAccountIban: "",
   paymentTerms: "",
   commissionPercent: "",
   currency: "EUR",

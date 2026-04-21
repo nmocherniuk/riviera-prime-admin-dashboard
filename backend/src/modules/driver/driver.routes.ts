@@ -14,6 +14,7 @@ import {
   createDriverController,
   deleteDriverController,
   getDriverByIdController,
+  getDriverEarningsController,
   listDriversController,
   updateDriverController,
 } from "./driver.controller.js";
@@ -27,6 +28,13 @@ router.get(
   validateParams(driverIdParamsSchema),
   validateQuery(driverByIdQuerySchema),
   getDriverByIdController,
+);
+router.get(
+  "/:id/earnings",
+  requireAuth,
+  validateParams(driverIdParamsSchema),
+  validateQuery(driverByIdQuerySchema),
+  getDriverEarningsController,
 );
 router.post("/", requireAuth, validateBody(createDriverSchema), createDriverController);
 router.patch(

@@ -39,6 +39,16 @@ export async function updateDriverStatus(id: string, status: boolean) {
   });
 }
 
+export async function updateDriverStripeOnboardingCompleted(
+  id: string,
+  stripeOnboardingCompleted: boolean,
+) {
+  return prisma.drivers.update({
+    where: { id },
+    data: { stripeOnboardingCompleted },
+  });
+}
+
 export async function findDriverByPhone(phone: string) {
   return prisma.drivers.findFirst({ where: { phone } });
 }

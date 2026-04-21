@@ -25,3 +25,23 @@ export async function listPayments(): Promise<Payment[]> {
   const { data } = await api.get<{ payments: Payment[] }>("/payments");
   return data.payments;
 }
+
+export type AdminBalance = {
+  availableBalance: number;
+  currency: "EUR";
+};
+
+export async function getAdminBalance(): Promise<AdminBalance> {
+  const { data } = await api.get<AdminBalance>("/payments/admin/balance");
+  return data;
+}
+
+export async function withdrawAdminBalance(): Promise<{
+  amount: number;
+  currency: "EUR";
+}> {
+  const { data } = await api.post<{ amount: number; currency: "EUR" }>(
+    "/payments/admin/withdraw",
+  );
+  return data;
+}

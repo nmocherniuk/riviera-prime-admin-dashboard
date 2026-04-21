@@ -1,5 +1,10 @@
 import nodemailer from "nodemailer";
 
+const transporter = createTransport();
+
+const defaultFrom =
+  process.env.SMTP_FROM || "Aurevia <no-reply@aurevia.com>";
+
 function createTransport() {
   const host = process.env.SMTP_HOST;
   const port = Number(process.env.SMTP_PORT || "587");
@@ -20,11 +25,6 @@ function createTransport() {
     auth: { user, pass },
   });
 }
-
-const transporter = createTransport();
-
-const defaultFrom =
-  process.env.SMTP_FROM || "Aurevia <no-reply@aurevia.com>";
 
 export async function sendEmail(options: {
   to: string;
@@ -50,3 +50,31 @@ export async function sendEmail(options: {
     console.error("[email] Send failed:", err);
   }
 }
+
+export function isSmtpConfigured(): boolean {
+  return transporter != null;
+}
+
+/** Same as sendEmail but fails if SMTP is missing or send throws (for critical admin actions). */
+export async function sendEmailOrThrow(options: {
+  to: string;
+  subject: string;
+  html: string;
+}): Promise<void> {
+  if (!transporter) {
+    throw new Error("SMTP is not configured");
+  }
+  try {
+    await transporter.sendMail({
+      from: defaultFrom,
+      to: options.to,
+      subject: options.subject,
+      html: options.html,
+    });
+    console.log(`[email] Sent to ${options.to}: ${options.subject}`);
+  } catch (err) {
+    console.error("[email] Send failed:", err);
+    throw err instanceof Error ? err : new Error("Failed to send email");
+  }
+}
+

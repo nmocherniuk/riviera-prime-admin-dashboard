@@ -24,6 +24,8 @@ import {
   toPublicVehicleClass,
   type PublicVehicleClass,
 } from "./booking.vehicleClass.js";
+
+import { transferBookingEarningsToDriver } from "../stripe/stripeEarnings.service.js";
 import { getDriversByVehicleId } from "../driver/driver.service.js";
 
 export type { PublicVehicleClass };
@@ -412,7 +414,7 @@ export async function createBookingService(input: CreateBookingServiceInput) {
     status: toDbStatus(input.status),
     paymentStatus: toDbPaymentStatus(input.paymentStatus),
     driverResponseDeadline: computeDriverResponseDeadline(new Date(input.bookingAt)),
-    candidateDriverIds: drivers.map((driver) => {
+    candidateDriverIds: drivers.map((driver: { id: string }) => {
       return { driverId: driver.id, status: "pending" };
     }),
   });
@@ -520,6 +522,16 @@ export async function updateBookingService(
     updated.paymentStatus,
     parseCandidateDriverIdsJson(updated.candidateDriverIds),
   );
+  if (existing.status !== "COMPLETED" && updated.status === "COMPLETED") {
+    try {
+      await transferBookingEarningsToDriver(updated.id);
+    } catch (error) {
+      console.error(
+        `[earnings] transfer failed on completion booking=${updated.id}`,
+        error,
+      );
+    }
+  }
   return toPublicBooking(updated);
 }
 

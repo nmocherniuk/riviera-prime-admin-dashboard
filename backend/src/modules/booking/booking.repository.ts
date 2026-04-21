@@ -29,6 +29,14 @@ export const bookingPayloadSelect = {
   paymentStatus: true,
   driverResponseDeadline: true,
   stripePaymentIntentId: true,
+  totalAmount: true,
+  driverAmount: true,
+  platformFee: true,
+  isTransferred: true,
+  transferredAt: true,
+  payoutStatus: true,
+  platformPayoutStatus: true,
+  stripeTransferId: true,
   createdAt: true,
   updatedAt: true,
   driver: { select: { id: true, name: true } },
@@ -39,6 +47,14 @@ const bookingPayloadSelectWithoutDeadline = {
   ...bookingPayloadSelect,
   driverResponseDeadline: false,
   stripePaymentIntentId: false,
+  totalAmount: false,
+  driverAmount: false,
+  platformFee: false,
+  isTransferred: false,
+  transferredAt: false,
+  payoutStatus: false,
+  platformPayoutStatus: false,
+  stripeTransferId: false,
 } as const;
 
 type BookingRow = Prisma.BookingsGetPayload<{
@@ -53,6 +69,14 @@ function withNullDeadline(row: BookingRowWithoutDeadline): BookingRow {
     ...row,
     driverResponseDeadline: null,
     stripePaymentIntentId: null,
+    totalAmount: null,
+    driverAmount: null,
+    platformFee: null,
+    isTransferred: false,
+    transferredAt: null,
+    payoutStatus: "NONE",
+    platformPayoutStatus: "NONE",
+    stripeTransferId: null,
   };
 }
 

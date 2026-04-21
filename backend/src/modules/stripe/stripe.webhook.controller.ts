@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import type Stripe from "stripe";
 import { getStripe } from "../../lib/stripe.js";
 import { prisma } from "../../lib/prisma.js";
+import { isStripeOnboardingCompleted } from "./stripeConnect.service.js";
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -42,6 +43,10 @@ export async function stripeWebhookController(req: Request, res: Response) {
         await handlePaymentIntentSucceeded(
           event.data.object as Stripe.PaymentIntent,
         );
+        break;
+
+      case "account.updated":
+        await handleAccountUpdated(event.data.object as Stripe.Account);
         break;
 
       default:
@@ -99,4 +104,17 @@ async function handlePaymentIntentSucceeded(
   console.log(
     `[stripe-webhook] Booking ${bookingId} marked PAID — PI: ${paymentIntent.id}`,
   );
+}
+
+async function handleAccountUpdated(account: Stripe.Account) {
+  const completed = isStripeOnboardingCompleted(account);
+  const result = await prisma.drivers.updateMany({
+    where: { stripeAccountId: account.id },
+    data: { stripeOnboardingCompleted: completed },
+  });
+  if (result.count === 0) {
+    console.log(
+      `[stripe-webhook] account.updated no driver for account ${account.id}`,
+    );
+  }
 }

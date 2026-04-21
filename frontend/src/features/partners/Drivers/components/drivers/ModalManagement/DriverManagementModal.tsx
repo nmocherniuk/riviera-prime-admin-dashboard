@@ -11,6 +11,7 @@ import { driverToFormValues } from "./driverManagementForm.mapper";
 import BasicInfoSection from "./components/BasicInfoSection";
 import ProfessionalSection from "./components/ProfessionalSection";
 import DocumentsSection from "./components/DocumentsSection";
+import DriverPayoutSection from "./components/DriverPayoutSection";
 import type { Driver, DriverFormValues } from "../types";
 
 type DriverManagementModalProps = {
@@ -140,6 +141,14 @@ export default function DriverManagementModal({
         readOnly={readOnly}
         formValues={formValues}
         onChange={handleChange}
+      />
+      <Divider sx={{ my: 2 }} />
+      <DriverPayoutSection
+        readOnly={readOnly}
+        driverId={driver?.id}
+        driverEmail={driver?.email}
+        stripeAccountId={driver?.stripeAccountId}
+        stripeOnboardingCompleted={driver?.stripeOnboardingCompleted}
       />
       <Divider sx={{ my: 2 }} />
       {/* <OperationsVehicleSection

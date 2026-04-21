@@ -59,7 +59,6 @@ export function driverOrganizationToFormValues(
 
     // Commercial & Financial
     cooperationType: org.chauffeurDetails?.cooperationType ?? "",
-    bankAccountIban: org.chauffeurDetails?.bankAccountIban ?? "",
     paymentTerms: org.chauffeurDetails?.paymentTerms ?? "",
     commissionPercent:
       org.chauffeurDetails?.commissionPercent != null
@@ -138,7 +137,6 @@ export function formValuesToDriverOrganization(
       specialConditionsNotes: values.specialConditionsNotes?.trim() || undefined,
 
       cooperationType: values.cooperationType || undefined,
-      bankAccountIban: values.bankAccountIban?.trim() || undefined,
       paymentTerms: values.paymentTerms?.trim() || undefined,
       commissionPercent:
         values.cooperationType === "COMMISSION"

@@ -13,19 +13,24 @@ import {
   sendBookingAcceptedEmail,
   sendBookingAllRejectedEmail,
 } from "../booking/booking.emails.js";
-import { getDriverByPhone, setDriverOnlineStatus } from "../driver/driver.service.js";
+import {
+  getDriverEarningsSummary,
+  requestDriverManualPayout,
+  syncCompletedTransfersForDriver,
+} from "../stripe/stripeEarnings.service.js";
 import { formatBookingDateTimeZone } from "./formatBookingTime.js";
 import type {
   ProcessableMessage,
   WhatsAppReplyPayload,
 } from "./whatsapp.types.js";
+import { getDriverByPhone, setDriverOnlineStatus } from "../driver/driver.service.js";
 
 export const WHATSAPP_REPLY_MESSAGES = {
   welcomeHint: "Напиши «menu» або «привіт» — покажемо меню.",
 
   currentTrip:
     "📍 Current trip:\nNice → Monaco\nClient: John\nStatus: On the way",
-  earning: "Ваш дохід (даммі): 100 €. Деталі — на сайті або у менеджера.",
+  earning: "Ваш дохід оновлено.",
   trips: "🚗 You have 2 active trips:\n1. Nice → Monaco\n2. Cannes → Airport",
   profile: "👤 Name: Nazar\nCar: BMW 5 Series\nRating: 4.9⭐",
   history: "🔍 History: You can see your past trips here.",
@@ -269,6 +274,32 @@ async function handleStartTrip(
 function parseAcceptBookingIdFromListRow(text: string): string | null {
   const id = text.split("_")[1]?.trim();
   return id && id.length > 0 ? id : null;
+}
+
+async function buildEarningsReply(driverId: string): Promise<WhatsAppReplyPayload> {
+  await syncCompletedTransfersForDriver(driverId);
+  const earnings = await getDriverEarningsSummary(driverId);
+  const bodyText = [
+    "💶 *Earnings*",
+    "",
+    `Total earned: ${earnings.totalEarned.toFixed(2)} ${earnings.currency}`,
+    `Available to withdraw: ${earnings.availableBalance.toFixed(2)} ${earnings.currency}`,
+    `Pending trips: ${earnings.pending.toFixed(2)} ${earnings.currency}`,
+  ].join("\n");
+
+  return {
+    body: bodyText,
+    interactive: {
+      type: "button",
+      body: { text: bodyText },
+      action: {
+        buttons: [
+          { type: "reply", reply: { id: "WITHDRAW", title: "💸 Withdraw" } },
+          { type: "reply", reply: { id: "MENU_MAIN", title: "📋 Menu" } },
+        ],
+      },
+    },
+  };
 }
 
 /** Text on the button that opens the list (≤ 20 characters). */
@@ -593,8 +624,27 @@ export async function buildReplyPayload(
     };
   }
 
-  if (text === "EARNING") {
-    return { body: WHATSAPP_REPLY_MESSAGES.earning };
+  if (text === "EARNING" || lower === "earning" || lower === "earnings") {
+    const driver = await getDriverByPhone(message.from);
+    if (!driver) {
+      return { body: "Driver not found." };
+    }
+    return buildEarningsReply(driver.id);
+  }
+
+  if (text === "WITHDRAW") {
+    const driver = await getDriverByPhone(message.from);
+    if (!driver) {
+      return { body: "Driver not found." };
+    }
+    await syncCompletedTransfersForDriver(driver.id);
+    const payout = await requestDriverManualPayout(driver.id);
+    if (payout.status === "no_funds") {
+      return { body: "No available balance for payout." };
+    }
+    return {
+      body: `✅ Your payout has been sent: ${payout.amount.toFixed(2)} EUR`,
+    };
   }
 
   if (text === "TRIPS") {

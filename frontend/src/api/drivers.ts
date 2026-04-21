@@ -25,3 +25,15 @@ export async function updateDriver(
 export async function deleteDriver(id: string) {
   await api.delete(`/drivers/${id}`);
 }
+
+export type DriverEarningsSummary = {
+  totalEarned: number;
+  availableBalance: number;
+  pending: number;
+  currency: "EUR";
+};
+
+export async function getDriverEarnings(id: string) {
+  const { data } = await api.get<DriverEarningsSummary>(`/drivers/${id}/earnings`);
+  return data;
+}

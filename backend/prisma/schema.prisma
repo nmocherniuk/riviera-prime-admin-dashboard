@@ -134,11 +134,14 @@ model Drivers {
   vtcCardNumber              String?
   vtcCardProvided            Boolean           @default(false)
   workingRadiusKm            Int?
+  stripeAccountId            String?
+  stripeOnboardingCompleted  Boolean           @default(false)
   bookings                   Bookings[]
   organization               Organizations     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   vehicles                   Vehicles[]        @relation("DriversToVehicles")
 
   @@index([organizationId])
+  @@index([stripeAccountId])
 }
 
 model Vehicles {
@@ -193,12 +196,27 @@ model Bookings {
   /// * Candidate drivers with offer statuses, e.g. [{ driverId, status }].
   candidateDriverIds         Json          @default("[]")
   stripePaymentIntentId      String?       @unique
+  totalAmount                Decimal?      @db.Decimal(10, 2)
+  driverAmount               Decimal?      @db.Decimal(10, 2)
+  platformFee                Decimal?      @db.Decimal(10, 2)
+  isTransferred              Boolean       @default(false)
+  transferredAt              DateTime?
+  payoutStatus               PayoutStatus  @default(NONE)
+  platformPayoutStatus       PlatformPayoutStatus @default(NONE)
+  stripeTransferId           String?
   driver                     Drivers?      @relation(fields: [driverId], references: [id])
   vehicle                    Vehicles?     @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
 
   @@index([vehicleId])
   @@index([driverId])
   @@index([bookingAt])
+}
+
+model AdminPayouts {
+  id        String   @id @default(uuid())
+  amount    Decimal  @db.Decimal(10, 2)
+  currency  String   @default("EUR")
+  createdAt DateTime @default(now())
 }
 
 model SecurityOrganizationDetails {
@@ -353,6 +371,18 @@ enum BookingStatus {
 enum PaymentStatus {
   PAID
   UNPAID
+}
+
+enum PayoutStatus {
+  NONE
+  PENDING
+  PAID
+}
+
+enum PlatformPayoutStatus {
+  NONE
+  AVAILABLE
+  PAID
 }
 
 enum PhysicalLevel {

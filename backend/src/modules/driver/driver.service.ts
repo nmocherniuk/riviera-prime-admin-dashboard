@@ -9,11 +9,31 @@ import {
   updateDriverStatus,
 } from "./driver.repository.js";
 import type { DriverData } from "./driver.types.js";
+import { syncDriverStripeOnboardingStatus } from "../stripe/stripeConnect.service.js";
+import {
+  getDriverEarningsSummary,
+  syncCompletedTransfersForDriver,
+} from "../stripe/stripeEarnings.service.js";
 
 export async function listDrivers(organizationId?: string) {
   const data = await findDriversByOrganizationId(organizationId);
 
-  return data;
+  const synced = await Promise.all(
+    data.map(async (driver) => {
+      const completed = await syncDriverStripeOnboardingStatus({
+        id: driver.id,
+        stripeAccountId: driver.stripeAccountId,
+        stripeOnboardingCompleted: driver.stripeOnboardingCompleted,
+      });
+      if (completed == null) return driver;
+      return {
+        ...driver,
+        stripeOnboardingCompleted: completed,
+      };
+    }),
+  );
+
+  return synced;
 }
 
 export async function getDriverById(id: string) {
@@ -21,7 +41,14 @@ export async function getDriverById(id: string) {
 
   if (!data) return null;
 
-  return data;
+  const completed = await syncDriverStripeOnboardingStatus({
+    id: data.id,
+    stripeAccountId: data.stripeAccountId,
+    stripeOnboardingCompleted: data.stripeOnboardingCompleted,
+  });
+
+  if (completed == null) return data;
+  return { ...data, stripeOnboardingCompleted: completed };
 }
 
 export async function createDriver(data: DriverData) {
@@ -66,4 +93,9 @@ export async function getDriversByVehicleId(vehicleId: string) {
   if (!data) return [];
 
   return data;
+}
+
+export async function getDriverEarnings(driverId: string) {
+  await syncCompletedTransfersForDriver(driverId);
+  return getDriverEarningsSummary(driverId);
 }

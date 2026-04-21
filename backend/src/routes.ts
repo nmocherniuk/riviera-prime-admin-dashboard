@@ -11,6 +11,11 @@ import whatsappRoutes from "./modules/whatsapp/whatsapp.routes.js";
 import publicBookingRoutes from "./modules/booking/routes/public/publicBooking.routes.js";
 import publicPaymentRoutes from "./modules/payments/routes/public/publicPayment.routes.js";
 import paymentsRoutes from "./modules/payments/routes/admin/payments.routes.js";
+import {
+  getAdminBalanceController,
+  withdrawAdminBalanceController,
+} from "./modules/payments/controllers/admin/payments.controller.js";
+import stripeConnectRoutes from "./modules/stripe/stripeConnect.routes.js";
 import { requireAuth } from "./middleware/requireAuth.js";
 import { validateQuery } from "./middleware/validateQuery.js";
 import { driverBookingsGroupedQuerySchema } from "./modules/booking/booking.validation.js";
@@ -31,6 +36,9 @@ routes.use("/security-agents", securityAgentRoutes);
 routes.use("/vehicles", vehicleRoutes);
 routes.use("/pricing", pricingRoutes);
 routes.use("/payments", paymentsRoutes);
+routes.get("/admin/balance", requireAuth, getAdminBalanceController);
+routes.post("/admin/withdraw", requireAuth, withdrawAdminBalanceController);
+routes.use("/stripe", stripeConnectRoutes);
 routes.use("/bookings", adminBookingRoutes);
 routes.get(
   "/driver/bookings",

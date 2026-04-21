@@ -47,7 +47,6 @@ export type DriverOrganizationFormValues = {
 
   // Commercial & Financial
   cooperationType?: "" | "COMMISSION" | "FIXED_RATE" | "CUSTOM" | null;
-  bankAccountIban?: string | null;
   paymentTerms?: string | null;
   commissionPercent?: number | string | null;
   currency?: string | null;
@@ -103,7 +102,6 @@ export type DriverOrganization = {
     specialConditionsNotes?: string;
 
     cooperationType?: "COMMISSION" | "FIXED_RATE" | "CUSTOM";
-    bankAccountIban?: string;
     paymentTerms?: string;
     commissionPercent?: number;
     currency?: string;

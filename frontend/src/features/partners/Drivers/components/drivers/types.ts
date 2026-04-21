@@ -50,6 +50,9 @@ export type Driver = {
     todayShift?: string;
     createdAt?: string;
     updatedAt?: string;
+    /** Stripe Connect Express — payouts onboarding */
+    stripeAccountId?: string | null;
+    stripeOnboardingCompleted?: boolean;
 };
 
 export type DriverFormValues = Omit<Driver, "organizationId" | "organizationName">;

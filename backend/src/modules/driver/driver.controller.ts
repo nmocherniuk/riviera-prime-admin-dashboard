@@ -4,6 +4,7 @@ import {
   createDriver,
   deleteDriver,
   getDriverById,
+  getDriverEarnings,
   listDrivers,
   updateDriver,
 } from "./driver.service.js";
@@ -98,6 +99,24 @@ export async function deleteDriverController(
     return res.status(204).send();
   } catch (error) {
     const message = error instanceof Error ? error.message : "Delete failed";
+    return res.status(500).json({ message });
+  }
+}
+
+export async function getDriverEarningsController(
+  req: AuthedRequest,
+  res: Response,
+) {
+  try {
+    const { id } = req.params as { id: string };
+    const driver = await getDriverById(id);
+    if (!driver) {
+      return res.status(404).json({ message: "Driver not found" });
+    }
+    const earnings = await getDriverEarnings(id);
+    return res.json(earnings);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to load earnings";
     return res.status(500).json({ message });
   }
 }
