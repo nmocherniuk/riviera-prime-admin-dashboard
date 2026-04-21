@@ -7,6 +7,9 @@ export const pricingVehicleParamsSchema = z.object({
 export const savePricingBodySchema = z.object({
   perHour: z.number().nonnegative(),
   perKm: z.number().nonnegative(),
+  minimumFare: z.number().nonnegative().optional(),
+  holidaySurchargePercent: z.number().nonnegative().optional(),
+  nightSurchargePercent: z.number().nonnegative().optional(),
 });
 
 const toNumber = (value: unknown) => {
@@ -25,6 +28,8 @@ export const publicPricingQuoteQuerySchema = z
     fromLon: z.preprocess(toNumber, z.number()).optional(),
     toLat: z.preprocess(toNumber, z.number()).optional(),
     toLon: z.preprocess(toNumber, z.number()).optional(),
+    /** ISO datetime — used for holiday / night surcharges (default: now). */
+    bookingAt: z.string().datetime().optional(),
   })
   .superRefine((val, ctx) => {
     const isOneWay = val.tripType === "one-way" || val.tripType === "one_way";

@@ -164,13 +164,16 @@ model Vehicles {
 }
 
 model VehiclePricings {
-  id        String   @id @default(uuid())
-  vehicleId String   @unique
-  perHour   Decimal  @db.Decimal(10, 2)
-  perKm     Decimal  @db.Decimal(10, 2)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  vehicle   Vehicles @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  id                      String   @id @default(uuid())
+  vehicleId               String   @unique
+  perHour                 Decimal  @db.Decimal(10, 2)
+  perKm                   Decimal  @db.Decimal(10, 2)
+  minimumFare             Decimal? @db.Decimal(10, 2)
+  holidaySurchargePercent Decimal? @db.Decimal(5, 2)
+  nightSurchargePercent   Decimal? @db.Decimal(5, 2)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  vehicle                 Vehicles @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
 }
 
 model Bookings {
@@ -196,9 +199,18 @@ model Bookings {
   /// * Candidate drivers with offer statuses, e.g. [{ driverId, status }].
   candidateDriverIds         Json          @default("[]")
   stripePaymentIntentId      String?       @unique
+  /// Legacy mirrors: totalAmount = final customer charge; driverAmount = partner payout; platformFee = margin.
   totalAmount                Decimal?      @db.Decimal(10, 2)
   driverAmount               Decimal?      @db.Decimal(10, 2)
   platformFee                Decimal?      @db.Decimal(10, 2)
+  baseCustomerPrice          Decimal?      @db.Decimal(10, 2)
+  finalCustomerPrice         Decimal?      @db.Decimal(10, 2)
+  partnerBasePayout          Decimal?      @db.Decimal(10, 2)
+  finalPartnerPayout         Decimal?      @db.Decimal(10, 2)
+  platformMargin             Decimal?      @db.Decimal(10, 2)
+  appliedHolidaySurcharge    Decimal?      @db.Decimal(10, 2)
+  appliedNightSurcharge      Decimal?      @db.Decimal(10, 2)
+  pricingSnapshotSource      String?
   isTransferred              Boolean       @default(false)
   transferredAt              DateTime?
   payoutStatus               PayoutStatus  @default(NONE)

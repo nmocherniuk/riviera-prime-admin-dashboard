@@ -9,12 +9,17 @@ export async function findAllVehiclesWithPricing() {
 
 export async function upsertVehiclePricing(
   vehicleId: string,
-  perHour: number,
-  perKm: number,
+  data: {
+    perHour: number;
+    perKm: number;
+    minimumFare: number;
+    holidaySurchargePercent: number;
+    nightSurchargePercent: number;
+  },
 ) {
   return prisma.vehiclePricings.upsert({
     where: { vehicleId },
-    create: { vehicleId, perHour, perKm },
-    update: { perHour, perKm },
+    create: { vehicleId, ...data },
+    update: data,
   });
 }

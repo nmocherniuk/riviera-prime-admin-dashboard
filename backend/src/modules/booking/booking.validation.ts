@@ -33,6 +33,8 @@ const baseBookingFields = {
   from: z.string().default(""),
   to: z.string().default(""),
   durationMin: z.number().int().positive().default(60),
+  /** Optional — used when trip is priced by distance (one-way). */
+  distanceKm: z.number().positive().optional(),
   status: z
     .enum(["pending", "assigned", "completed", "cancelled"])
     .default("pending"),
@@ -73,6 +75,7 @@ export const publicCreateBookingSchema = z
       .positive()
       .max(24 * 60)
       .default(60),
+    distanceKm: z.number().positive().optional(),
   })
   .refine((d) => d.vehicleId != null || d.vehicleClass != null, {
     message: "Provide vehicleId or vehicleClass",

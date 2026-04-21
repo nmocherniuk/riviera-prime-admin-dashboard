@@ -31,9 +31,24 @@ export default function PricingPage() {
   }, []);
 
   const onSaveEdit = useCallback(
-    async (vehicleId: string, perHour: string, perKm: string) => {
+    async (
+      vehicleId: string,
+      payload: {
+        perHour: string;
+        perKm: string;
+        minimumFare: string;
+        holidaySurchargePercent: string;
+        nightSurchargePercent: string;
+      },
+    ) => {
       try {
-        await savePricingRow(vehicleId, perHour, perKm);
+        await savePricingRow(vehicleId, {
+          perHour: Number(payload.perHour),
+          perKm: Number(payload.perKm),
+          minimumFare: Number(payload.minimumFare || 0),
+          holidaySurchargePercent: Number(payload.holidaySurchargePercent || 0),
+          nightSurchargePercent: Number(payload.nightSurchargePercent || 0),
+        });
         await queryClient.invalidateQueries({ queryKey: queryKeys.pricing.all });
         showToast({
           message: "Pricing saved successfully",

@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { verifyPaymentToken } from "../../../../lib/paymentToken.js";
 import { lookupPublicBookingForPayment } from "../../../booking/booking.service.js";
+import { ensureBookingPricingSnapshot } from "../../../booking/booking.pricing.js";
 import { getStripe } from "../../../../lib/stripe.js";
 import { prisma } from "../../../../lib/prisma.js";
 
@@ -78,17 +79,25 @@ export async function createPaymentIntentController(
         .json({ message: "Booking is not ready for payment" });
     }
 
+    await ensureBookingPricingSnapshot(bookingId);
+    const priced = await prisma.bookings.findUnique({
+      where: { id: bookingId },
+      select: {
+        stripePaymentIntentId: true,
+        finalCustomerPrice: true,
+        totalAmount: true,
+      },
+    });
+    const amountEur = Number(
+      priced?.finalCustomerPrice ?? priced?.totalAmount ?? booking.totalPrice,
+    );
+
     const stripe = getStripe();
 
-    const dbRow = await prisma.bookings.findUnique({
-      where: { id: bookingId },
-      select: { stripePaymentIntentId: true },
-    });
-
-    if (dbRow?.stripePaymentIntentId) {
+    if (priced?.stripePaymentIntentId) {
       try {
         const existing = await stripe.paymentIntents.retrieve(
-          dbRow.stripePaymentIntentId,
+          priced.stripePaymentIntentId,
         );
         if (
           existing.status !== "succeeded" &&
@@ -101,7 +110,7 @@ export async function createPaymentIntentController(
       }
     }
 
-    const amountCents = Math.round(booking.totalPrice * 100);
+    const amountCents = Math.round(amountEur * 100);
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amountCents,

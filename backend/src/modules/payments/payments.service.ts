@@ -27,6 +27,10 @@ export type AdminPaymentHistoryItem = {
   cardLast4?: string;
   stripePaymentIntentId: string | null;
   timeline: { label: string; date: string }[];
+  /** From booking pricing snapshot (settled totals). */
+  customerPrice?: number;
+  partnerPayout?: number;
+  platformMargin?: number;
 };
 
 function ymd(d: Date): string {
@@ -161,6 +165,16 @@ async function rowToDto(
   if (vehicle !== undefined) base.vehicle = vehicle;
   if (stripeStatus !== undefined) base.stripeStatus = stripeStatus;
   if (last4 !== undefined && paymentStatus === "paid") base.cardLast4 = last4;
+
+  if (row.finalCustomerPrice != null) {
+    base.customerPrice = Number(row.finalCustomerPrice);
+  }
+  if (row.finalPartnerPayout != null) {
+    base.partnerPayout = Number(row.finalPartnerPayout);
+  }
+  if (row.platformMargin != null) {
+    base.platformMargin = Number(row.platformMargin);
+  }
   return base;
 }
 

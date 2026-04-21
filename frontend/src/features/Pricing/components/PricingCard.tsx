@@ -84,12 +84,15 @@ export default function PricingCard({ row, onEditRow }: Props) {
           </IconButton>
         ) : null}
       </Box>
-      <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+      <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", flexDirection: "column" }}>
         <Typography variant="body2" sx={{ color: "text.secondary" }}>
           Per hour: <strong style={{ color: "inherit" }}>{row.perHour}</strong>
         </Typography>
         <Typography variant="body2" sx={{ color: "text.secondary" }}>
           Per KM: <strong style={{ color: "inherit" }}>{row.perKm}</strong>
+        </Typography>
+        <Typography variant="caption" sx={{ color: "text.disabled" }}>
+          Min {row.minimumFare} · Hol +{row.holidaySurchargePercent}% · Night +{row.nightSurchargePercent}%
         </Typography>
       </Box>
     </Paper>

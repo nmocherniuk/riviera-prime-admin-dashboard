@@ -10,6 +10,9 @@ export type PricingRowDto = {
   };
   perHour: string;
   perKm: string;
+  minimumFare: string;
+  holidaySurchargePercent: string;
+  nightSurchargePercent: string;
 };
 
 export async function listPricingRows() {
@@ -19,13 +22,15 @@ export async function listPricingRows() {
 
 export async function savePricingRow(
   vehicleId: string,
-  perHour: string,
-  perKm: string,
+  payload: {
+    perHour: number;
+    perKm: number;
+    minimumFare: number;
+    holidaySurchargePercent: number;
+    nightSurchargePercent: number;
+  },
 ) {
-  const { data } = await api.patch<{ ok: true }>(`/pricing/${vehicleId}`, {
-    perHour: Number(perHour),
-    perKm: Number(perKm),
-  });
+  const { data } = await api.patch<{ ok: true }>(`/pricing/${vehicleId}`, payload);
   return data;
 }
 
@@ -44,5 +49,8 @@ export function dtoToVehiclePricing(row: PricingRowDto): VehiclePricing {
     },
     perHour: row.perHour,
     perKm: row.perKm,
+    minimumFare: row.minimumFare,
+    holidaySurchargePercent: row.holidaySurchargePercent,
+    nightSurchargePercent: row.nightSurchargePercent,
   };
 }

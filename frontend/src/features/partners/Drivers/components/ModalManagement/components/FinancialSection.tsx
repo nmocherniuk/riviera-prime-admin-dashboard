@@ -49,7 +49,12 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
 
         <Grid size={{ xs: 12 }}>
           <Typography variant="body2" sx={{ color: "text.secondary", mb: 1 }}>
-            Payout bank details are not collected here. Use Stripe Connect
+            Public customer rates are set per vehicle in Pricing. Partner
+            settlement (commission, partner minimum, partner surcharges) applies
+            to payouts after the client pays the platform.
+          </Typography>
+          <Typography variant="body2" sx={{ color: "text.secondary", mb: 0 }}>
+            Payout bank details are not collected here — use Stripe Connect
             onboarding per driver from the driver profile.
           </Typography>
         </Grid>
@@ -119,13 +124,16 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
 
         <Grid size={{ xs: 12, md: 4 }}>
           {readOnly ? (
-            <DetailField label="Minimum fare" value={formValues.minimumFare} />
+            <DetailField
+              label="Minimum fare / partner floor (EUR)"
+              value={formValues.minimumFare}
+            />
           ) : (
             <TextField
               fullWidth
               size="small"
               type="number"
-              label="Minimum fare"
+              label="Minimum fare / partner floor (EUR)"
               value={formValues.minimumFare}
               onChange={handleChange("minimumFare")}
               sx={modalTextFieldSx}
@@ -135,13 +143,51 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
 
         <Grid size={{ xs: 12, md: 4 }}>
           {readOnly ? (
-            <DetailField label="Hourly rate" value={formValues.hourlyRate} />
+            <DetailField
+              label="Holiday surcharge — settlement (%)"
+              value={formValues.holidaySurchargePercent}
+            />
           ) : (
             <TextField
               fullWidth
               size="small"
               type="number"
-              label="Hourly rate"
+              label="Holiday surcharge — settlement (%)"
+              value={formValues.holidaySurchargePercent}
+              onChange={handleChange("holidaySurchargePercent")}
+              sx={modalTextFieldSx}
+            />
+          )}
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 4 }}>
+          {readOnly ? (
+            <DetailField
+              label="Night surcharge — settlement (%)"
+              value={formValues.nightSurchargePercent}
+            />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              type="number"
+              label="Night surcharge — settlement (%)"
+              value={formValues.nightSurchargePercent}
+              onChange={handleChange("nightSurchargePercent")}
+              sx={modalTextFieldSx}
+            />
+          )}
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 4 }}>
+          {readOnly ? (
+            <DetailField label="Hourly rate (org ref.)" value={formValues.hourlyRate} />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              type="number"
+              label="Hourly rate (org ref.)"
               value={formValues.hourlyRate}
               onChange={handleChange("hourlyRate")}
               sx={modalTextFieldSx}
@@ -152,7 +198,7 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
         <Grid size={{ xs: 12, md: 4 }}>
           {readOnly ? (
             <DetailField
-              label="Transfer base rate"
+              label="Transfer base rate (org ref.)"
               value={formValues.transferBaseRate}
             />
           ) : (
@@ -160,47 +206,9 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
               fullWidth
               size="small"
               type="number"
-              label="Transfer base rate"
+              label="Transfer base rate (org ref.)"
               value={formValues.transferBaseRate}
               onChange={handleChange("transferBaseRate")}
-              sx={modalTextFieldSx}
-            />
-          )}
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 4 }}>
-          {readOnly ? (
-            <DetailField
-              label="Night surcharge (%)"
-              value={formValues.nightSurchargePercent}
-            />
-          ) : (
-            <TextField
-              fullWidth
-              size="small"
-              type="number"
-              label="Night surcharge (%)"
-              value={formValues.nightSurchargePercent}
-              onChange={handleChange("nightSurchargePercent")}
-              sx={modalTextFieldSx}
-            />
-          )}
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 4 }}>
-          {readOnly ? (
-            <DetailField
-              label="Holiday surcharge (%)"
-              value={formValues.holidaySurchargePercent}
-            />
-          ) : (
-            <TextField
-              fullWidth
-              size="small"
-              type="number"
-              label="Holiday surcharge (%)"
-              value={formValues.holidaySurchargePercent}
-              onChange={handleChange("holidaySurchargePercent")}
               sx={modalTextFieldSx}
             />
           )}

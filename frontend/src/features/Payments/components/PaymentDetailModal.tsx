@@ -59,10 +59,28 @@ export default function PaymentDetailModal({
       </Box>
 
       <DetailField
-        label="Amount"
+        label="Amount (charged)"
         value={formatMoney(payment.amount, payment.currency)}
         emptyAsDash={false}
       />
+      {payment.customerPrice != null ? (
+        <DetailField
+          label="Customer price (snapshot)"
+          value={formatMoney(payment.customerPrice, payment.currency)}
+        />
+      ) : null}
+      {payment.partnerPayout != null ? (
+        <DetailField
+          label="Partner payout (snapshot)"
+          value={formatMoney(payment.partnerPayout, payment.currency)}
+        />
+      ) : null}
+      {payment.platformMargin != null ? (
+        <DetailField
+          label="Platform margin (snapshot)"
+          value={formatMoney(payment.platformMargin, payment.currency)}
+        />
+      ) : null}
       <DetailField
         label="Stripe PaymentIntent"
         value={payment.stripePaymentIntentId ?? "—"}

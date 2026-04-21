@@ -32,6 +32,14 @@ export const bookingPayloadSelect = {
   totalAmount: true,
   driverAmount: true,
   platformFee: true,
+  baseCustomerPrice: true,
+  finalCustomerPrice: true,
+  partnerBasePayout: true,
+  finalPartnerPayout: true,
+  platformMargin: true,
+  appliedHolidaySurcharge: true,
+  appliedNightSurcharge: true,
+  pricingSnapshotSource: true,
   isTransferred: true,
   transferredAt: true,
   payoutStatus: true,
@@ -50,6 +58,14 @@ const bookingPayloadSelectWithoutDeadline = {
   totalAmount: false,
   driverAmount: false,
   platformFee: false,
+  baseCustomerPrice: false,
+  finalCustomerPrice: false,
+  partnerBasePayout: false,
+  finalPartnerPayout: false,
+  platformMargin: false,
+  appliedHolidaySurcharge: false,
+  appliedNightSurcharge: false,
+  pricingSnapshotSource: false,
   isTransferred: false,
   transferredAt: false,
   payoutStatus: false,
@@ -72,6 +88,14 @@ function withNullDeadline(row: BookingRowWithoutDeadline): BookingRow {
     totalAmount: null,
     driverAmount: null,
     platformFee: null,
+    baseCustomerPrice: null,
+    finalCustomerPrice: null,
+    partnerBasePayout: null,
+    finalPartnerPayout: null,
+    platformMargin: null,
+    appliedHolidaySurcharge: null,
+    appliedNightSurcharge: null,
+    pricingSnapshotSource: null,
     isTransferred: false,
     transferredAt: null,
     payoutStatus: "NONE",
@@ -105,6 +129,17 @@ export type CreateBookingData = {
   paymentStatus: PaymentStatus;
   driverResponseDeadline?: Date | null;
   candidateDriverIds?: Prisma.InputJsonValue;
+  baseCustomerPrice?: Prisma.Decimal | number | null;
+  finalCustomerPrice?: Prisma.Decimal | number | null;
+  partnerBasePayout?: Prisma.Decimal | number | null;
+  finalPartnerPayout?: Prisma.Decimal | number | null;
+  platformMargin?: Prisma.Decimal | number | null;
+  appliedHolidaySurcharge?: Prisma.Decimal | number | null;
+  appliedNightSurcharge?: Prisma.Decimal | number | null;
+  pricingSnapshotSource?: string | null;
+  totalAmount?: Prisma.Decimal | number | null;
+  driverAmount?: Prisma.Decimal | number | null;
+  platformFee?: Prisma.Decimal | number | null;
 };
 
 export type UpdateBookingData = Partial<CreateBookingData>;

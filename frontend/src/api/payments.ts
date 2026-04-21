@@ -19,6 +19,9 @@ export type Payment = {
   cardLast4?: string;
   stripePaymentIntentId: string | null;
   timeline: { label: string; date: string }[];
+  customerPrice?: number;
+  partnerPayout?: number;
+  platformMargin?: number;
 };
 
 export async function listPayments(): Promise<Payment[]> {

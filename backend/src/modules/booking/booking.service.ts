@@ -27,6 +27,10 @@ import {
 
 import { transferBookingEarningsToDriver } from "../stripe/stripeEarnings.service.js";
 import { getDriversByVehicleId } from "../driver/driver.service.js";
+import { computeBookingPricingSnapshot } from "../pricing/marketplacePricing.service.js";
+import {
+  buildPricingDataForBooking,
+} from "./booking.pricing.js";
 
 export type { PublicVehicleClass };
 
@@ -259,23 +263,20 @@ export async function getBookingByIdService(id: string) {
   return toPublicBooking(row);
 }
 
-const DEFAULT_PER_HOUR_EUR = 120;
-
-/** Hourly estimate from vehicle pricing (no distance in DB). */
-/** Hourly estimate from vehicle pricing (no distance in DB). Exported for admin payments list. */
+/** Best-effort customer total for display; prefers stored snapshot. */
 export async function estimateBookingPriceEur(row: BookingPricingRow): Promise<number> {
-  const hours = row.durationMin / 60;
-  let perHour = DEFAULT_PER_HOUR_EUR;
+  if (row.finalCustomerPrice != null) return Number(row.finalCustomerPrice);
+  if (row.totalAmount != null) return Number(row.totalAmount);
   const vehicleId =
     row.vehicleId && row.vehicleId.trim() !== "" ? row.vehicleId : null;
-  if (vehicleId) {
-    const pricing = await prisma.vehiclePricings.findUnique({
-      where: { vehicleId },
-    });
-    if (pricing) perHour = Number(pricing.perHour);
-  }
-  const raw = hours * perHour;
-  return Math.round(raw * 100) / 100;
+  const snap = await computeBookingPricingSnapshot({
+    vehicleId,
+    tripType: row.tripType,
+    bookingAt: row.bookingAt,
+    durationMin: row.durationMin,
+    distanceKm: null,
+  });
+  return snap.finalCustomerPrice;
 }
 
 export type PublicBookingForPayment = PublicBooking & {
@@ -322,7 +323,8 @@ export function httpStatusForKnownBookingMutationError(
     message === "Vehicle not found" ||
     message === "Driver not found" ||
     message === "Driver does not belong to vehicle organization" ||
-    message === "Provide vehicleId or vehicleClass"
+    message === "Provide vehicleId or vehicleClass" ||
+    message.startsWith("Pricing:")
   ) {
     return 400;
   }
@@ -345,6 +347,7 @@ export async function createPublicBookingService(body: {
   from: string;
   to: string;
   durationMin: number;
+  distanceKm?: number;
 }) {
   return createBookingService({
     clientName: body.clientName,
@@ -358,6 +361,7 @@ export async function createPublicBookingService(body: {
     from: body.from,
     to: body.to,
     durationMin: body.durationMin,
+    ...(body.distanceKm != null ? { distanceKm: body.distanceKm } : {}),
     status: "pending",
     paymentStatus: "unpaid",
   });
@@ -376,6 +380,8 @@ export type CreateBookingServiceInput = {
   from: string;
   to: string;
   durationMin: number;
+  /** When known (e.g. from routing on the client), improves one-way pricing. */
+  distanceKm?: number;
   status: PublicBookingStatus;
   paymentStatus: PublicPaymentStatus;
 };
@@ -398,6 +404,14 @@ export async function createBookingService(input: CreateBookingServiceInput) {
   //   driverId: input.driverId,
   // });
 
+  const pricingData = await buildPricingDataForBooking({
+    vehicleId,
+    tripType: input.tripType ?? "one-way",
+    bookingAt: new Date(input.bookingAt),
+    durationMin: input.durationMin,
+    distanceKm: input.distanceKm ?? null,
+  });
+
   const created = await createBooking({
     clientName: input.clientName,
     clientEmail: input.clientEmail ?? "",
@@ -417,6 +431,7 @@ export async function createBookingService(input: CreateBookingServiceInput) {
     candidateDriverIds: drivers.map((driver: { id: string }) => {
       return { driverId: driver.id, status: "pending" };
     }),
+    ...pricingData,
   });
 
   void notifyDriversNewBooking(
@@ -450,6 +465,8 @@ export async function updateBookingService(
       status: PublicBookingStatus;
       paymentStatus: PublicPaymentStatus;
       vehicleClass?: PublicVehicleClass | null;
+      /** Bumps one-way quote when set (admin / API). */
+      distanceKm?: number | null;
     }
   >,
 ) {
@@ -512,6 +529,35 @@ export async function updateBookingService(
   }
   if (input.candidateDriverIds !== undefined) {
     updateData.candidateDriverIds = input.candidateDriverIds;
+  }
+
+  const unpaid = existing.paymentStatus !== "PAID";
+  const pricingTouched =
+    input.durationMin !== undefined ||
+    input.bookingAt !== undefined ||
+    input.vehicleId !== undefined ||
+    input.tripType !== undefined ||
+    input.distanceKm !== undefined;
+
+  if (unpaid && pricingTouched) {
+    const nextTrip = input.tripType ?? existing.tripType;
+    const nextDur = input.durationMin ?? existing.durationMin;
+    const nextAt =
+      input.bookingAt !== undefined
+        ? new Date(input.bookingAt)
+        : existing.bookingAt;
+    const vid =
+      input.vehicleId !== undefined ? input.vehicleId : existing.vehicleId;
+    const dist =
+      input.distanceKm !== undefined ? input.distanceKm ?? null : null;
+    const patch = await buildPricingDataForBooking({
+      vehicleId: vid && String(vid).trim() !== "" ? vid : null,
+      tripType: nextTrip,
+      bookingAt: nextAt,
+      durationMin: nextDur,
+      distanceKm: dist,
+    });
+    Object.assign(updateData, patch);
   }
 
   const previousPayment = existing.paymentStatus;

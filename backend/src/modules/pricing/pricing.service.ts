@@ -4,9 +4,18 @@ import {
   findAllVehiclesWithPricing,
   upsertVehiclePricing,
 } from "./pricing.repository.js";
+import {
+  buildMarketplaceQuote,
+  isHourlyTripType,
+  PricingValidationError,
+  type MarketplaceQuoteAdmin,
+  type MarketplaceQuotePublic,
+} from "./marketplacePricing.service.js";
 
 const DEFAULT_PER_HOUR = "120.00";
 const DEFAULT_PER_KM = "2.50";
+const DEFAULT_MIN_FARE = "0";
+const DEFAULT_SURCHARGE = "0";
 
 export type PublicTripType = "one-way" | "one_way" | "hourly";
 
@@ -19,6 +28,9 @@ export type VehiclePricingRow = {
   };
   perHour: string;
   perKm: string;
+  minimumFare: string;
+  holidaySurchargePercent: string;
+  nightSurchargePercent: string;
 };
 
 function toPublicClass(value: "COMFORT" | "BUSINESS" | "VAN") {
@@ -27,7 +39,7 @@ function toPublicClass(value: "COMFORT" | "BUSINESS" | "VAN") {
   return "Van" as const;
 }
 
-export async function listVehiclePricing() {
+export async function listVehiclePricing(): Promise<VehiclePricingRow[]> {
   const rows = await findAllVehiclesWithPricing();
   return rows.map((row) => ({
     vehicle: {
@@ -38,31 +50,92 @@ export async function listVehiclePricing() {
     },
     perHour: row.pricing?.perHour.toString() ?? DEFAULT_PER_HOUR,
     perKm: row.pricing?.perKm.toString() ?? DEFAULT_PER_KM,
+    minimumFare:
+      row.pricing?.minimumFare != null
+        ? row.pricing.minimumFare.toString()
+        : DEFAULT_MIN_FARE,
+    holidaySurchargePercent:
+      row.pricing?.holidaySurchargePercent != null
+        ? row.pricing.holidaySurchargePercent.toString()
+        : DEFAULT_SURCHARGE,
+    nightSurchargePercent:
+      row.pricing?.nightSurchargePercent != null
+        ? row.pricing.nightSurchargePercent.toString()
+        : DEFAULT_SURCHARGE,
   }));
 }
 
 export async function saveVehiclePricing(
   vehicleId: string,
-  perHour: number,
-  perKm: number,
+  data: {
+    perHour: number;
+    perKm: number;
+    minimumFare: number;
+    holidaySurchargePercent: number;
+    nightSurchargePercent: number;
+  },
 ) {
   const vehicle = await prisma.vehicles.findUnique({ where: { id: vehicleId } });
   if (!vehicle) return null;
 
-  await upsertVehiclePricing(vehicleId, perHour, perKm);
+  await upsertVehiclePricing(vehicleId, data);
   return true;
 }
 
-function roundMoney(v: number) {
-  return Math.round(v * 100) / 100;
-}
+/** @deprecated Use MarketplaceQuotePublic — kept name for route handlers. */
+export type PublicPriceQuote = MarketplaceQuotePublic;
 
-export type PublicPriceQuote = {
-  price: number;
-  totalPrice: number;
+async function resolveQuoteContext(input: {
+  tripType: PublicTripType;
+  distanceKm?: number;
+  durationMin?: number;
+  fromLat?: number;
+  fromLon?: number;
+  toLat?: number;
+  toLon?: number;
+}): Promise<{
   distanceKm: number | null;
-  durationMin: number | null;
-};
+  durationForApi: number | null;
+  durationForEngine: number;
+}> {
+  if (input.tripType === "hourly") {
+    const durationForEngine = Number(input.durationMin ?? 60);
+    return {
+      distanceKm: null,
+      durationForApi: durationForEngine,
+      durationForEngine,
+    };
+  }
+
+  const hasAllCoords =
+    input.fromLat != null &&
+    input.fromLon != null &&
+    input.toLat != null &&
+    input.toLon != null;
+
+  let distanceKm: number | null = null;
+  let durationForApi: number | null = null;
+
+  if (hasAllCoords) {
+    const route = await getRoute(
+      { lat: input.fromLat!, lng: input.fromLon! },
+      { lat: input.toLat!, lng: input.toLon! },
+    );
+    distanceKm = route.distanceKm;
+    durationForApi = route.durationMin;
+  } else {
+    distanceKm = input.distanceKm ?? null;
+  }
+
+  if (distanceKm == null) {
+    throw new Error("distanceKm or coordinates are required for one-way trip");
+  }
+
+  const durationForEngine =
+    durationForApi ?? Number(input.durationMin ?? 60);
+
+  return { distanceKm, durationForApi, durationForEngine };
+}
 
 export async function getPublicVehiclePriceQuote(input: {
   vehicleId: string;
@@ -73,46 +146,63 @@ export async function getPublicVehiclePriceQuote(input: {
   fromLon?: number;
   toLat?: number;
   toLon?: number;
-}): Promise<PublicPriceQuote | null> {
-  const vehicle = await prisma.vehicles.findUnique({
-    where: { id: input.vehicleId },
-    select: { id: true, pricing: { select: { perHour: true, perKm: true } } },
-  });
-  if (!vehicle) return null;
+  bookingAt?: Date;
+}): Promise<MarketplaceQuotePublic | null> {
+  const bookingAt = input.bookingAt ?? new Date();
+  const ctx = await resolveQuoteContext(input);
+  const tripNormalized = isHourlyTripType(input.tripType)
+    ? "hourly"
+    : "one-way";
 
-  const perHour = Number(vehicle.pricing?.perHour ?? DEFAULT_PER_HOUR);
-  const perKm = Number(vehicle.pricing?.perKm ?? DEFAULT_PER_KM);
-
-  let raw: number;
-  let distanceKm: number | null = null;
-  let durationMin: number | null = null;
-  if (input.tripType === "hourly") {
-    durationMin = input.durationMin ?? null;
-    raw = (Number(durationMin ?? 0) / 60) * perHour;
-  } else {
-    const hasAllCoords =
-      input.fromLat != null &&
-      input.fromLon != null &&
-      input.toLat != null &&
-      input.toLon != null;
-
-    if (hasAllCoords) {
-      const route = await getRoute(
-        { lat: input.fromLat!, lng: input.fromLon! },
-        { lat: input.toLat!, lng: input.toLon! },
-      );
-      distanceKm = route.distanceKm;
-      durationMin = route.durationMin;
-    } else {
-      distanceKm = input.distanceKm ?? null;
+  try {
+    return await buildMarketplaceQuote({
+      vehicleId: input.vehicleId,
+      tripType: tripNormalized,
+      durationMin: ctx.durationForEngine,
+      distanceKm: ctx.distanceKm,
+      bookingAt,
+      includeSettlement: false,
+      displayDurationMin: ctx.durationForApi,
+    });
+  } catch (e) {
+    if (e instanceof PricingValidationError) {
+      throw new Error(e.message);
     }
-    if (distanceKm == null) {
-      throw new Error("distanceKm or coordinates are required for one-way trip");
-    }
-
-    raw = Number(distanceKm) * perKm;
+    throw e;
   }
+}
 
-  const price = roundMoney(raw);
-  return { price, totalPrice: price, distanceKm, durationMin };
+export async function getAdminVehiclePriceQuote(input: {
+  vehicleId: string;
+  tripType: PublicTripType;
+  distanceKm?: number;
+  durationMin?: number;
+  fromLat?: number;
+  fromLon?: number;
+  toLat?: number;
+  toLon?: number;
+  bookingAt?: Date;
+}): Promise<MarketplaceQuoteAdmin | null> {
+  const bookingAt = input.bookingAt ?? new Date();
+  const ctx = await resolveQuoteContext(input);
+  const tripNormalized = isHourlyTripType(input.tripType)
+    ? "hourly"
+    : "one-way";
+
+  try {
+    return (await buildMarketplaceQuote({
+      vehicleId: input.vehicleId,
+      tripType: tripNormalized,
+      durationMin: ctx.durationForEngine,
+      distanceKm: ctx.distanceKm,
+      bookingAt,
+      includeSettlement: true,
+      displayDurationMin: ctx.durationForApi,
+    })) as MarketplaceQuoteAdmin | null;
+  } catch (e) {
+    if (e instanceof PricingValidationError) {
+      throw new Error(e.message);
+    }
+    throw e;
+  }
 }

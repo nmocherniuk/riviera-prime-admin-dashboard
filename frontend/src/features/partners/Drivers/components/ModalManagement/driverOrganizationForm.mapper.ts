@@ -71,23 +71,29 @@ export function driverOrganizationToFormValues(
         ? org.chauffeurDetails?.currency
         : "EUR",
     minimumFare:
-      org.chauffeurDetails?.minimumFare != null ? String(org.chauffeurDetails?.minimumFare) : "",
-    hourlyRate:
-      org.chauffeurDetails?.hourlyRate != null ? String(org.chauffeurDetails?.hourlyRate) : "",
-    transferBaseRate:
-      org.chauffeurDetails?.transferBaseRate != null
-        ? String(org.chauffeurDetails?.transferBaseRate)
-        : "",
-    nightSurchargePercent:
-      org.chauffeurDetails?.nightSurchargePercent != null
-        ? String(org.chauffeurDetails?.nightSurchargePercent)
+      org.chauffeurDetails?.minimumFare != null
+        ? String(org.chauffeurDetails.minimumFare)
         : "",
     holidaySurchargePercent:
       org.chauffeurDetails?.holidaySurchargePercent != null
-        ? String(org.chauffeurDetails?.holidaySurchargePercent)
+        ? String(org.chauffeurDetails.holidaySurchargePercent)
+        : "",
+    nightSurchargePercent:
+      org.chauffeurDetails?.nightSurchargePercent != null
+        ? String(org.chauffeurDetails.nightSurchargePercent)
+        : "",
+    hourlyRate:
+      org.chauffeurDetails?.hourlyRate != null
+        ? String(org.chauffeurDetails.hourlyRate)
+        : "",
+    transferBaseRate:
+      org.chauffeurDetails?.transferBaseRate != null
+        ? String(org.chauffeurDetails.transferBaseRate)
         : "",
     waitingTimeFee:
-      org.chauffeurDetails?.waitingTimeFee != null ? String(org.chauffeurDetails?.waitingTimeFee) : "",
+      org.chauffeurDetails?.waitingTimeFee != null
+        ? String(org.chauffeurDetails.waitingTimeFee)
+        : "",
   };
 }
 
@@ -144,10 +150,10 @@ export function formValuesToDriverOrganization(
           : undefined,
       currency: values.currency ?? undefined,
       minimumFare: toNumber(values.minimumFare),
+      holidaySurchargePercent: toNumber(values.holidaySurchargePercent),
+      nightSurchargePercent: toNumber(values.nightSurchargePercent),
       hourlyRate: toNumber(values.hourlyRate),
       transferBaseRate: toNumber(values.transferBaseRate),
-      nightSurchargePercent: toNumber(values.nightSurchargePercent),
-      holidaySurchargePercent: toNumber(values.holidaySurchargePercent),
       waitingTimeFee: toNumber(values.waitingTimeFee),
     },
   };

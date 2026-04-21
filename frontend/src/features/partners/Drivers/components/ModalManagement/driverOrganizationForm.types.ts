@@ -45,9 +45,9 @@ export const defaultFormValues: DriverOrganizationFormValues = {
   commissionPercent: "",
   currency: "EUR",
   minimumFare: "",
+  holidaySurchargePercent: "",
+  nightSurchargePercent: "",
   hourlyRate: "",
   transferBaseRate: "",
-  nightSurchargePercent: "",
-  holidaySurchargePercent: "",
   waitingTimeFee: "",
 };

@@ -51,10 +51,10 @@ export type DriverOrganizationFormValues = {
   commissionPercent?: number | string | null;
   currency?: string | null;
   minimumFare?: number | string | null;
+  holidaySurchargePercent?: number | string | null;
+  nightSurchargePercent?: number | string | null;
   hourlyRate?: number | string | null;
   transferBaseRate?: number | string | null;
-  nightSurchargePercent?: number | string | null;
-  holidaySurchargePercent?: number | string | null;
   waitingTimeFee?: number | string | null;
 };
 
@@ -106,10 +106,10 @@ export type DriverOrganization = {
     commissionPercent?: number;
     currency?: string;
     minimumFare?: number;
+    holidaySurchargePercent?: number;
+    nightSurchargePercent?: number;
     hourlyRate?: number;
     transferBaseRate?: number;
-    nightSurchargePercent?: number;
-    holidaySurchargePercent?: number;
     waitingTimeFee?: number;
   };
 };

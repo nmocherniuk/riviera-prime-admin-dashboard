@@ -1,10 +1,6 @@
 import { prisma } from "../../lib/prisma.js";
 import { getStripe } from "../../lib/stripe.js";
-
-const DEFAULT_PER_HOUR_EUR = 120;
-const PLATFORM_COMMISSION_PERCENT = Number(
-  process.env.PLATFORM_COMMISSION_PERCENT ?? "20",
-);
+import { ensureBookingPricingSnapshot } from "../booking/booking.pricing.js";
 
 type FinancialAmounts = {
   totalAmount: number;
@@ -19,27 +15,56 @@ function round2(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
-async function estimateTotalAmountEur(
-  durationMin: number,
-  vehicleId: string | null,
-): Promise<number> {
-  const hours = durationMin / 60;
-  let perHour = DEFAULT_PER_HOUR_EUR;
-  if (vehicleId) {
-    const pricing = await prisma.vehiclePricings.findUnique({
-      where: { vehicleId },
-      select: { perHour: true },
-    });
-    if (pricing) perHour = Number(pricing.perHour);
-  }
-  return round2(hours * perHour);
-}
+/**
+ * Uses persisted booking pricing snapshot only (marketplace model).
+ * Client paid totalAmount to platform; on completion we transfer driverAmount to connected account.
+ */
+async function ensureBookingAmounts(bookingId: string): Promise<FinancialAmounts> {
+  let booking = await prisma.bookings.findUnique({
+    where: { id: bookingId },
+    select: {
+      id: true,
+      totalAmount: true,
+      driverAmount: true,
+      platformFee: true,
+      finalCustomerPrice: true,
+      finalPartnerPayout: true,
+      platformMargin: true,
+    },
+  });
+  if (!booking) throw new Error("Booking not found");
 
-function splitAmounts(totalAmount: number): FinancialAmounts {
-  const platformFee = round2(
-    (totalAmount * PLATFORM_COMMISSION_PERCENT) / 100,
+  const incomplete =
+    booking.finalCustomerPrice == null ||
+    booking.finalPartnerPayout == null ||
+    booking.totalAmount == null;
+  if (incomplete) {
+    await ensureBookingPricingSnapshot(bookingId);
+    booking = await prisma.bookings.findUnique({
+      where: { id: bookingId },
+      select: {
+        id: true,
+        totalAmount: true,
+        driverAmount: true,
+        platformFee: true,
+        finalCustomerPrice: true,
+        finalPartnerPayout: true,
+        platformMargin: true,
+      },
+    });
+    if (!booking) throw new Error("Booking not found");
+  }
+
+  const totalAmount = Number(
+    booking.finalCustomerPrice ?? booking.totalAmount ?? 0,
   );
-  const driverAmount = round2(totalAmount - platformFee);
+  const driverAmount = Number(
+    booking.finalPartnerPayout ?? booking.driverAmount ?? 0,
+  );
+  const platformFee = Number(
+    booking.platformMargin ?? booking.platformFee ?? round2(totalAmount - driverAmount),
+  );
+
   return {
     totalAmount,
     driverAmount,
@@ -48,56 +73,6 @@ function splitAmounts(totalAmount: number): FinancialAmounts {
     driverAmountCents: Math.round(driverAmount * 100),
     platformFeeCents: Math.round(platformFee * 100),
   };
-}
-
-async function ensureBookingAmounts(bookingId: string): Promise<FinancialAmounts> {
-  const booking = await prisma.bookings.findUnique({
-    where: { id: bookingId },
-    select: {
-      id: true,
-      durationMin: true,
-      vehicleId: true,
-      totalAmount: true,
-      driverAmount: true,
-      platformFee: true,
-    },
-  });
-  if (!booking) throw new Error("Booking not found");
-
-  if (
-    booking.totalAmount != null &&
-    booking.driverAmount != null &&
-    booking.platformFee != null
-  ) {
-    const totalAmount = Number(booking.totalAmount);
-    const driverAmount = Number(booking.driverAmount);
-    const platformFee = Number(booking.platformFee);
-    return {
-      totalAmount,
-      driverAmount,
-      platformFee,
-      totalAmountCents: Math.round(totalAmount * 100),
-      driverAmountCents: Math.round(driverAmount * 100),
-      platformFeeCents: Math.round(platformFee * 100),
-    };
-  }
-
-  const totalAmount = await estimateTotalAmountEur(
-    booking.durationMin,
-    booking.vehicleId ?? null,
-  );
-  const amounts = splitAmounts(totalAmount);
-
-  await prisma.bookings.update({
-    where: { id: bookingId },
-    data: {
-      totalAmount: amounts.totalAmount,
-      driverAmount: amounts.driverAmount,
-      platformFee: amounts.platformFee,
-    },
-  });
-
-  return amounts;
 }
 
 export async function transferBookingEarningsToDriver(
@@ -124,6 +99,7 @@ export async function transferBookingEarningsToDriver(
   if (amounts.driverAmountCents <= 0) return;
 
   const stripe = getStripe();
+  /** Partner share (finalPartnerPayout) — platform retains platformMargin on the hub account. */
   const transfer = await stripe.transfers.create(
     {
       amount: amounts.driverAmountCents,
@@ -143,9 +119,6 @@ export async function transferBookingEarningsToDriver(
       payoutStatus: "PENDING",
       platformPayoutStatus: "AVAILABLE",
       stripeTransferId: transfer.id,
-      totalAmount: amounts.totalAmount,
-      driverAmount: amounts.driverAmount,
-      platformFee: amounts.platformFee,
     },
   });
 
@@ -169,8 +142,7 @@ export async function getDriverEarningsSummary(driverId: string): Promise<{
       status: true,
       isTransferred: true,
       payoutStatus: true,
-      durationMin: true,
-      vehicleId: true,
+      finalPartnerPayout: true,
       driverAmount: true,
     },
   });
@@ -180,22 +152,17 @@ export async function getDriverEarningsSummary(driverId: string): Promise<{
   let pending = 0;
 
   for (const booking of bookings) {
-    let driverAmount = booking.driverAmount != null ? Number(booking.driverAmount) : null;
-    if (driverAmount == null) {
-      const total = await estimateTotalAmountEur(
-        booking.durationMin,
-        booking.vehicleId ?? null,
-      );
-      driverAmount = splitAmounts(total).driverAmount;
-    }
+    const partner = Number(
+      booking.finalPartnerPayout ?? booking.driverAmount ?? 0,
+    );
 
     if (booking.isTransferred) {
-      totalEarned += driverAmount;
+      totalEarned += partner;
       if (booking.payoutStatus === "PENDING") {
-        availableBalance += driverAmount;
+        availableBalance += partner;
       }
     } else if (booking.status !== "COMPLETED") {
-      pending += driverAmount;
+      pending += partner;
     }
   }
 

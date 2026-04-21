@@ -73,11 +73,19 @@ export default function PaymentsPage() {
     let todayRevenue = 0;
     let unpaid = 0;
     let paid = 0;
+    let grossCustomer = 0;
+    let partnerOut = 0;
+    let marginOut = 0;
     for (const p of payments) {
       if (p.paymentStatus === "unpaid") unpaid += 1;
       if (p.paymentStatus === "paid") paid += 1;
       if (p.paymentStatus === "paid" && p.date === today) {
         todayRevenue += p.amount;
+      }
+      if (p.paymentStatus === "paid") {
+        if (p.customerPrice != null) grossCustomer += p.customerPrice;
+        if (p.partnerPayout != null) partnerOut += p.partnerPayout;
+        if (p.platformMargin != null) marginOut += p.platformMargin;
       }
     }
     const currency = payments[0]?.currency ?? "EUR";
@@ -89,6 +97,21 @@ export default function PaymentsPage() {
       },
       { label: "Unpaid", value: String(unpaid), icon: HourglassEmptyIcon },
       { label: "Paid", value: String(paid), icon: CheckCircleOutlineIcon },
+      {
+        label: "Gross (snapshots)",
+        value: formatMoney(grossCustomer, currency),
+        icon: AttachMoneyIcon,
+      },
+      {
+        label: "Partner payouts (snapshots)",
+        value: formatMoney(partnerOut, currency),
+        icon: CheckCircleOutlineIcon,
+      },
+      {
+        label: "Platform margin (snapshots)",
+        value: formatMoney(marginOut, currency),
+        icon: AttachMoneyIcon,
+      },
       {
         label: "Available Balance",
         value: formatMoney(
@@ -142,6 +165,7 @@ export default function PaymentsPage() {
               xs: "1fr 1fr",
               md: "repeat(3, minmax(0, 1fr))",
               lg: "repeat(4, minmax(0, 1fr))",
+              xl: "repeat(7, minmax(0, 1fr))",
             },
             gap: 2,
           }}

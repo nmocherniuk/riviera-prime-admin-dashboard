@@ -4,4 +4,7 @@ export type VehiclePricing = {
   vehicle: FleetVehicle;
   perHour: string;
   perKm: string;
+  minimumFare: string;
+  holidaySurchargePercent: string;
+  nightSurchargePercent: string;
 };
