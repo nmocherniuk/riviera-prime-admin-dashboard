@@ -24,6 +24,7 @@ export const bookingPayloadSelect = {
   bookingAt: true,
   from: true,
   to: true,
+  distanceKm: true,
   durationMin: true,
   status: true,
   paymentStatus: true,
@@ -55,6 +56,7 @@ const bookingPayloadSelectWithoutDeadline = {
   ...bookingPayloadSelect,
   driverResponseDeadline: false,
   stripePaymentIntentId: false,
+  distanceKm: false,
   totalAmount: false,
   driverAmount: false,
   platformFee: false,
@@ -85,6 +87,7 @@ function withNullDeadline(row: BookingRowWithoutDeadline): BookingRow {
     ...row,
     driverResponseDeadline: null,
     stripePaymentIntentId: null,
+    distanceKm: null,
     totalAmount: null,
     driverAmount: null,
     platformFee: null,
@@ -124,6 +127,7 @@ export type CreateBookingData = {
   bookingAt: Date;
   from: string;
   to: string;
+  distanceKm?: Prisma.Decimal | number | null;
   durationMin: number;
   status: BookingStatus;
   paymentStatus: PaymentStatus;

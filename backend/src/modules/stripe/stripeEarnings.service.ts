@@ -75,6 +75,31 @@ async function ensureBookingAmounts(bookingId: string): Promise<FinancialAmounts
   };
 }
 
+/**
+ * Best-effort lookup of the latest_charge for this booking's PaymentIntent.
+ * Passing it as `source_transaction` lets Stripe pull funds from the customer's
+ * charge even while it's still pending (no need to wait for available balance).
+ */
+async function resolveSourceChargeId(
+  stripePaymentIntentId: string | null,
+): Promise<string | null> {
+  if (!stripePaymentIntentId) return null;
+  try {
+    const pi = await getStripe().paymentIntents.retrieve(
+      stripePaymentIntentId,
+    );
+    const latestCharge = pi.latest_charge;
+    if (!latestCharge) return null;
+    return typeof latestCharge === "string" ? latestCharge : latestCharge.id;
+  } catch (error) {
+    console.warn(
+      `[earnings] could not load PaymentIntent ${stripePaymentIntentId}`,
+      error,
+    );
+    return null;
+  }
+}
+
 export async function transferBookingEarningsToDriver(
   bookingId: string,
 ): Promise<void> {
@@ -86,6 +111,7 @@ export async function transferBookingEarningsToDriver(
       paymentStatus: true,
       isTransferred: true,
       driverId: true,
+      stripePaymentIntentId: true,
       driver: { select: { stripeAccountId: true } },
     },
   });
@@ -99,17 +125,37 @@ export async function transferBookingEarningsToDriver(
   if (amounts.driverAmountCents <= 0) return;
 
   const stripe = getStripe();
-  /** Partner share (finalPartnerPayout) — platform retains platformMargin on the hub account. */
-  const transfer = await stripe.transfers.create(
-    {
-      amount: amounts.driverAmountCents,
-      currency: "eur",
-      destination: booking.driver.stripeAccountId,
-      metadata: { bookingId: booking.id, driverId: booking.driverId },
-      transfer_group: `booking_${booking.id}`,
-    },
-    { idempotencyKey: `booking_transfer_${booking.id}` },
+  const sourceChargeId = await resolveSourceChargeId(
+    booking.stripePaymentIntentId,
   );
+
+  const baseParams = {
+    amount: amounts.driverAmountCents,
+    currency: "eur",
+    destination: booking.driver.stripeAccountId,
+    metadata: { bookingId: booking.id, driverId: booking.driverId },
+    transfer_group: `booking_${booking.id}`,
+  } as const;
+
+  let transfer;
+  try {
+    transfer = sourceChargeId
+      ? await stripe.transfers.create(
+          { ...baseParams, source_transaction: sourceChargeId },
+          {
+            idempotencyKey: `booking_transfer_${booking.id}_src_${sourceChargeId}`,
+          },
+        )
+      : await stripe.transfers.create(baseParams, {
+          idempotencyKey: `booking_transfer_${booking.id}_direct`,
+        });
+  } catch (error) {
+    const stripeError = error as { code?: string; message?: string };
+    console.error(
+      `[earnings] transfer failed booking=${booking.id} code=${stripeError.code ?? "?"} msg=${stripeError.message ?? "?"}`,
+    );
+    throw error;
+  }
 
   const updated = await prisma.bookings.updateMany({
     where: { id: booking.id, isTransferred: false },
@@ -124,7 +170,7 @@ export async function transferBookingEarningsToDriver(
 
   if (updated.count > 0) {
     console.log(
-      `[earnings] transferred booking=${booking.id} amount=${amounts.driverAmountCents} transfer=${transfer.id}`,
+      `[earnings] transferred booking=${booking.id} amount=${amounts.driverAmountCents}EUR transfer=${transfer.id} source=${sourceChargeId ?? "direct"}`,
     );
   }
 }

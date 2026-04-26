@@ -89,6 +89,38 @@ export async function sendInteractiveReplyWithMenu(
 }
 
 /**
+ * Send an interactive message with up to 3 reply buttons.
+ * Used for single-action prompts like earnings "Withdraw".
+ */
+export async function sendWhatsAppInteractiveButtons(
+  to: string,
+  body: string,
+  buttons: Array<{ id: string; title: string }>,
+): Promise<void> {
+  if (!buttons.length) {
+    await sendWhatsAppText(to, body);
+    return;
+  }
+  const trimmedBody = body.slice(0, 1024);
+  const replyButtons = buttons.slice(0, 3).map((b) => ({
+    type: "reply" as const,
+    reply: {
+      id: b.id.slice(0, 256),
+      title: b.title.slice(0, 20),
+    },
+  }));
+  await graphSendMessage({
+    to,
+    type: "interactive",
+    interactive: {
+      type: "button",
+      body: { text: trimmedBody },
+      action: { buttons: replyButtons },
+    },
+  });
+}
+
+/**
  * Official Message template (must be approved in WhatsApp Manager).
  */
 export async function sendWhatsAppTemplate(

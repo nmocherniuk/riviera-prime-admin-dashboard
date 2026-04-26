@@ -24,6 +24,12 @@ import type {
   WhatsAppReplyPayload,
 } from "./whatsapp.types.js";
 import { getDriverByPhone, setDriverOnlineStatus } from "../driver/driver.service.js";
+import { findDriverById } from "../driver/driver.repository.js";
+import {
+  getDriverStripeBalanceView,
+  formatEur,
+  formatAvailableDate,
+} from "./whatsapp.driverEarnings.js";
 
 export const WHATSAPP_REPLY_MESSAGES = {
   welcomeHint: "Напиши «menu» або «привіт» — покажемо меню.",
@@ -77,12 +83,17 @@ async function buildTripsListReply(
     return { body: "🚗 No assigned trips." };
   }
 
-  const rowsPaid = paidTrips.slice(0, 10).map((trip) => ({
+  const NAV_ROWS = 2;
+  const MAX_LIST_ROWS = 10;
+  const maxTripRows = Math.max(0, MAX_LIST_ROWS - NAV_ROWS);
+  const paidQuota = Math.ceil(maxTripRows / 2);
+  const rowsPaid = paidTrips.slice(0, paidQuota).map((trip) => ({
     id: `TRIP_${trip.id}`.slice(0, 200),
     title: `${trip.from} → ${trip.to}`.slice(0, 24),
     description: `${formatTripDate(trip.bookingAt)} • Confirmed`.slice(0, 72),
   }));
-  const rowsUnpaid = unpaidTrips.slice(0, 10).map((trip) => ({
+  const remainingForUnpaid = Math.max(0, maxTripRows - rowsPaid.length);
+  const rowsUnpaid = unpaidTrips.slice(0, remainingForUnpaid).map((trip) => ({
     id: `TRIP_${trip.id}`.slice(0, 200),
     title: `${trip.from} → ${trip.to}`.slice(0, 24),
     description: `${formatTripDate(trip.bookingAt)} • Awaiting payment`.slice(0, 72),
@@ -278,26 +289,59 @@ function parseAcceptBookingIdFromListRow(text: string): string | null {
 
 async function buildEarningsReply(driverId: string): Promise<WhatsAppReplyPayload> {
   await syncCompletedTransfersForDriver(driverId);
-  const earnings = await getDriverEarningsSummary(driverId);
-  const bodyText = [
+  const [earnings, driver] = await Promise.all([
+    getDriverEarningsSummary(driverId),
+    findDriverById(driverId),
+  ]);
+
+  const stripeView = driver?.stripeAccountId
+    ? await getDriverStripeBalanceView(driver.stripeAccountId)
+    : { availableEur: 0, pendingEur: 0, availableOn: null };
+
+  const lines: string[] = [
     "💶 *Earnings*",
     "",
-    `Total earned: ${earnings.totalEarned.toFixed(2)} ${earnings.currency}`,
-    `Available to withdraw: ${earnings.availableBalance.toFixed(2)} ${earnings.currency}`,
-    `Pending trips: ${earnings.pending.toFixed(2)} ${earnings.currency}`,
-  ].join("\n");
+    `Total earned: ${formatEur(earnings.totalEarned)}`,
+    "",
+    `💳 Available to withdraw: ${formatEur(stripeView.availableEur)}`,
+  ];
+
+  if (stripeView.pendingEur > 0) {
+    lines.push(`⏳ Pending: ${formatEur(stripeView.pendingEur)}`);
+    if (stripeView.availableEur <= 0) {
+      lines.push(`Available on: ${formatAvailableDate(stripeView.availableOn)}`);
+    }
+  }
+
+  if (stripeView.availableEur > 0) {
+    lines.push("", "Tap *Withdraw* below to cash out 👇");
+  } else if (stripeView.pendingEur > 0) {
+    lines.push("", "We'll notify you when your funds become available.");
+  }
+
+  const bodyText = lines.join("\n");
+
+  const buttons: Array<{
+    type: "reply";
+    reply: { id: string; title: string };
+  }> = [];
+  if (stripeView.availableEur > 0) {
+    buttons.push({
+      type: "reply",
+      reply: { id: "WITHDRAW", title: "💸 Withdraw" },
+    });
+  }
+  buttons.push({
+    type: "reply",
+    reply: { id: "MENU_MAIN", title: "📋 Menu" },
+  });
 
   return {
     body: bodyText,
     interactive: {
       type: "button",
       body: { text: bodyText },
-      action: {
-        buttons: [
-          { type: "reply", reply: { id: "WITHDRAW", title: "💸 Withdraw" } },
-          { type: "reply", reply: { id: "MENU_MAIN", title: "📋 Menu" } },
-        ],
-      },
+      action: { buttons },
     },
   };
 }
@@ -413,8 +457,25 @@ export async function buildReplyPayload(
     }
 
     await updateBookingService(bookingId, { status: "completed" });
+    const earningsReply = await buildEarningsReply(driver.id);
+    const mergedBody = [
+      "✅ Trip completed!",
+      "Thank you for a safe ride.",
+      "",
+      earningsReply.body,
+    ].join("\n");
 
-    return { body: "✅ Trip completed!\nThank you for a safe ride." };
+    if (earningsReply.interactive?.type === "button") {
+      return {
+        body: mergedBody,
+        interactive: {
+          ...earningsReply.interactive,
+          body: { text: mergedBody.slice(0, 1024) },
+        },
+      };
+    }
+
+    return { body: mergedBody };
   }
 
   if (text?.startsWith("ACCEPT")) {

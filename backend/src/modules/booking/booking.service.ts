@@ -66,6 +66,7 @@ export type PublicBooking = {
   bookingAt: Date;
   from: string;
   to: string;
+  distanceKm: number | null;
   durationMin: number;
   status: PublicBookingStatus;
   paymentStatus: PublicPaymentStatus;
@@ -114,6 +115,7 @@ function toPublicBooking(row: BookingPricingRow): PublicBooking {
     bookingAt: row.bookingAt,
     from: row.from,
     to: row.to,
+    distanceKm: row.distanceKm != null ? Number(row.distanceKm) : null,
     durationMin: row.durationMin,
     status: toPublicStatus(row.status),
     paymentStatus: toPublicPaymentStatus(row.paymentStatus),
@@ -274,7 +276,7 @@ export async function estimateBookingPriceEur(row: BookingPricingRow): Promise<n
     tripType: row.tripType,
     bookingAt: row.bookingAt,
     durationMin: row.durationMin,
-    distanceKm: null,
+    distanceKm: row.distanceKm != null ? Number(row.distanceKm) : null,
   });
   return snap.finalCustomerPrice;
 }
@@ -410,7 +412,12 @@ export async function createBookingService(input: CreateBookingServiceInput) {
     bookingAt: new Date(input.bookingAt),
     durationMin: input.durationMin,
     distanceKm: input.distanceKm ?? null,
+    from: input.from,
+    to: input.to,
   });
+
+  const { resolvedDistanceKm, ...pricingScalars } = pricingData;
+  const distanceKmToStore = input.distanceKm ?? resolvedDistanceKm ?? null;
 
   const created = await createBooking({
     clientName: input.clientName,
@@ -424,6 +431,7 @@ export async function createBookingService(input: CreateBookingServiceInput) {
     bookingAt: new Date(input.bookingAt),
     from: input.from,
     to: input.to,
+    distanceKm: distanceKmToStore,
     durationMin: input.durationMin,
     status: toDbStatus(input.status),
     paymentStatus: toDbPaymentStatus(input.paymentStatus),
@@ -431,7 +439,7 @@ export async function createBookingService(input: CreateBookingServiceInput) {
     candidateDriverIds: drivers.map((driver: { id: string }) => {
       return { driverId: driver.id, status: "pending" };
     }),
-    ...pricingData,
+    ...pricingScalars,
   });
 
   void notifyDriversNewBooking(
@@ -519,6 +527,7 @@ export async function updateBookingService(
   }
   if (input.from !== undefined) updateData.from = input.from;
   if (input.to !== undefined) updateData.to = input.to;
+  if (input.distanceKm !== undefined) updateData.distanceKm = input.distanceKm;
   if (input.durationMin !== undefined)
     updateData.durationMin = input.durationMin;
   if (input.bookingAt !== undefined)
@@ -549,15 +558,27 @@ export async function updateBookingService(
     const vid =
       input.vehicleId !== undefined ? input.vehicleId : existing.vehicleId;
     const dist =
-      input.distanceKm !== undefined ? input.distanceKm ?? null : null;
+      input.distanceKm !== undefined
+        ? input.distanceKm ?? null
+        : existing.distanceKm != null
+          ? Number(existing.distanceKm)
+          : null;
+    const nextFrom = input.from ?? existing.from;
+    const nextTo = input.to ?? existing.to;
     const patch = await buildPricingDataForBooking({
       vehicleId: vid && String(vid).trim() !== "" ? vid : null,
       tripType: nextTrip,
       bookingAt: nextAt,
       durationMin: nextDur,
       distanceKm: dist,
+      from: nextFrom,
+      to: nextTo,
     });
-    Object.assign(updateData, patch);
+    const { resolvedDistanceKm, ...patchScalars } = patch;
+    Object.assign(updateData, patchScalars);
+    if (input.distanceKm === undefined && resolvedDistanceKm != null) {
+      updateData.distanceKm = resolvedDistanceKm;
+    }
   }
 
   const previousPayment = existing.paymentStatus;

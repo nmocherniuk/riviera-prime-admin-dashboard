@@ -4,6 +4,7 @@ import { sendTripOfferDriverTemplateWithMenu } from "./whatsapp.templates.js";
 import { formatBookingDateTimeZone } from "./formatBookingTime.js";
 import { getDriversByVehicleId } from "../driver/driver.service.js";
 import { findDriverById } from "../driver/driver.repository.js";
+import { ensureBookingPricingSnapshot } from "../booking/booking.pricing.js";
 
 function normalizeWaTo(raw: string): string {
   console.log("rsadasdsaaw", raw);
@@ -15,6 +16,11 @@ function labelOrDash(s: string): string {
   return t || "—";
 }
 
+function formatPartnerPayoutValue(value: number | null): string {
+  if (value == null || value <= 0) return "-";
+  return `${value.toFixed(2)} EUR`;
+}
+
 type BookingNotifyRow = {
   id: string;
   clientName: string;
@@ -24,6 +30,7 @@ type BookingNotifyRow = {
   to: string;
   bookingAt: Date;
   durationMin: number;
+  finalPartnerPayout: { toString(): string } | null;
   whatsappPaidTemplateSentAt?: Date | null;
   driver: { phone: string | null } | null;
 };
@@ -40,6 +47,7 @@ async function findBookingForPaidNotify(
     to: true,
     bookingAt: true,
     durationMin: true,
+    finalPartnerPayout: true,
     driver: { select: { phone: true } },
   } as const;
   try {
@@ -66,6 +74,7 @@ export async function notifyDriversNewBooking(
   bookingId: string,
   candidateDriverIds: { driverId: string }[],
 ): Promise<void> {
+  await ensureBookingPricingSnapshot(bookingId);
   const booking = await findBookingForPaidNotify(bookingId);
   if (!booking) return;
 
@@ -86,6 +95,11 @@ export async function notifyDriversNewBooking(
 
   const fromRoute = labelOrDash(booking.from);
   const toRoute = labelOrDash(booking.to);
+  const payoutText = formatPartnerPayoutValue(
+    booking.finalPartnerPayout != null
+      ? Number(booking.finalPartnerPayout.toString())
+      : null,
+  );
 
   try {
     const { date, time } = formatBookingDateTimeZone(booking.bookingAt);
@@ -101,7 +115,7 @@ export async function notifyDriversNewBooking(
         time,
         notesForDriver:
           booking.notesForDriver.length > 0 ? booking.notesForDriver : "-",
-        amountOrExtra: String(booking.durationMin),
+        amountOrExtra: payoutText,
       });
     }
   } catch (e) {
@@ -126,6 +140,7 @@ export async function notifyDriverBookingPaidIfNeeded(
     return;
   }
 
+  await ensureBookingPricingSnapshot(bookingId);
   const booking = await findBookingForPaidNotify(bookingId);
 
   const allDrivers = await Promise.all(
@@ -153,6 +168,11 @@ export async function notifyDriverBookingPaidIfNeeded(
 
   const fromRoute = labelOrDash(booking.from);
   const toRoute = labelOrDash(booking.to);
+  const payoutText = formatPartnerPayoutValue(
+    booking.finalPartnerPayout != null
+      ? Number(booking.finalPartnerPayout.toString())
+      : null,
+  );
 
   try {
     const { date, time } = formatBookingDateTimeZone(booking.bookingAt);
@@ -167,7 +187,7 @@ export async function notifyDriverBookingPaidIfNeeded(
         time,
         notesForDriver:
           booking.notesForDriver.length > 0 ? booking.notesForDriver : "-",
-        amountOrExtra: String(booking.durationMin),
+        amountOrExtra: payoutText,
       });
     }
   } catch (e) {

@@ -84,6 +84,7 @@ export async function createPaymentIntentController(
       where: { id: bookingId },
       select: {
         stripePaymentIntentId: true,
+        clientEmail: true,
         finalCustomerPrice: true,
         totalAmount: true,
       },
@@ -93,12 +94,26 @@ export async function createPaymentIntentController(
     );
 
     const stripe = getStripe();
+    const receiptEmail =
+      priced?.clientEmail && priced.clientEmail.trim().length > 0
+        ? priced.clientEmail.trim()
+        : undefined;
 
     if (priced?.stripePaymentIntentId) {
       try {
-        const existing = await stripe.paymentIntents.retrieve(
+        let existing = await stripe.paymentIntents.retrieve(
           priced.stripePaymentIntentId,
         );
+        if (
+          receiptEmail &&
+          existing.status !== "succeeded" &&
+          existing.status !== "canceled" &&
+          existing.receipt_email !== receiptEmail
+        ) {
+          existing = await stripe.paymentIntents.update(existing.id, {
+            receipt_email: receiptEmail,
+          });
+        }
         if (
           existing.status !== "succeeded" &&
           existing.status !== "canceled"
@@ -116,6 +131,7 @@ export async function createPaymentIntentController(
       amount: amountCents,
       currency: "eur",
       metadata: { bookingId },
+      ...(receiptEmail ? { receipt_email: receiptEmail } : {}),
       automatic_payment_methods: { enabled: true },
     });
 

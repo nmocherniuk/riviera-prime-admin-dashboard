@@ -2,6 +2,11 @@ import { toNumber } from "../../../../../utils/transform";
 import type { DriverOrganization, DriverOrganizationFormValues } from "../../data/types";
 import { defaultFormValues } from "./driverOrganizationForm.types";
 
+function toNullableNumber(v: string | number | null | undefined): number | null {
+  const n = toNumber(v);
+  return n === undefined ? null : n;
+}
+
 export function driverOrganizationToFormValues(
   org: DriverOrganization | null,
 ): DriverOrganizationFormValues {
@@ -136,8 +141,8 @@ export function formValuesToDriverOrganization(
       workingHours: values.workingHours?.trim() || undefined,
       support24_7: values.support24_7,
       languagesSpoken: values.languagesSpoken,
-      maxConcurrentBookings: toNumber(values.maxConcurrentBookings),
-      minAdvanceBookingHours: toNumber(values.minAdvanceBookingHours),
+      maxConcurrentBookings: toNullableNumber(values.maxConcurrentBookings),
+      minAdvanceBookingHours: toNullableNumber(values.minAdvanceBookingHours),
       acceptsUrgentBookings: values.acceptsUrgentBookings,
       cancellationPolicy: values.cancellationPolicy?.trim() || undefined,
       specialConditionsNotes: values.specialConditionsNotes?.trim() || undefined,
@@ -146,15 +151,15 @@ export function formValuesToDriverOrganization(
       paymentTerms: values.paymentTerms?.trim() || undefined,
       commissionPercent:
         values.cooperationType === "COMMISSION"
-          ? toNumber(values.commissionPercent)
+          ? toNullableNumber(values.commissionPercent)
           : undefined,
       currency: values.currency ?? undefined,
-      minimumFare: toNumber(values.minimumFare),
-      holidaySurchargePercent: toNumber(values.holidaySurchargePercent),
-      nightSurchargePercent: toNumber(values.nightSurchargePercent),
-      hourlyRate: toNumber(values.hourlyRate),
-      transferBaseRate: toNumber(values.transferBaseRate),
-      waitingTimeFee: toNumber(values.waitingTimeFee),
+      minimumFare: toNullableNumber(values.minimumFare),
+      holidaySurchargePercent: toNullableNumber(values.holidaySurchargePercent),
+      nightSurchargePercent: toNullableNumber(values.nightSurchargePercent),
+      hourlyRate: toNullableNumber(values.hourlyRate),
+      transferBaseRate: toNullableNumber(values.transferBaseRate),
+      waitingTimeFee: toNullableNumber(values.waitingTimeFee),
     },
   };
 }
