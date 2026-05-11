@@ -12,6 +12,10 @@ export const vehicleListQuerySchema = z.object({
   driverId: z.string().uuid().optional(),
 });
 
+export const publicVehicleListQuerySchema = z.object({
+  class: z.enum(["comfort", "business", "van"]).optional(),
+});
+
 const nullableUuid = z.union([z.string().uuid(), z.null()]);
 
 const driverIdsField = z.array(z.string().uuid()).default([]);
@@ -49,6 +53,14 @@ const createVehicleFields = {
   year: z.string().min(1),
   color: z.string().min(1),
   licensePlate: z.string().min(1),
+  imageUrl: z.string().trim().url().optional().or(z.literal("")),
+  description: z.string().optional().default(""),
+  passengers: z.number().int().positive().optional().nullable(),
+  baggageCount: z.number().int().nonnegative().optional().nullable(),
+  vehicleType: z.string().optional().default(""),
+  transmission: z.string().optional().default(""),
+  interior: z.string().optional().default(""),
+  amenities: z.array(z.string()).optional().default([]),
   class: vehicleClassSchema,
   status: vehicleStatusSchema,
 } as const;
@@ -69,6 +81,14 @@ export const updateVehicleSchema = z.preprocess(
     year: z.string().min(1),
     color: z.string().min(1),
     licensePlate: z.string().min(1),
+    imageUrl: z.string().trim().url().optional().or(z.literal("")),
+    description: z.string().optional().default(""),
+    passengers: z.number().int().positive().optional().nullable(),
+    baggageCount: z.number().int().nonnegative().optional().nullable(),
+    vehicleType: z.string().optional().default(""),
+    transmission: z.string().optional().default(""),
+    interior: z.string().optional().default(""),
+    amenities: z.array(z.string()).optional().default([]),
     class: vehicleClassSchema,
     status: vehicleStatusSchema,
   }),

@@ -20,6 +20,10 @@ export const driverBookingsGroupedQuerySchema = z.object({
 
 const publicVehicleClassEnum = z.enum(["comfort", "business", "van"]);
 
+export const publicVehicleListQuerySchema = z.object({
+  class: publicVehicleClassEnum.optional(),
+});
+
 const baseBookingFields = {
   clientName: z.string().min(1),
   clientEmail: z.string().default(""),

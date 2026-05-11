@@ -277,6 +277,38 @@ export default function FleetManagementModal({
             />
           )}
         </Grid>
+        <Grid size={{ xs: 12 }}>
+          {readOnly ? (
+            <DetailField label="Image URL (optional)" value={formValues.imageUrl} />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              label="Image URL (optional)"
+              placeholder="https://example.com/car.jpg"
+              value={formValues.imageUrl}
+              onChange={handleChange("imageUrl")}
+              sx={modalTextFieldSx}
+            />
+          )}
+        </Grid>
+        <Grid size={{ xs: 12 }}>
+          {readOnly ? (
+            <DetailField label="Description" value={formValues.description} />
+          ) : (
+            <TextField
+              fullWidth
+              multiline
+              minRows={2}
+              size="small"
+              label="Description"
+              placeholder="Short marketing description for landing"
+              value={formValues.description}
+              onChange={handleChange("description")}
+              sx={modalTextFieldSx}
+            />
+          )}
+        </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
             <DetailField
@@ -325,6 +357,101 @@ export default function FleetManagementModal({
                 </MenuItem>
               ))}
             </TextField>
+          )}
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          {readOnly ? (
+            <DetailField label="Passengers" value={formValues.passengers} />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              label="Passengers"
+              type="number"
+              inputProps={{ min: 1 }}
+              value={formValues.passengers}
+              onChange={handleChange("passengers")}
+              sx={modalTextFieldSx}
+            />
+          )}
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          {readOnly ? (
+            <DetailField label="Baggage count" value={formValues.baggageCount} />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              label="Baggage count"
+              type="number"
+              inputProps={{ min: 0 }}
+              value={formValues.baggageCount}
+              onChange={handleChange("baggageCount")}
+              sx={modalTextFieldSx}
+            />
+          )}
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          {readOnly ? (
+            <DetailField label="Vehicle type" value={formValues.vehicleType} />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              label="Vehicle type"
+              placeholder="Luxury Sedan"
+              value={formValues.vehicleType}
+              onChange={handleChange("vehicleType")}
+              sx={modalTextFieldSx}
+            />
+          )}
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          {readOnly ? (
+            <DetailField label="Transmission" value={formValues.transmission} />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              label="Transmission"
+              placeholder="Automatic"
+              value={formValues.transmission}
+              onChange={handleChange("transmission")}
+              sx={modalTextFieldSx}
+            />
+          )}
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          {readOnly ? (
+            <DetailField label="Interior" value={formValues.interior} />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              label="Interior"
+              placeholder="Leather"
+              value={formValues.interior}
+              onChange={handleChange("interior")}
+              sx={modalTextFieldSx}
+            />
+          )}
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          {readOnly ? (
+            <DetailField
+              label="Amenities (comma separated)"
+              value={formValues.amenitiesText}
+            />
+          ) : (
+            <TextField
+              fullWidth
+              size="small"
+              label="Amenities (comma separated)"
+              placeholder="Climate control, Wi-Fi onboard, Phone chargers"
+              value={formValues.amenitiesText}
+              onChange={handleChange("amenitiesText")}
+              sx={modalTextFieldSx}
+            />
           )}
         </Grid>
       </Grid>

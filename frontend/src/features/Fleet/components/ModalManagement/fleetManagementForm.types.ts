@@ -11,6 +11,14 @@ export const defaultFormValues: FleetFormValues = {
   year: "",
   color: "",
   licensePlate: "",
+  imageUrl: "",
+  description: "",
+  passengers: "",
+  baggageCount: "",
+  vehicleType: "",
+  transmission: "",
+  interior: "",
+  amenitiesText: "",
   class: "Business",
   status: "ACTIVE",
 };
@@ -23,6 +31,14 @@ export type FleetVehicle = {
   year: string;
   color: string;
   licensePlate: string;
+  imageUrl?: string | null;
+  description?: string;
+  passengers?: number | null;
+  baggageCount?: number | null;
+  vehicleType?: string;
+  transmission?: string;
+  interior?: string;
+  amenities?: string[];
   class: FleetClass;
   status: FleetStatus;
 };
@@ -33,6 +49,14 @@ export type FleetFormValues = {
   year: string;
   color: string;
   licensePlate: string;
+  imageUrl: string;
+  description: string;
+  passengers: string;
+  baggageCount: string;
+  vehicleType: string;
+  transmission: string;
+  interior: string;
+  amenitiesText: string;
   class: FleetClass;
   status: FleetStatus;
 };

@@ -18,6 +18,14 @@ export async function createVehicle(data: {
   year: string;
   color: string;
   licensePlate: string;
+  imageUrl: string | null;
+  description: string;
+  passengers: number | null;
+  baggageCount: number | null;
+  vehicleType: string;
+  transmission: string;
+  interior: string;
+  amenities: string[];
   class: VehicleClass;
   status: VehicleStatus;
   driverIds?: string[];
@@ -30,6 +38,14 @@ export async function createVehicle(data: {
       year: data.year,
       color: data.color,
       licensePlate: data.licensePlate,
+      imageUrl: data.imageUrl,
+      description: data.description,
+      passengers: data.passengers,
+      baggageCount: data.baggageCount,
+      vehicleType: data.vehicleType,
+      transmission: data.transmission,
+      interior: data.interior,
+      amenities: data.amenities,
       class: data.class,
       status: data.status,
       ...(driverIds && driverIds.length > 0
@@ -77,6 +93,14 @@ export async function updateVehicle(
     year: string;
     color: string;
     licensePlate: string;
+    imageUrl: string | null;
+    description: string;
+    passengers: number | null;
+    baggageCount: number | null;
+    vehicleType: string;
+    transmission: string;
+    interior: string;
+    amenities: string[];
     class: VehicleClass;
     status: VehicleStatus;
     driverIds: string[];
@@ -91,6 +115,14 @@ export async function updateVehicle(
       year: scalar.year,
       color: scalar.color,
       licensePlate: scalar.licensePlate,
+      imageUrl: scalar.imageUrl,
+      description: scalar.description,
+      passengers: scalar.passengers,
+      baggageCount: scalar.baggageCount,
+      vehicleType: scalar.vehicleType,
+      transmission: scalar.transmission,
+      interior: scalar.interior,
+      amenities: scalar.amenities,
       class: scalar.class,
       status: scalar.status,
       drivers: { set: driverIds.map((did) => ({ id: did })) },

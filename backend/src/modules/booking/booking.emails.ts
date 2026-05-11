@@ -14,6 +14,18 @@ type BookingEmailData = {
   durationMin: number;
 };
 
+type BookingPaymentReceiptEmailData = {
+  bookingId: string;
+  clientName: string;
+  clientEmail: string;
+  from: string;
+  to: string;
+  bookingAt: Date;
+  durationMin: number;
+  amountEur: number;
+  paymentIntentId?: string;
+};
+
 function tripSummaryHtml(b: BookingEmailData): string {
   const { date, time } = formatBookingDateTimeZone(b.bookingAt);
   return `
@@ -165,6 +177,51 @@ export async function sendBookingAllRejectedEmail(
   await sendEmail({
     to: booking.clientEmail,
     subject: "Aurevia — no drivers available for your trip",
+    html,
+  });
+}
+
+/**
+ * Sent after successful payment.
+ * This acts as a customer-facing payment receipt from our side.
+ */
+export async function sendBookingPaymentReceiptEmail(
+  booking: BookingPaymentReceiptEmailData,
+): Promise<void> {
+  if (!booking.clientEmail) {
+    console.warn(
+      `[booking-email] No client email for booking ${booking.bookingId} — skipping payment receipt email`,
+    );
+    return;
+  }
+
+  const amount = Number.isFinite(booking.amountEur) ? booking.amountEur : 0;
+  const paymentRef = booking.paymentIntentId?.trim();
+
+  const html = wrapLayout(`
+    <h2 style="margin:0 0 8px;color:#141414">Payment received ✅</h2>
+    <p style="color:#555;line-height:1.6">
+      Hello <strong>${booking.clientName}</strong>,<br>
+      We confirm that your payment has been received successfully.
+    </p>
+    ${tripSummaryHtml(booking)}
+    <table style="width:100%;border-collapse:collapse;margin:20px 0">
+      <tr><td style="padding:8px 0;color:#888">Amount paid</td><td style="padding:8px 0"><strong>${amount.toFixed(2)} EUR</strong></td></tr>
+      ${
+        paymentRef
+          ? `<tr><td style="padding:8px 0;color:#888">Payment reference</td><td style="padding:8px 0">${paymentRef}</td></tr>`
+          : ""
+      }
+      <tr><td style="padding:8px 0;color:#888">Booking ID</td><td style="padding:8px 0">${booking.bookingId}</td></tr>
+    </table>
+    <p style="color:#555;line-height:1.6">
+      Thank you for choosing Aurevia.
+    </p>
+  `);
+
+  await sendEmail({
+    to: booking.clientEmail,
+    subject: "Aurevia — payment receipt",
     html,
   });
 }

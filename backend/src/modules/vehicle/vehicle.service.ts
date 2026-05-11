@@ -13,7 +13,7 @@ import {
   type VehicleWithDriverIds,
 } from "./vehicle.repository.js";
 import type { CreateVehicleBody } from "./vehicle.schemas.js";
-import type { VehicleJson } from "./vehicle.types.js";
+import type { PublicVehicleJson, VehicleJson } from "./vehicle.types.js";
 import { toDbClass, toPublicClass } from "./vehicle.utils.js";
 
 function toPublicVehicle(row: VehicleWithDriverIds): VehicleJson {
@@ -25,10 +25,36 @@ function toPublicVehicle(row: VehicleWithDriverIds): VehicleJson {
     year: row.year,
     color: row.color,
     licensePlate: row.licensePlate,
+    imageUrl: row.imageUrl,
+    description: row.description ?? "",
+    passengers: row.passengers,
+    baggageCount: row.baggageCount,
+    vehicleType: row.vehicleType ?? "",
+    transmission: row.transmission ?? "",
+    interior: row.interior ?? "",
+    amenities: row.amenities ?? [],
     class: toPublicClass(row.class),
     status: row.status,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
+  };
+}
+
+function toPublicLandingVehicle(row: VehicleWithDriverIds): PublicVehicleJson {
+  const classValue = toPublicClass(row.class).toLowerCase() as PublicVehicleJson["class"];
+  return {
+    id: row.id,
+    vehicleName: row.vehicleName,
+    class: classValue,
+    year: row.year,
+    imageUrl: row.imageUrl,
+    description: row.description ?? "",
+    passengers: row.passengers,
+    baggageCount: row.baggageCount,
+    vehicleType: row.vehicleType ?? "",
+    transmission: row.transmission ?? "",
+    interior: row.interior ?? "",
+    amenities: row.amenities ?? [],
   };
 }
 
@@ -64,6 +90,19 @@ export async function listVehiclesService(filters?: {
   return data.map(toPublicVehicle);
 }
 
+export async function listPublicVehiclesService(filters?: {
+  class?: PublicVehicleJson["class"];
+}) {
+  const data = await findVehicles();
+  const onlyActive = data.filter((row) => row.status === "ACTIVE");
+  const byClass = filters?.class
+    ? onlyActive.filter(
+        (row) => toPublicClass(row.class).toLowerCase() === filters.class,
+      )
+    : onlyActive;
+  return byClass.map(toPublicLandingVehicle);
+}
+
 export async function getVehicleByIdService(id: string) {
   const data = await findVehicleById(id);
   if (!data) return null;
@@ -83,6 +122,14 @@ export async function createVehicleService(body: CreateVehicleBody) {
     year: body.year,
     color: body.color,
     licensePlate: body.licensePlate,
+    imageUrl: body.imageUrl?.trim() ? body.imageUrl.trim() : null,
+    description: body.description?.trim() ?? "",
+    passengers: body.passengers ?? null,
+    baggageCount: body.baggageCount ?? null,
+    vehicleType: body.vehicleType?.trim() ?? "",
+    transmission: body.transmission?.trim() ?? "",
+    interior: body.interior?.trim() ?? "",
+    amenities: (body.amenities ?? []).map((a) => a.trim()).filter(Boolean),
     class: toDbClass(body.class),
     status: body.status,
   });
@@ -99,6 +146,14 @@ export async function updateVehicleService(
     year: string;
     color: string;
     licensePlate: string;
+    imageUrl?: string;
+    description?: string;
+    passengers?: number | null;
+    baggageCount?: number | null;
+    vehicleType?: string;
+    transmission?: string;
+    interior?: string;
+    amenities?: string[];
     class: VehicleJson["class"];
     status: VehicleStatus;
   },
@@ -118,6 +173,14 @@ export async function updateVehicleService(
     year: body.year,
     color: body.color,
     licensePlate: body.licensePlate,
+    imageUrl: body.imageUrl?.trim() ? body.imageUrl.trim() : null,
+    description: body.description?.trim() ?? "",
+    passengers: body.passengers ?? null,
+    baggageCount: body.baggageCount ?? null,
+    vehicleType: body.vehicleType?.trim() ?? "",
+    transmission: body.transmission?.trim() ?? "",
+    interior: body.interior?.trim() ?? "",
+    amenities: (body.amenities ?? []).map((a) => a.trim()).filter(Boolean),
     class: toDbClass(body.class),
     status: body.status,
   });

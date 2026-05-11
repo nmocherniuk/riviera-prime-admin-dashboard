@@ -5,7 +5,8 @@ import dashboardRoutes from "./modules/dashboard/dashboard.routes.js";
 import driverRoutes from "./modules/driver/driver.routes.js";
 import organizationRoutes from "./modules/organization/organization.routes.js";
 import pricingRoutes from "./modules/pricing/pricing.routes.js";
-import vehicleRoutes from "./modules/vehicle/vehicle.routes.js";
+import adminVehicleRoutes from "./modules/vehicle/routes/admin/vehicle.routes.js";
+import publicVehicleRoutes from "./modules/vehicle/routes/public/publicVehicle.routes.js";
 import securityAgentRoutes from "./modules/securityAgent/securityAgent.routes.js";
 import whatsappRoutes from "./modules/whatsapp/whatsapp.routes.js";
 import publicBookingRoutes from "./modules/booking/routes/public/publicBooking.routes.js";
@@ -29,11 +30,12 @@ routes.get("/", (_req, res) => {
 
 routes.use("/public", publicBookingRoutes);
 routes.use("/public", publicPaymentRoutes);
+routes.use("/public", publicVehicleRoutes);
 routes.use("/auth", authRoutes);
 routes.use("/organizations", organizationRoutes);
 routes.use("/drivers", driverRoutes);
 routes.use("/security-agents", securityAgentRoutes);
-routes.use("/vehicles", vehicleRoutes);
+routes.use("/vehicles", adminVehicleRoutes);
 routes.use("/pricing", pricingRoutes);
 routes.use("/payments", paymentsRoutes);
 routes.get("/admin/balance", requireAuth, getAdminBalanceController);

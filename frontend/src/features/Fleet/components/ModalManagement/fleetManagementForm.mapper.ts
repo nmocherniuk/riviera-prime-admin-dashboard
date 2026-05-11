@@ -44,12 +44,33 @@ export function fleetToFormValues(
     year: vehicle.year || "",
     color: vehicle.color || "",
     licensePlate: vehicle.licensePlate || "",
+    imageUrl: vehicle.imageUrl || "",
+    description: vehicle.description || "",
+    passengers:
+      vehicle.passengers != null && Number.isFinite(vehicle.passengers)
+        ? String(vehicle.passengers)
+        : "",
+    baggageCount:
+      vehicle.baggageCount != null && Number.isFinite(vehicle.baggageCount)
+        ? String(vehicle.baggageCount)
+        : "",
+    vehicleType: vehicle.vehicleType || "",
+    transmission: vehicle.transmission || "",
+    interior: vehicle.interior || "",
+    amenitiesText: (vehicle.amenities ?? []).join(", "),
     class: vehicle.class,
     status: vehicle.status,
   };
 }
 
 export function FormValuesToCreateBody(values: FleetFormValues): FleetVehicle {
+  const passengers = values.passengers.trim();
+  const baggageCount = values.baggageCount.trim();
+  const amenities = values.amenitiesText
+    .split(",")
+    .map((a) => a.trim())
+    .filter(Boolean);
+
   return {
     organizationId: resolveVehicleOrganizationId(values.driverBindings),
     driverIds: uniqueDriverIds(values.driverBindings),
@@ -57,6 +78,14 @@ export function FormValuesToCreateBody(values: FleetFormValues): FleetVehicle {
     year: values.year.trim(),
     color: values.color.trim(),
     licensePlate: values.licensePlate.trim(),
+    imageUrl: values.imageUrl.trim() || null,
+    description: values.description.trim(),
+    passengers: passengers ? Number(passengers) : null,
+    baggageCount: baggageCount ? Number(baggageCount) : null,
+    vehicleType: values.vehicleType.trim(),
+    transmission: values.transmission.trim(),
+    interior: values.interior.trim(),
+    amenities,
     class: values.class,
     status: values.status,
   };

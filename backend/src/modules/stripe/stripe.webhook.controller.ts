@@ -3,6 +3,7 @@ import type Stripe from "stripe";
 import { getStripe } from "../../lib/stripe.js";
 import { prisma } from "../../lib/prisma.js";
 import { isStripeOnboardingCompleted } from "./stripeConnect.service.js";
+import { sendBookingPaymentReceiptEmail } from "../booking/booking.emails.js";
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -76,7 +77,16 @@ async function handlePaymentIntentSucceeded(
 
   const booking = await prisma.bookings.findUnique({
     where: { id: bookingId },
-    select: { id: true, paymentStatus: true },
+    select: {
+      id: true,
+      paymentStatus: true,
+      clientName: true,
+      clientEmail: true,
+      from: true,
+      to: true,
+      bookingAt: true,
+      durationMin: true,
+    },
   });
 
   if (!booking) {
@@ -104,6 +114,23 @@ async function handlePaymentIntentSucceeded(
   console.log(
     `[stripe-webhook] Booking ${bookingId} marked PAID — PI: ${paymentIntent.id}`,
   );
+
+  void sendBookingPaymentReceiptEmail({
+    bookingId: booking.id,
+    clientName: booking.clientName,
+    clientEmail: booking.clientEmail,
+    from: booking.from,
+    to: booking.to,
+    bookingAt: booking.bookingAt,
+    durationMin: booking.durationMin,
+    amountEur: Number(paymentIntent.amount_received || paymentIntent.amount) / 100,
+    paymentIntentId: paymentIntent.id,
+  }).catch((error) => {
+    console.error(
+      `[stripe-webhook] Failed to send payment receipt for booking=${bookingId}:`,
+      error,
+    );
+  });
 }
 
 async function handleAccountUpdated(account: Stripe.Account) {
