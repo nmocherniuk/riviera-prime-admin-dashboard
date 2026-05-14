@@ -27,18 +27,26 @@ const corsOrigins = parseCorsOrigins();
 
 console.log("hash", bcrypt.hashSync("123456", 10));
 
+// app.use(
+//   cors({
+//     origin(origin, callback) {
+//       if (!origin || corsOrigins.includes(origin)) {
+//         callback(null, true);
+//       } else {
+//         callback(null, false);
+//       }
+//     },
+//     credentials: true,
+//   }),
+// );
+
 app.use(
   cors({
-    origin(origin, callback) {
-      if (!origin || corsOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(null, false);
-      }
-    },
+    origin: true,
     credentials: true,
   }),
 );
+
 app.use(
   "/api/webhook/stripe",
   express.raw({ type: "application/json" }),
