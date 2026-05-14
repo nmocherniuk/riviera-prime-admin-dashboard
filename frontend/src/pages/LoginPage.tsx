@@ -35,7 +35,7 @@ export default function LoginPage() {
       navigate(from, { replace: true });
     } catch (error) {
       console.log(error);
-      setError("Invalid email or password.");
+      setError("E-mail ou mot de passe incorrect.");
     } finally {
       setLoading(false);
     }
@@ -71,7 +71,7 @@ export default function LoginPage() {
                   color: "primary.main",
                 }}
               >
-                Aurevia Chauffeur
+                Aurevia
               </Typography>
 
               <Typography
@@ -109,12 +109,12 @@ export default function LoginPage() {
                     color: "text.secondary",
                   }}
                 >
-                  Email
+                  E-mail
                 </Typography>
                 <TextField
                   fullWidth
                   size="small"
-                  placeholder="Enter email"
+                  placeholder="Saisissez votre e-mail"
                   type="email"
                   autoComplete="email"
                   value={email}
@@ -134,13 +134,13 @@ export default function LoginPage() {
                     color: "text.secondary",
                   }}
                 >
-                  Password
+                  Mot de passe
                 </Typography>
 
                 <TextField
                   fullWidth
                   size="small"
-                  placeholder="Enter password"
+                  placeholder="Saisissez votre mot de passe"
                   type="password"
                   autoComplete="current-password"
                   value={password}
@@ -167,7 +167,7 @@ export default function LoginPage() {
                   },
                 }}
               >
-                {loading ? "Signing in…" : "Login"}
+                {loading ? "Connexion…" : "Se connecter"}
               </Button>
             </Box>
           </Box>
