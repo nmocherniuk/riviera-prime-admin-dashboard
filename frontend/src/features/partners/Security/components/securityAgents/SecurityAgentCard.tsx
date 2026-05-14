@@ -7,8 +7,9 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import PersonIcon from "@mui/icons-material/Person";
 import type { SecurityAgent } from "./ModalManagement/securityAgentForm.types";
-import { commonContent } from "../../../../content/common";
-import { securityAgentContent } from "../../../../content/securityAgent";
+import { securityAgentContent } from "../../../../../content/securityAgent";
+import { commonContent } from "../../../../../content/common";
+
 
 const statusStyle = (active: boolean) =>
   active
