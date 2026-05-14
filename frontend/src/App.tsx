@@ -1,35 +1,67 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import "./App.css";
+import { ThemeProvider } from "@mui/material/styles";
+import { theme } from "./theme/theme";
+import { Navigate, Route, Routes } from "react-router-dom";
+import LoginPage from "./pages/LoginPage";
+import DashboardPage from "./pages/DashboardPage";
+import BookingsPage from "./pages/BookingsPage";
+import FleetPage from "./pages/FleetPage";
+import PricingPage from "./pages/PricingPage";
+import PaymentsPage from "./pages/PaymentsPage";
+import SecurityOrganizationsPage from "./pages/SecurityOrganizationsPage";
+import SecurityAgentsPage from "./pages/SecurityAgentsPage";
+import DriverOrganizationsPage from "./pages/DriverOrganizationsPage";
+import DriversPage from "./pages/DriversPage";
+import AuthBootstrap from "./components/auth/AuthBootstrap";
+import RequireAuth from "./components/auth/RequireAuth";
+import GuestOnly from "./components/auth/GuestOnly";
+import MainLayout from "./components/auth/MainLayout";
+import { ToastProvider } from "./providers/ToastProvider";
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <ThemeProvider theme={theme}>
+      <ToastProvider>
+        <AuthBootstrap>
+          <Routes>
+
+            <Route element={<GuestOnly />}>
+              <Route path="/login" element={<LoginPage />} />
+            </Route>
+
+            <Route element={<RequireAuth />}>
+              <Route element={<MainLayout />}>
+                <Route path="/" element={<DashboardPage />} />
+                <Route path="/bookings" element={<BookingsPage />} />
+                <Route
+                  path="/drivers-partners"
+                  element={<DriverOrganizationsPage />}
+                />
+                <Route
+                  path="/drivers-partners/:organizationId"
+                  element={<DriversPage />}
+                />
+                <Route path="/fleet" element={<FleetPage />} />
+                <Route path="/pricing" element={<PricingPage />} />
+                <Route path="/payments" element={<PaymentsPage />} />
+                <Route
+                  path="/security-partners"
+                  element={<SecurityOrganizationsPage />}
+                />
+                <Route
+                  path="/security-partners/:organizationId"
+                  element={<SecurityAgentsPage />}
+                />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Route>
+            </Route>
+
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </AuthBootstrap>
+      </ToastProvider>
+    </ThemeProvider>
+  );
 }
 
-export default App
+export default App;

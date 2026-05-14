@@ -1,0 +1,212 @@
+import type { PaymentStatus } from "../../generated/prisma/client.js";
+import { prisma } from "../../lib/prisma.js";
+import { sendTripOfferDriverTemplateWithMenu } from "./whatsapp.templates.js";
+import { formatBookingDateTimeZone } from "./formatBookingTime.js";
+import { getDriversByVehicleId } from "../driver/driver.service.js";
+import { findDriverById } from "../driver/driver.repository.js";
+import { ensureBookingPricingSnapshot } from "../booking/booking.pricing.js";
+
+function normalizeWaTo(raw: string): string {
+  console.log("rsadasdsaaw", raw);
+  return raw.replace(/\D/g, "");
+}
+
+function labelOrDash(s: string): string {
+  const t = s.trim();
+  return t || "—";
+}
+
+function formatPartnerPayoutValue(value: number | null): string {
+  if (value == null || value <= 0) return "-";
+  return `${value.toFixed(2)} EUR`;
+}
+
+type BookingNotifyRow = {
+  id: string;
+  clientName: string;
+  tripType: string;
+  notesForDriver: string;
+  from: string;
+  to: string;
+  bookingAt: Date;
+  durationMin: number;
+  finalPartnerPayout: { toString(): string } | null;
+  whatsappPaidTemplateSentAt?: Date | null;
+  driver: { phone: string | null } | null;
+};
+
+async function findBookingForPaidNotify(
+  bookingId: string,
+): Promise<BookingNotifyRow | null> {
+  const baseSelect = {
+    id: true,
+    clientName: true,
+    tripType: true,
+    notesForDriver: true,
+    from: true,
+    to: true,
+    bookingAt: true,
+    durationMin: true,
+    finalPartnerPayout: true,
+    driver: { select: { phone: true } },
+  } as const;
+  try {
+    return await prisma.bookings.findUnique({
+      where: { id: bookingId },
+      select: {
+        ...baseSelect,
+        whatsappPaidTemplateSentAt: true,
+      },
+    });
+  } catch {
+    return await prisma.bookings.findUnique({
+      where: { id: bookingId },
+      select: baseSelect,
+    });
+  }
+}
+
+/**
+ * Sends trip_offer_driver template to all online candidate drivers
+ * when a new booking is created (before payment).
+ */
+export async function notifyDriversNewBooking(
+  bookingId: string,
+  candidateDriverIds: { driverId: string }[],
+): Promise<void> {
+  await ensureBookingPricingSnapshot(bookingId);
+  const booking = await findBookingForPaidNotify(bookingId);
+  if (!booking) return;
+
+  const allDrivers = await Promise.all(
+    candidateDriverIds.map((d) => findDriverById(d.driverId)),
+  );
+
+  const drivers = allDrivers.filter(
+    (d): d is NonNullable<typeof d> => d != null && d.status === true,
+  );
+
+  if (!drivers.length) {
+    console.warn(
+      `[WhatsApp] No online drivers for new booking ${bookingId}`,
+    );
+    return;
+  }
+
+  const fromRoute = labelOrDash(booking.from);
+  const toRoute = labelOrDash(booking.to);
+  const payoutText = formatPartnerPayoutValue(
+    booking.finalPartnerPayout != null
+      ? Number(booking.finalPartnerPayout.toString())
+      : null,
+  );
+
+  try {
+    const { date, time } = formatBookingDateTimeZone(booking.bookingAt);
+
+    for (const driver of drivers) {
+      const phone = normalizeWaTo(driver.phone ?? "");
+      await sendTripOfferDriverTemplateWithMenu(booking.id, phone, {
+        clientName: booking.clientName,
+        tripType: booking.tripType,
+        fromRoute,
+        toRoute,
+        date,
+        time,
+        notesForDriver:
+          booking.notesForDriver.length > 0 ? booking.notesForDriver : "-",
+        amountOrExtra: payoutText,
+      });
+    }
+  } catch (e) {
+    console.error(
+      `[WhatsApp] trip_offer_driver failed for new booking ${bookingId}:`,
+      e,
+    );
+  }
+}
+
+/**
+ * When payment transitions to PAID (and not yet notified), sends Meta template
+ * `trip_offer_driver` + follow-up menu. Sets `whatsappPaidTemplateSentAt` only after success.
+ */
+export async function notifyDriverBookingPaidIfNeeded(
+  bookingId: string,
+  previousPaymentStatus: PaymentStatus,
+  nextPaymentStatus: PaymentStatus,
+  candidateDriverIds: { driverId: string }[],
+): Promise<void> {
+  if (nextPaymentStatus !== "PAID" || previousPaymentStatus === "PAID") {
+    return;
+  }
+
+  await ensureBookingPricingSnapshot(bookingId);
+  const booking = await findBookingForPaidNotify(bookingId);
+
+  const allDrivers = await Promise.all(
+    candidateDriverIds.map((d) => findDriverById(d.driverId)),
+  );
+
+  if (!booking) return;
+
+  if (booking.whatsappPaidTemplateSentAt) return;
+
+  const drivers = allDrivers.filter(
+    (d): d is NonNullable<typeof d> => d != null && d.status === true,
+  );
+
+  if (!drivers.length) {
+    console.warn(
+      `[WhatsApp] Skip trip_offer_driver: no online drivers for booking ${bookingId}`,
+    );
+    return;
+  }
+
+  const driverPhones = drivers.map((driver) => {
+    return normalizeWaTo(driver.phone ?? "");
+  });
+
+  const fromRoute = labelOrDash(booking.from);
+  const toRoute = labelOrDash(booking.to);
+  const payoutText = formatPartnerPayoutValue(
+    booking.finalPartnerPayout != null
+      ? Number(booking.finalPartnerPayout.toString())
+      : null,
+  );
+
+  try {
+    const { date, time } = formatBookingDateTimeZone(booking.bookingAt);
+
+    for (const driverPhone of driverPhones) {
+      await sendTripOfferDriverTemplateWithMenu(booking.id, driverPhone, {
+        clientName: booking.clientName,
+        tripType: booking.tripType,
+        fromRoute,
+        toRoute,
+        date,
+        time,
+        notesForDriver:
+          booking.notesForDriver.length > 0 ? booking.notesForDriver : "-",
+        amountOrExtra: payoutText,
+      });
+    }
+  } catch (e) {
+    console.error(
+      `[WhatsApp] trip_offer_driver failed for booking ${bookingId} (booking saved, will retry on next paid transition):`,
+      e,
+    );
+    return;
+  }
+
+  try {
+    await prisma.bookings.update({
+      where: { id: bookingId },
+      data: { whatsappPaidTemplateSentAt: new Date() },
+    });
+  } catch (markErr) {
+    console.warn(
+      `[WhatsApp] Could not persist whatsappPaidTemplateSentAt for booking ${bookingId}. Apply migration 20260401120000_bookings_whatsapp_paid_template_sent if missing column.`,
+      markErr,
+    );
+  }
+}
