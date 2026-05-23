@@ -11,6 +11,7 @@ import securityAgentRoutes from "./modules/securityAgent/securityAgent.routes.js
 import whatsappRoutes from "./modules/whatsapp/whatsapp.routes.js";
 import publicBookingRoutes from "./modules/booking/routes/public/publicBooking.routes.js";
 import publicPaymentRoutes from "./modules/payments/routes/public/publicPayment.routes.js";
+import securityRequestRoutes from "./modules/securityRequest/securityRequest.routes.js";
 import paymentsRoutes from "./modules/payments/routes/admin/payments.routes.js";
 import {
   getAdminBalanceController,
@@ -31,6 +32,7 @@ routes.get("/", (_req, res) => {
 routes.use("/public", publicBookingRoutes);
 routes.use("/public", publicPaymentRoutes);
 routes.use("/public", publicVehicleRoutes);
+routes.use("/security-request", securityRequestRoutes);
 routes.use("/auth", authRoutes);
 routes.use("/organizations", organizationRoutes);
 routes.use("/drivers", driverRoutes);
