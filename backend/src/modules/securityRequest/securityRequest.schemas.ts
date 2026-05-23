@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { emailLocaleSchema } from "../../emails/locale.js";
 
 const optionalString = z.string().default("");
 
@@ -40,6 +41,7 @@ export const securityRequestBodySchema = z
     dressCode: dressCodeEnum,
     vehicleRequired: yesNoEmptyEnum,
     armedRequired: yesNoEmptyEnum,
+    locale: emailLocaleSchema,
   })
   .superRefine((data, ctx) => {
     if (data.serviceType === "other") {

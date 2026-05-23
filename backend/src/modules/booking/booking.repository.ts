@@ -15,6 +15,7 @@ export const bookingPayloadSelect = {
   clientName: true,
   clientEmail: true,
   clientPhone: true,
+  clientLocale: true,
   tripType: true,
   notesForDriver: true,
   candidateDriverIds: true,
@@ -85,6 +86,7 @@ type BookingRowWithoutDeadline = Prisma.BookingsGetPayload<{
 function withNullDeadline(row: BookingRowWithoutDeadline): BookingRow {
   return {
     ...row,
+    clientLocale: "clientLocale" in row ? String(row.clientLocale) : "en",
     driverResponseDeadline: null,
     stripePaymentIntentId: null,
     distanceKm: null,
@@ -119,6 +121,7 @@ export type CreateBookingData = {
   clientName: string;
   clientEmail: string;
   clientPhone: string;
+  clientLocale?: string;
   tripType: string;
   notesForDriver: string;
   vehicleId: string | null;

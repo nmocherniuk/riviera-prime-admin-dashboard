@@ -203,6 +203,8 @@ model Bookings {
   vehicleClass               VehicleClass?
   clientEmail                String
   clientPhone                String
+  /// en | fr — language for client-facing emails
+  clientLocale               String        @default("en")
   tripType                   String
   notesForDriver             String        @default("")
   /// * Candidate drivers with offer statuses, e.g. [{ driverId, status }].

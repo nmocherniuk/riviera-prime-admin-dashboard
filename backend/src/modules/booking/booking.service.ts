@@ -19,6 +19,7 @@ import {
   notifyDriverBookingPaidIfNeeded,
 } from "../whatsapp/whatsapp.bookingPaid.js";
 import { sendBookingPendingEmail } from "./booking.emails.js";
+import { parseEmailLocale } from "../../emails/locale.js";
 import {
   toDbVehicleClass,
   toPublicVehicleClass,
@@ -350,6 +351,7 @@ export async function createPublicBookingService(body: {
   to: string;
   durationMin: number;
   distanceKm?: number;
+  locale?: string;
 }) {
   return createBookingService({
     clientName: body.clientName,
@@ -364,6 +366,7 @@ export async function createPublicBookingService(body: {
     to: body.to,
     durationMin: body.durationMin,
     ...(body.distanceKm != null ? { distanceKm: body.distanceKm } : {}),
+    ...(body.locale != null ? { locale: body.locale } : {}),
     status: "pending",
     paymentStatus: "unpaid",
   });
@@ -386,6 +389,7 @@ export type CreateBookingServiceInput = {
   distanceKm?: number;
   status: PublicBookingStatus;
   paymentStatus: PublicPaymentStatus;
+  locale?: string;
 };
 
 export async function createBookingService(input: CreateBookingServiceInput) {
@@ -419,10 +423,13 @@ export async function createBookingService(input: CreateBookingServiceInput) {
   const { resolvedDistanceKm, ...pricingScalars } = pricingData;
   const distanceKmToStore = input.distanceKm ?? resolvedDistanceKm ?? null;
 
+  const clientLocale = parseEmailLocale(input.locale);
+
   const created = await createBooking({
     clientName: input.clientName,
     clientEmail: input.clientEmail ?? "",
     clientPhone: input.clientPhone ?? "",
+    clientLocale,
     tripType: input.tripType ?? "one-way",
     notesForDriver: input.notesForDriver ?? "",
     vehicleId,
@@ -456,6 +463,7 @@ export async function createBookingService(input: CreateBookingServiceInput) {
       to: created.to,
       bookingAt: created.bookingAt,
       durationMin: created.durationMin,
+      locale: created.clientLocale,
     });
   }
 

@@ -18,6 +18,7 @@ async function processExpiredPendingBookings(): Promise<void> {
     id: string;
     clientName: string;
     clientEmail: string;
+    clientLocale: string;
     from: string;
     to: string;
     bookingAt: Date;
@@ -35,6 +36,7 @@ async function processExpiredPendingBookings(): Promise<void> {
         id: true,
         clientName: true,
         clientEmail: true,
+        clientLocale: true,
         from: true,
         to: true,
         bookingAt: true,
@@ -95,6 +97,7 @@ async function processExpiredPendingBookings(): Promise<void> {
       to: booking.to,
       bookingAt: booking.bookingAt,
       durationMin: booking.durationMin,
+      locale: booking.clientLocale,
     });
   }
 }

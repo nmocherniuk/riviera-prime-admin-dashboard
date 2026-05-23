@@ -82,6 +82,7 @@ async function handlePaymentIntentSucceeded(
       paymentStatus: true,
       clientName: true,
       clientEmail: true,
+      clientLocale: true,
       from: true,
       to: true,
       bookingAt: true,
@@ -123,6 +124,7 @@ async function handlePaymentIntentSucceeded(
     to: booking.to,
     bookingAt: booking.bookingAt,
     durationMin: booking.durationMin,
+    locale: booking.clientLocale,
     amountEur: Number(paymentIntent.amount_received || paymentIntent.amount) / 100,
     paymentIntentId: paymentIntent.id,
   }).catch((error) => {

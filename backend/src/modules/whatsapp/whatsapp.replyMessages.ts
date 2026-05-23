@@ -548,6 +548,7 @@ export async function buildReplyPayload(
         to: booking.to,
         bookingAt: booking.bookingAt,
         durationMin: booking.durationMin,
+        locale: booking.clientLocale,
       });
 
       return { body: WHATSAPP_REPLY_MESSAGES.tripAccepted };
@@ -627,6 +628,7 @@ export async function buildReplyPayload(
           to: booking.to,
           bookingAt: booking.bookingAt,
           durationMin: booking.durationMin,
+          locale: booking.clientLocale,
         });
       } else {
         await updateBookingService(bookingId, {
