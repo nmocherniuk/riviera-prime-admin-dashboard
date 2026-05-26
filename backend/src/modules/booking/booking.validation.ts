@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { emailLocaleSchema } from "../../emails/locale.js";
 
 export const bookingIdParamsSchema = z.object({
   id: z.string().uuid(),
@@ -43,6 +44,7 @@ const baseBookingFields = {
     .enum(["pending", "assigned", "completed", "cancelled"])
     .default("pending"),
   paymentStatus: z.enum(["paid", "unpaid"]).default("unpaid"),
+  locale: emailLocaleSchema.optional(),
 };
 
 /** Admin / JWT: full booking create body. */
@@ -80,6 +82,7 @@ export const publicCreateBookingSchema = z
       .max(24 * 60)
       .default(60),
     distanceKm: z.number().positive().optional(),
+    locale: emailLocaleSchema,
   })
   .refine((d) => d.vehicleId != null || d.vehicleClass != null, {
     message: "Provide vehicleId or vehicleClass",
