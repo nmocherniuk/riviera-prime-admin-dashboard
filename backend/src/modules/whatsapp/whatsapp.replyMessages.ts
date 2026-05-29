@@ -287,6 +287,18 @@ function parseAcceptBookingIdFromListRow(text: string): string | null {
   return id && id.length > 0 ? id : null;
 }
 
+function isAcceptAction(text: string | undefined): boolean {
+  if (!text) return false;
+  const normalized = text.toUpperCase();
+  return normalized.startsWith("ACCEPT") || normalized.startsWith("ACCEPTER");
+}
+
+function isRejectAction(text: string | undefined): boolean {
+  if (!text) return false;
+  const normalized = text.toUpperCase();
+  return normalized.startsWith("REJECT") || normalized.startsWith("REFUSER");
+}
+
 async function buildEarningsReply(driverId: string): Promise<WhatsAppReplyPayload> {
   await syncCompletedTransfersForDriver(driverId);
   const [earnings, driver] = await Promise.all([
@@ -411,8 +423,8 @@ export async function buildReplyPayload(
         body: { text: body },
         action: {
           buttons: [
-            { type: "reply", reply: { id: `ACCEPT_${booking.id}`, title: "✅ ACCEPT" } },
-            { type: "reply", reply: { id: `REJECT_${booking.id}`, title: "❌ REJECT" } },
+            { type: "reply", reply: { id: `ACCEPT_${booking.id}`, title: "✅ ACCEPTER" } },
+            { type: "reply", reply: { id: `REJECT_${booking.id}`, title: "❌ REFUSER" } },
             { type: "reply", reply: { id: "PENDING_TRIPS", title: "📋 Pending Trips" } },
           ],
         },
@@ -478,7 +490,7 @@ export async function buildReplyPayload(
     return { body: mergedBody };
   }
 
-  if (text?.startsWith("ACCEPT")) {
+  if (isAcceptAction(text)) {
     const bookingId = parseAcceptBookingIdFromListRow(text);
 
     if (!bookingId) {
@@ -558,7 +570,7 @@ export async function buildReplyPayload(
     }
   }
 
-  if (text?.startsWith("REJECT")) {
+  if (isRejectAction(text)) {
     const bookingId = parseAcceptBookingIdFromListRow(text);
     if (!bookingId) {
       return { body: "Trip ID not specified." };

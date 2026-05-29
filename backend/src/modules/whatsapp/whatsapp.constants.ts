@@ -17,4 +17,4 @@ export const MAIN_MENU_LIST_ROWS: Array<{
   ];
 
 export const DEFAULT_TEMPLATE_NAME = "trip_offer_driver";
-export const DEFAULT_LANGUAGE = "en";
+export const DEFAULT_LANGUAGE = "fr";

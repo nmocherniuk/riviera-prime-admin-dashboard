@@ -69,9 +69,9 @@ function buildDetailsTable(
 }
 
 function resolveAdminEmail(): string {
-  const email = process.env.ADMIN_EMAIL?.trim();
+  const email = process.env.SMTP_USER?.trim();
   if (!email) {
-    throw new Error("ADMIN_EMAIL is not configured");
+    throw new Error("SMTP_USER is not configured");
   }
   return email;
 }

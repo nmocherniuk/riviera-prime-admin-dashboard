@@ -14,7 +14,7 @@ export async function submitSecurityRequestController(
     console.error("[security-request] submit failed:", error);
 
     if (
-      message === "ADMIN_EMAIL is not configured" ||
+      message === "SMTP_USER is not configured" ||
       message === "SMTP is not configured"
     ) {
       return res.status(503).json({
