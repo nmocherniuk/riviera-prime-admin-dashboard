@@ -7,6 +7,7 @@ import { buildReplyPayload } from "./whatsapp.replyMessages.js";
 import {
   MAIN_MENU_LIST_ROWS,
   MAIN_MENU_BUTTON_LABEL,
+  MAIN_MENU_SECTION_TITLE,
 } from "./whatsapp.constants.js";
 
 function getEnv(name: string): string {
@@ -79,7 +80,7 @@ export async function sendInteractiveReplyWithMenu(
         button: MAIN_MENU_BUTTON_LABEL.slice(0, 20),
         sections: [
           {
-            title: "Driver",
+            title: MAIN_MENU_SECTION_TITLE.slice(0, 24),
             rows,
           },
         ],

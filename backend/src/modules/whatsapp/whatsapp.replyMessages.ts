@@ -26,37 +26,123 @@ import type {
 import { getDriverByPhone, setDriverOnlineStatus } from "../driver/driver.service.js";
 import { findDriverById } from "../driver/driver.repository.js";
 import {
+  MAIN_MENU_BUTTON_LABEL,
+  MAIN_MENU_LIST_ROWS,
+  MAIN_MENU_SECTION_TITLE,
+} from "./whatsapp.constants.js";
+
+import {
   getDriverStripeBalanceView,
   formatEur,
   formatAvailableDate,
 } from "./whatsapp.driverEarnings.js";
 
 export const WHATSAPP_REPLY_MESSAGES = {
-  welcomeHint: "Напиши «menu» або «привіт» — покажемо меню.",
+  menuWelcome:
+    "Bienvenue sur *Riviera Prime* 👋\n\nOuvrez le menu ci-dessous pour gérer vos courses, vos gains et votre statut.",
+  menu:
+    "📋 *Menu chauffeur*\n\nChoisissez une option dans la liste.",
 
-  currentTrip:
-    "📍 Current trip:\nNice → Monaco\nClient: John\nStatus: On the way",
-  earning: "Ваш дохід оновлено.",
-  trips: "🚗 You have 2 active trips:\n1. Nice → Monaco\n2. Cannes → Airport",
-  profile: "👤 Name: Nazar\nCar: BMW 5 Series\nRating: 4.9⭐",
-  history: "🔍 History: You can see your past trips here.",
+  tripAccepted:
+    "✅ *Course acceptée*\n\nVous êtes assigné à cette course. Le client recevra un e-mail pour finaliser le paiement.\n\nEn cas d'erreur, contactez le support Riviera Prime.",
+  tripRejected:
+    "❌ *Course refusée*\n\nVotre réponse a été enregistrée. Vous ne serez pas assigné à cette course.",
+
+  online: "🟢 *Vous êtes en ligne*\n\nVous pouvez recevoir de nouvelles offres de courses.",
+  offline: "🔴 *Vous êtes hors ligne*\n\nVous ne recevrez plus de nouvelles offres pour le moment.",
+
   help: [
-    "Доступні команди (приклад):",
-    "• привіт / menu — одне повідомлення з текстом і меню",
-    "• обери пункт у списку нижче",
+    "ℹ️ *Aide chauffeur*",
+    "",
+    "• Tapez *menu* ou */menu* pour ouvrir le menu",
+    "• Utilisez la liste interactive pour naviguer",
+    "• *Offres en attente* : acceptez ou refusez rapidement avant la date limite",
+    "• *Mes courses* : consultez les trajets payés et en attente de paiement",
   ].join("\n"),
 
-  online: "🟢 You are now ONLINE",
-  offline: "🔴 You are now OFFLINE",
-
-  tripRejected:
-    "Ви відхилили поїздку. Статус: відхилено. Якщо це помилка — напишіть у підтримку.",
-  tripAccepted:
-    "Ви прийняли поїздку. Статус: прийнято. Якщо це помилка — напишіть у підтримку.",
-
-  menu: "📋 Driver menu\n\nSelect an option below",
-  defaultEcho: 'Ти написав: "{{text}}". Це відповідь за замовчуванням.',
+  defaultEcho:
+    'Message reçu : « {{text}} ».\n\nTapez *menu* ou */menu* pour voir les options disponibles.',
 } as const;
+
+function formatStatusFr(status: string): string {
+  const map: Record<string, string> = {
+    pending: "En attente",
+    assigned: "Assignée",
+    in_progress: "En cours",
+    completed: "Terminée",
+    cancelled: "Annulée",
+    PENDING: "En attente",
+    ASSIGNED: "Assignée",
+    IN_PROGRESS: "En cours",
+    COMPLETED: "Terminée",
+    CANCELLED: "Annulée",
+  };
+  return map[status] ?? status;
+}
+
+function formatPaymentFr(status: string): string {
+  const map: Record<string, string> = {
+    paid: "Payé",
+    unpaid: "Non payé",
+    PAID: "Payé",
+    UNPAID: "Non payé",
+  };
+  return map[status] ?? status;
+}
+
+function formatTripTypeFr(tripType: string): string {
+  const t = tripType.toLowerCase();
+  if (t === "one-way" || t === "oneway") return "Aller simple";
+  if (t === "hourly" || t === "hour") return "À l'heure";
+  return tripType;
+}
+
+function dashIfEmpty(value: string | null | undefined): string {
+  const t = value?.trim();
+  return t && t.length > 0 ? t : "—";
+}
+
+/** Interactive driver menu (list). */
+export function buildMainMenuReply(welcomeText?: string): WhatsAppReplyPayload {
+  const bodyText = (welcomeText ?? WHATSAPP_REPLY_MESSAGES.menu).slice(0, 1024);
+  const rows = MAIN_MENU_LIST_ROWS.map((r) => ({
+    id: r.id.slice(0, 200),
+    title: r.title.trim().slice(0, 24),
+    ...(r.description
+      ? { description: r.description.trim().slice(0, 72) }
+      : {}),
+  }));
+
+  return {
+    body: bodyText,
+    interactive: {
+      type: "list",
+      body: { text: bodyText },
+      action: {
+        button: MAIN_MENU_BUTTON_LABEL.slice(0, 20),
+        sections: [{ title: MAIN_MENU_SECTION_TITLE.slice(0, 24), rows }],
+      },
+    },
+  };
+}
+
+function isMenuCommand(text: string | undefined, lower: string | undefined): boolean {
+  if (!lower) return false;
+  return (
+    lower === "menu" ||
+    lower === "/menu" ||
+    lower === "menú" ||
+    lower === "меню" ||
+    lower === "hi" ||
+    lower === "hello" ||
+    lower === "bonjour" ||
+    lower === "salut" ||
+    lower.startsWith("bonjour ") ||
+    lower.startsWith("salut ") ||
+    lower.startsWith("привіт") ||
+    lower.startsWith("privit")
+  );
+}
 
 function formatTripDate(date: Date): string {
   const { date: d, time } = formatBookingDateTimeZone(new Date(date));
@@ -80,7 +166,9 @@ async function buildTripsListReply(
   const unpaidTrips = trips.filter((t) => t.paymentStatus === "unpaid");
 
   if (trips.length === 0) {
-    return { body: "🚗 No assigned trips." };
+    return {
+      body: "🚗 *Mes courses*\n\nAucune course assignée pour le moment.\n\nConsultez *Offres en attente* pour de nouvelles propositions.",
+    };
   }
 
   const NAV_ROWS = 2;
@@ -90,31 +178,31 @@ async function buildTripsListReply(
   const rowsPaid = paidTrips.slice(0, paidQuota).map((trip) => ({
     id: `TRIP_${trip.id}`.slice(0, 200),
     title: `${trip.from} → ${trip.to}`.slice(0, 24),
-    description: `${formatTripDate(trip.bookingAt)} • Confirmed`.slice(0, 72),
+    description: `${formatTripDate(trip.bookingAt)} • Confirmée`.slice(0, 72),
   }));
   const remainingForUnpaid = Math.max(0, maxTripRows - rowsPaid.length);
   const rowsUnpaid = unpaidTrips.slice(0, remainingForUnpaid).map((trip) => ({
     id: `TRIP_${trip.id}`.slice(0, 200),
     title: `${trip.from} → ${trip.to}`.slice(0, 24),
-    description: `${formatTripDate(trip.bookingAt)} • Awaiting payment`.slice(0, 72),
+    description: `${formatTripDate(trip.bookingAt)} • Paiement en attente`.slice(0, 72),
   }));
 
   const bodyText = [
-    "🚗 My trips",
+    "🚗 *Mes courses*",
     "",
-    `✅ Paid: ${paidTrips.length}`,
-    `💰 Awaiting payment: ${unpaidTrips.length}`,
+    `✅ Payées : ${paidTrips.length}`,
+    `💰 En attente de paiement : ${unpaidTrips.length}`,
     "",
-    "Select a trip to view details",
+    "Sélectionnez une course pour voir les détails.",
   ].join("\n");
 
   const sections: Array<{
     title: string;
     rows: Array<{ id: string; title: string; description: string }>;
   }> = [];
-  if (rowsPaid.length) sections.push({ title: "✅ Paid Trips", rows: rowsPaid });
+  if (rowsPaid.length) sections.push({ title: "✅ Courses payées", rows: rowsPaid });
   if (rowsUnpaid.length)
-    sections.push({ title: "💰 Awaiting Payment", rows: rowsUnpaid });
+    sections.push({ title: "💰 Paiement en attente", rows: rowsUnpaid });
 
   return {
     body: bodyText,
@@ -122,7 +210,7 @@ async function buildTripsListReply(
       type: "list",
       body: { text: bodyText },
       action: {
-        button: "View trips",
+        button: "Voir courses",
         sections: [
           ...sections,
           {
@@ -130,12 +218,12 @@ async function buildTripsListReply(
             rows: [
               {
                 id: "PENDING_TRIPS",
-                title: "📋 Pending Trips",
-                description: "Awaiting your response",
+                title: "📋 Offres en attente",
+                description: "Répondre aux propositions",
               },
               {
                 id: "MENU_MAIN",
-                title: "⬅ Back to menu",
+                title: "⬅ Retour au menu",
                 description: "",
               },
             ],
@@ -160,24 +248,32 @@ async function buildPendingTripsReply(
   });
 
   if (!pending.length) {
-    return { body: "📋 No pending trips requiring response." };
+    return {
+      body: "📋 *Offres en attente*\n\nAucune course ne nécessite votre réponse pour le moment.",
+    };
   }
 
   const rows = pending.slice(0, 10).map((trip) => ({
     id: `PENDING_${trip.id}`.slice(0, 200),
     title: `${trip.from} → ${trip.to}`.slice(0, 24),
-    description: `Accept until: ${formatDeadlineTime(trip.driverResponseDeadline ?? null)}`.slice(
+    description: `Répondre avant ${formatDeadlineTime(trip.driverResponseDeadline ?? null)}`.slice(
       0,
       72,
     ),
   }));
 
+  const pendingBody =
+    "📋 *Offres en attente*\n\nSélectionnez une course pour *Accepter* ou *Refuser*.";
+
   return {
-    body: "📋 Pending Trips\nSelect a trip to ACCEPT or REJECT",
+    body: pendingBody,
     interactive: {
       type: "list",
-      body: { text: "📋 Pending Trips\nSelect a trip to ACCEPT or REJECT" },
-      action: { button: "Pending trips", sections: [{ title: "Pending", rows }] },
+      body: { text: pendingBody },
+      action: {
+        button: "Offres",
+        sections: [{ title: "En attente", rows }],
+      },
     },
   };
 }
@@ -187,24 +283,25 @@ async function buildTripDetailReply(
 ): Promise<WhatsAppReplyPayload> {
   const trip = await getBookingByIdService(bookingId);
   if (!trip) {
-    return { body: "Trip not found." };
+    return { body: "❌ Course introuvable." };
   }
 
   const { date, time } = formatBookingDateTimeZone(new Date(trip.bookingAt));
 
   const bodyText = [
-    `🛫 *Trip Details*`,
+    `🛫 *Détails de la course*`,
     ``,
-    `*Client:* ${trip.clientName} (${trip.clientPhone})`,
-    `*Email:* ${trip.clientEmail || "-"}`,
-    `*Type:* ${trip.tripType}`,
-    `*From → To:* ${trip.from} → ${trip.to}`,
-    `*Vehicle:* ${trip.vehicleName ?? "-"} (${trip.vehicleClass ?? "-"})`,
-    `*Booking Date:* ${date} ${time}`,
-    `*Duration:* ${trip.durationMin} min`,
-    `*Status:* ${trip.status}`,
-    `*Payment:* ${trip.paymentStatus}`,
-    `*Notes:* ${trip.notesForDriver || "-"}`,
+    `*Client :* ${trip.clientName}`,
+    `*Téléphone :* ${dashIfEmpty(trip.clientPhone)}`,
+    `*E-mail :* ${dashIfEmpty(trip.clientEmail)}`,
+    `*Type :* ${formatTripTypeFr(trip.tripType)}`,
+    `*Trajet :* ${trip.from} → ${trip.to}`,
+    `*Véhicule :* ${dashIfEmpty(trip.vehicleName)} (${trip.vehicleClass ?? "—"})`,
+    `*Date :* ${date} à ${time}`,
+    `*Durée :* ${trip.durationMin} min`,
+    `*Statut :* ${formatStatusFr(trip.status)}`,
+    `*Paiement :* ${formatPaymentFr(trip.paymentStatus)}`,
+    `*Notes :* ${dashIfEmpty(trip.notesForDriver)}`,
   ].join("\n");
 
   const buttons: { type: "reply"; reply: { id: string; title: string } }[] = [];
@@ -212,13 +309,13 @@ async function buildTripDetailReply(
   if (trip.status === "assigned") {
     buttons.push({
       type: "reply",
-      reply: { id: `START_${trip.id}`, title: "🚀 Start Trip" },
+      reply: { id: `START_${trip.id}`, title: "🚀 Démarrer" },
     });
   }
 
   buttons.push({
     type: "reply",
-    reply: { id: "TRIPS", title: "🚗 All Trips" },
+    reply: { id: "TRIPS", title: "🚗 Mes courses" },
   });
 
   return {
@@ -244,48 +341,78 @@ async function handleStartTrip(
 ): Promise<WhatsAppReplyPayload> {
   const booking = await findBookingById(bookingId);
   if (!booking) {
-    return { body: "Trip not found." };
+    return { body: "❌ Course introuvable." };
   }
 
   const driver = await getDriverByPhone(message.from);
   if (!driver) {
-    return { body: "Driver not found." };
+    return { body: "❌ Chauffeur non reconnu. Vérifiez votre numéro dans le système." };
   }
 
   if (booking.driverId !== driver.id) {
-    return { body: "This trip is not assigned to you." };
+    return { body: "⚠️ Cette course ne vous est pas assignée." };
   }
 
   if (booking.status === "IN_PROGRESS") {
-    return { body: "Trip already in progress." };
+    return { body: "ℹ️ La course est déjà en cours." };
   }
 
   if (booking.status !== "ASSIGNED") {
-    return { body: "This trip cannot be started (current status: " + booking.status.toLowerCase() + ")." };
+    return {
+      body: `⚠️ Impossible de démarrer (statut actuel : ${formatStatusFr(booking.status.toLowerCase())}).`,
+    };
   }
 
   if (booking.paymentStatus !== "PAID") {
     return {
-      body: "This trip is still unpaid. Start is allowed only after payment confirmation.",
+      body: "💳 Paiement non confirmé.\n\nVous pourrez démarrer la course une fois le client payé.",
     };
   }
 
   if (!canStartTrip(booking.bookingAt)) {
-
     return {
-      body: "⏳ Too early to start this trip.\nYou can start it 30 minutes before pickup.",
+      body: `⏳ Trop tôt pour démarrer.\n\nVous pourrez démarrer *${START_WINDOW_MIN} minutes* avant l'heure de prise en charge.`,
     };
   }
 
   await updateBookingService(bookingId, { status: "in_progress" });
 
-  return { body: "🚀 Trip started.\nDrive safely!" };
+  return {
+    body: "🚀 *Course démarrée*\n\nBonne route et conduisez prudemment !",
+  };
 }
 
 function parseAcceptBookingIdFromListRow(text: string | undefined): string | null {
   if (!text) return null;
-  const id = text.split("_")[1]?.trim();
+  const match = text.match(/^(?:ACCEPT|ACCEPTER|REJECT|REFUSER)_(.+)$/i);
+  const id = match?.[1]?.trim();
   return id && id.length > 0 ? id : null;
+}
+
+function normalizeButtonLabel(text: string): string {
+  return text.replace(/^[^\p{L}\p{N}]+/u, "").trim().toUpperCase();
+}
+
+async function resolveBookingIdForDriverAction(
+  text: string,
+  driverId: string,
+): Promise<string | null> {
+  const fromPayload = parseAcceptBookingIdFromListRow(text);
+  if (fromPayload) return fromPayload;
+
+  const label = normalizeButtonLabel(text);
+  if (label !== "ACCEPTER" && label !== "REFUSER") return null;
+
+  const pending = (await listBookingsRows()).filter((trip) => {
+    if (trip.status !== "PENDING") return false;
+    const candidates = parseCandidateDriverIdsJson(trip.candidateDriverIds);
+    return candidates.some(
+      (c) => c.driverId === driverId && c.status.toLowerCase() === "pending",
+    );
+  });
+
+  if (pending.length === 1) return pending[0]?.id ?? null;
+  return null;
 }
 
 function isAcceptAction(text: string | undefined): boolean {
@@ -312,24 +439,26 @@ async function buildEarningsReply(driverId: string): Promise<WhatsAppReplyPayloa
     : { availableEur: 0, pendingEur: 0, availableOn: null };
 
   const lines: string[] = [
-    "💶 *Earnings*",
+    "💶 *Gains*",
     "",
-    `Total earned: ${formatEur(earnings.totalEarned)}`,
+    `Total gagné : ${formatEur(earnings.totalEarned)}`,
     "",
-    `💳 Available to withdraw: ${formatEur(stripeView.availableEur)}`,
+    `💳 Disponible au retrait : ${formatEur(stripeView.availableEur)}`,
   ];
 
   if (stripeView.pendingEur > 0) {
-    lines.push(`⏳ Pending: ${formatEur(stripeView.pendingEur)}`);
+    lines.push(`⏳ En attente : ${formatEur(stripeView.pendingEur)}`);
     if (stripeView.availableEur <= 0) {
-      lines.push(`Available on: ${formatAvailableDate(stripeView.availableOn)}`);
+      lines.push(`Disponible le : ${formatAvailableDate(stripeView.availableOn)}`);
     }
   }
 
   if (stripeView.availableEur > 0) {
-    lines.push("", "Tap *Withdraw* below to cash out 👇");
+    lines.push("", "Appuyez sur *Retirer* ci-dessous pour encaisser 👇");
   } else if (stripeView.pendingEur > 0) {
-    lines.push("", "We'll notify you when your funds become available.");
+    lines.push("", "Nous vous informerons dès que les fonds seront disponibles.");
+  } else {
+    lines.push("", "Complétez des courses pour générer des revenus.");
   }
 
   const bodyText = lines.join("\n");
@@ -341,7 +470,7 @@ async function buildEarningsReply(driverId: string): Promise<WhatsAppReplyPayloa
   if (stripeView.availableEur > 0) {
     buttons.push({
       type: "reply",
-      reply: { id: "WITHDRAW", title: "💸 Withdraw" },
+      reply: { id: "WITHDRAW", title: "💸 Retirer" },
     });
   }
   buttons.push({
@@ -369,7 +498,7 @@ export async function buildReplyPayload(
   if (text?.startsWith("TRIP_")) {
     const bookingId = text.slice("TRIP_".length).trim();
     if (!bookingId) {
-      return { body: "Trip ID not specified." };
+      return { body: "❌ Identifiant de course manquant." };
     }
     return buildTripDetailReply(bookingId);
   }
@@ -378,7 +507,7 @@ export async function buildReplyPayload(
   if (text === "PENDING_TRIPS") {
     const driver = await getDriverByPhone(message.from);
     if (!driver) {
-      return { body: "Driver not found." };
+      return { body: "❌ Chauffeur non reconnu. Vérifiez votre numéro dans le système." };
     }
     return buildPendingTripsReply(driver.id);
   }
@@ -386,19 +515,19 @@ export async function buildReplyPayload(
   if (text?.startsWith("PENDING_")) {
     const bookingId = text.slice("PENDING_".length).trim();
     if (!bookingId) {
-      return { body: "Trip ID not specified." };
+      return { body: "❌ Identifiant de course manquant." };
     }
     const booking = await findBookingById(bookingId);
     if (!booking) {
-      return { body: "Trip not found." };
+      return { body: "❌ Course introuvable." };
     }
 
     const driver = await getDriverByPhone(message.from);
     if (!driver) {
-      return { body: "Driver not found." };
+      return { body: "❌ Chauffeur non reconnu. Vérifiez votre numéro dans le système." };
     }
     if (booking.status !== "PENDING") {
-      return { body: "This offer is no longer pending." };
+      return { body: "ℹ️ Cette offre n'est plus en attente." };
     }
     const candidates = parseCandidateDriverIdsJson(booking.candidateDriverIds);
     const mine = candidates.find(
@@ -407,14 +536,18 @@ export async function buildReplyPayload(
         c.status.toLowerCase() === "pending",
     );
     if (!mine) {
-      return { body: "You have no pending offer for this trip." };
+      return { body: "⚠️ Vous n'avez pas d'offre en attente pour cette course." };
     }
 
     const { date, time } = formatBookingDateTimeZone(new Date(booking.bookingAt));
     const body = [
-      `🚗 Trip: ${booking.from} → ${booking.to}`,
-      `📅 Time: ${date} ${time}`,
-      `⏳ Accept until: ${formatDeadlineTime(booking.driverResponseDeadline ?? null)}`,
+      `🚗 *Nouvelle offre*`,
+      ``,
+      `*Trajet :* ${booking.from} → ${booking.to}`,
+      `*Client :* ${booking.clientName}`,
+      `*Date :* ${date} à ${time}`,
+      `*Durée :* ${booking.durationMin} min`,
+      `⏳ *Répondre avant :* ${formatDeadlineTime(booking.driverResponseDeadline ?? null)}`,
     ].join("\n");
 
     return {
@@ -424,9 +557,9 @@ export async function buildReplyPayload(
         body: { text: body },
         action: {
           buttons: [
-            { type: "reply", reply: { id: `ACCEPT_${booking.id}`, title: "✅ ACCEPTER" } },
-            { type: "reply", reply: { id: `REJECT_${booking.id}`, title: "❌ REFUSER" } },
-            { type: "reply", reply: { id: "PENDING_TRIPS", title: "📋 Pending Trips" } },
+            { type: "reply", reply: { id: `ACCEPT_${booking.id}`, title: "✅ Accepter" } },
+            { type: "reply", reply: { id: `REJECT_${booking.id}`, title: "❌ Refuser" } },
+            { type: "reply", reply: { id: "PENDING_TRIPS", title: "📋 Offres" } },
           ],
         },
       },
@@ -436,7 +569,7 @@ export async function buildReplyPayload(
   if (text?.startsWith("START_")) {
     const bookingId = text.slice("START_".length).trim();
     if (!bookingId) {
-      return { body: "Trip ID not specified." };
+      return { body: "❌ Identifiant de course manquant." };
     }
     return handleStartTrip(message, bookingId);
   }
@@ -444,36 +577,36 @@ export async function buildReplyPayload(
   if (text?.startsWith("COMPLETE_")) {
     const bookingId = text.slice("COMPLETE_".length).trim();
     if (!bookingId) {
-      return { body: "Trip ID not specified." };
+      return { body: "❌ Identifiant de course manquant." };
     }
 
     const booking = await findBookingById(bookingId);
     if (!booking) {
-      return { body: "Trip not found." };
+      return { body: "❌ Course introuvable." };
     }
 
     const driver = await getDriverByPhone(message.from);
     if (!driver) {
-      return { body: "Driver not found." };
+      return { body: "❌ Chauffeur non reconnu. Vérifiez votre numéro dans le système." };
     }
 
     if (booking.driverId !== driver.id) {
-      return { body: "This trip is not assigned to you." };
+      return { body: "⚠️ Cette course ne vous est pas assignée." };
     }
 
     if (booking.status === "COMPLETED") {
-      return { body: "This trip is already completed." };
+      return { body: "ℹ️ Cette course est déjà terminée." };
     }
 
     if (booking.status !== "IN_PROGRESS") {
-      return { body: "Only an in-progress trip can be completed." };
+      return { body: "⚠️ Seule une course *en cours* peut être terminée." };
     }
 
     await updateBookingService(bookingId, { status: "completed" });
     const earningsReply = await buildEarningsReply(driver.id);
     const mergedBody = [
-      "✅ Trip completed!",
-      "Thank you for a safe ride.",
+      "✅ *Course terminée*",
+      "Merci pour votre professionnalisme et bonne route !",
       "",
       earningsReply.body,
     ].join("\n");
@@ -492,25 +625,27 @@ export async function buildReplyPayload(
   }
 
   if (isAcceptAction(text)) {
-    const bookingId = parseAcceptBookingIdFromListRow(text);
+    if (!message.from) {
+      return { body: "❌ Impossible d'identifier votre numéro de téléphone." };
+    }
+
+    const driver = await getDriverByPhone(message.from);
+    if (!driver) {
+      return { body: "❌ Chauffeur non reconnu. Vérifiez votre numéro dans le système." };
+    }
+
+    const bookingId = text
+      ? await resolveBookingIdForDriverAction(text, driver.id)
+      : null;
 
     if (!bookingId) {
-      return { body: "Trip ID not specified." };
+      return { body: "❌ Identifiant de course manquant." };
     }
 
     try {
       const booking = await findBookingById(bookingId);
       if (!booking) {
-        return { body: "Booking not found." };
-      }
-
-      if (!message.from) {
-        return { body: "Could not determine sender phone number." };
-      }
-
-      const driver = await getDriverByPhone(message.from);
-      if (!driver) {
-        return { body: "Driver not found." };
+        return { body: "❌ Réservation introuvable." };
       }
 
       if (
@@ -527,17 +662,17 @@ export async function buildReplyPayload(
           driverId: null,
           candidateDriverIds: nextCandidates,
         });
-        return { body: "Offer expired. Response deadline has passed." };
+        return { body: "⏳ Offre expirée. Le délai de réponse est dépassé." };
       }
 
       if (booking.driverId === driver.id) {
-        return { body: "You are already assigned to this booking" };
+        return { body: "ℹ️ Vous êtes déjà assigné à cette course." };
       }
 
       const bookingIsFree =
         booking.driverId === null && booking.status === "PENDING";
       if (!bookingIsFree) {
-        return { body: "Booking already assigned to another driver" };
+        return { body: "⚠️ Cette course est déjà assignée à un autre chauffeur." };
       }
 
       const candidates = parseCandidateDriverIdsJson(
@@ -567,43 +702,45 @@ export async function buildReplyPayload(
       return { body: WHATSAPP_REPLY_MESSAGES.tripAccepted };
     } catch (error) {
       console.error("[WhatsApp] accept trip:", error);
-      return { body: "Could not accept trip. Please try again later." };
+      return { body: "❌ Impossible d'accepter la course. Réessayez plus tard." };
     }
   }
 
   if (isRejectAction(text)) {
-    const bookingId = parseAcceptBookingIdFromListRow(text);
+    if (!message.from) {
+      return { body: "❌ Impossible d'identifier votre numéro de téléphone." };
+    }
+
+    const driver = await getDriverByPhone(message.from);
+    if (!driver) {
+      return { body: "❌ Chauffeur non reconnu. Vérifiez votre numéro dans le système." };
+    }
+
+    const bookingId = text
+      ? await resolveBookingIdForDriverAction(text, driver.id)
+      : null;
     if (!bookingId) {
-      return { body: "Trip ID not specified." };
+      return { body: "❌ Identifiant de course manquant." };
     }
 
     try {
       const booking = await findBookingById(bookingId);
       if (!booking) {
-        return { body: "Booking not found." };
-      }
-
-      if (!message.from) {
-        return { body: "Could not determine sender phone number." };
-      }
-
-      const driver = await getDriverByPhone(message.from);
-      if (!driver) {
-        return { body: "Driver not found." };
+        return { body: "❌ Réservation introuvable." };
       }
 
       if (booking.driverId === driver.id) {
-        return { body: "You are already assigned to this booking" };
+        return { body: "ℹ️ Vous êtes déjà assigné à cette course." };
       }
 
       if (booking.status === "CANCELLED") {
-        return { body: "Booking is already cancelled" };
+        return { body: "ℹ️ Cette réservation est déjà annulée." };
       }
 
       const bookingIsFree =
         booking.driverId === null && booking.status === "PENDING";
       if (!bookingIsFree) {
-        return { body: "Booking already assigned to another driver" };
+        return { body: "⚠️ Cette course est déjà assignée à un autre chauffeur." };
       }
 
       const candidates = parseCandidateDriverIdsJson(
@@ -612,10 +749,10 @@ export async function buildReplyPayload(
 
       const myEntry = candidates.find((d) => d.driverId === driver.id);
       if (!myEntry) {
-        return { body: "You are not on the candidate list for this trip." };
+        return { body: "⚠️ Vous n'êtes pas sur la liste des candidats pour cette course." };
       }
       if (myEntry.status !== "pending") {
-        return { body: "You already responded to this offer." };
+        return { body: "ℹ️ Vous avez déjà répondu à cette offre." };
       }
 
       const nextCandidates = candidates.map((d) =>
@@ -654,35 +791,36 @@ export async function buildReplyPayload(
       return { body: WHATSAPP_REPLY_MESSAGES.tripRejected };
     } catch (error) {
       console.error("[WhatsApp] reject trip:", error);
-      return { body: "Could not reject trip. Please try again later." };
+      return { body: "❌ Impossible de refuser la course. Réessayez plus tard." };
     }
   }
 
   if (text === "CURRENT_TRIP") {
     const driver = await getDriverByPhone(message.from);
     if (!driver) {
-      return { body: "Driver not found." };
+      return { body: "❌ Chauffeur non reconnu. Vérifiez votre numéro dans le système." };
     }
 
     const trips = await listBookingsService({ driverId: driver.id });
     const current = trips.find((t) => t.status === "in_progress");
 
     if (!current) {
-      return { body: "📍 No active trip right now." };
+      return { body: "📍 *Aucune course en cours*\n\nConsultez *Mes courses* ou *Offres en attente*." };
     }
 
     const { date, time } = formatBookingDateTimeZone(new Date(current.bookingAt));
 
     const bodyText = [
-      `📍 *Current Trip*`,
+      `📍 *Course en cours*`,
       ``,
-      `*Client:* ${current.clientName} (${current.clientPhone})`,
-      `*From → To:* ${current.from} → ${current.to}`,
-      `*Vehicle:* ${current.vehicleName ?? "-"} (${current.vehicleClass ?? "-"})`,
-      `*Booking Date:* ${date} ${time}`,
-      `*Duration:* ${current.durationMin} min`,
-      `*Payment:* ${current.paymentStatus}`,
-      `*Notes:* ${current.notesForDriver || "-"}`,
+      `*Client :* ${current.clientName}`,
+      `*Téléphone :* ${dashIfEmpty(current.clientPhone)}`,
+      `*Trajet :* ${current.from} → ${current.to}`,
+      `*Véhicule :* ${dashIfEmpty(current.vehicleName)} (${current.vehicleClass ?? "—"})`,
+      `*Date :* ${date} à ${time}`,
+      `*Durée :* ${current.durationMin} min`,
+      `*Paiement :* ${formatPaymentFr(current.paymentStatus)}`,
+      `*Notes :* ${dashIfEmpty(current.notesForDriver)}`,
     ].join("\n");
 
     return {
@@ -692,7 +830,7 @@ export async function buildReplyPayload(
         body: { text: bodyText },
         action: {
           buttons: [
-            { type: "reply", reply: { id: `COMPLETE_${current.id}`, title: "✅ Complete Trip" } },
+            { type: "reply", reply: { id: `COMPLETE_${current.id}`, title: "✅ Terminer" } },
             { type: "reply", reply: { id: "MENU_MAIN", title: "📋 Menu" } },
           ],
         },
@@ -703,7 +841,7 @@ export async function buildReplyPayload(
   if (text === "EARNING" || lower === "earning" || lower === "earnings") {
     const driver = await getDriverByPhone(message.from);
     if (!driver) {
-      return { body: "Driver not found." };
+      return { body: "❌ Chauffeur non reconnu. Vérifiez votre numéro dans le système." };
     }
     return buildEarningsReply(driver.id);
   }
@@ -711,22 +849,22 @@ export async function buildReplyPayload(
   if (text === "WITHDRAW") {
     const driver = await getDriverByPhone(message.from);
     if (!driver) {
-      return { body: "Driver not found." };
+      return { body: "❌ Chauffeur non reconnu. Vérifiez votre numéro dans le système." };
     }
     await syncCompletedTransfersForDriver(driver.id);
     const payout = await requestDriverManualPayout(driver.id);
     if (payout.status === "no_funds") {
-      return { body: "No available balance for payout." };
+      return { body: "💳 Aucun solde disponible pour le retrait." };
     }
     return {
-      body: `✅ Your payout has been sent: ${payout.amount.toFixed(2)} EUR`,
+      body: `✅ *Virement envoyé*\n\nMontant : *${payout.amount.toFixed(2)} EUR*\n\nLes fonds arriveront sur votre compte Stripe sous peu.`,
     };
   }
 
   if (text === "TRIPS") {
     const driver = await getDriverByPhone(message.from);
     if (!driver) {
-      return { body: "Driver not found." };
+      return { body: "❌ Chauffeur non reconnu. Vérifiez votre numéro dans le système." };
     }
     return buildTripsListReply(driver.id);
   }
@@ -735,32 +873,32 @@ export async function buildReplyPayload(
     const driver = await getDriverByPhone(message.from);
 
     if (!driver) {
-      return { body: "Driver not found." };
+      return { body: "❌ Chauffeur non reconnu. Vérifiez votre numéro dans le système." };
     }
 
     const profileMessage = `
-👤 *Your Profile*
+👤 *Votre profil*
 
-*Name:* ${driver.name}
-*Phone:* ${driver.phone}
-*Email:* ${driver.email ?? "-"}
-*Address:* ${driver.address ?? "-"}
-*Status:* ${driver.status ? "🟢 Online" : "🔴 Offline"}
+*Nom :* ${driver.name}
+*Téléphone :* ${dashIfEmpty(driver.phone)}
+*E-mail :* ${dashIfEmpty(driver.email ?? undefined)}
+*Adresse :* ${dashIfEmpty(driver.address ?? undefined)}
+*Statut :* ${driver.status ? "🟢 En ligne" : "🔴 Hors ligne"}
 
 📄 *Documents*
-Driver License: ${driver.driverLicenseProvided ? "✅" : "❌"}
-VTC Card: ${driver.vtcCardProvided ? "✅" : "❌"}
-Passport: ${driver.passportProvided ? "✅" : "❌"}
-Medical Certificate: ${driver.medicalCertificateProvided ? "✅" : "❌"}
-Insurance Proof: ${driver.insuranceProofProvided ? "✅" : "❌"}
+Permis de conduire : ${driver.driverLicenseProvided ? "✅" : "❌"}
+Carte VTC : ${driver.vtcCardProvided ? "✅" : "❌"}
+Passeport : ${driver.passportProvided ? "✅" : "❌"}
+Certificat médical : ${driver.medicalCertificateProvided ? "✅" : "❌"}
+Assurance : ${driver.insuranceProofProvided ? "✅" : "❌"}
 
-🛣️ *Experience & Options*
-Years of Driving: ${driver.drivingExperienceYears}
-Base City: ${driver.baseCity ?? "-"}
-Working Radius: ${driver.workingRadiusKm} km
-Available for Night Trips: ${driver.acceptsNightTrips ? "✅" : "❌"}
-Available for VIP Clients: ${driver.acceptsVipClients ? "✅" : "❌"}
-Available for Airport Transfers: ${driver.acceptsAirportTransfers ? "✅" : "❌"}
+🛣️ *Expérience et options*
+Années de conduite : ${driver.drivingExperienceYears}
+Ville de base : ${dashIfEmpty(driver.baseCity ?? undefined)}
+Rayon d'activité : ${driver.workingRadiusKm} km
+Courses de nuit : ${driver.acceptsNightTrips ? "✅" : "❌"}
+Clients VIP : ${driver.acceptsVipClients ? "✅" : "❌"}
+Transferts aéroport : ${driver.acceptsAirportTransfers ? "✅" : "❌"}
 `;
 
     return { body: profileMessage };
@@ -768,13 +906,13 @@ Available for Airport Transfers: ${driver.acceptsAirportTransfers ? "✅" : "❌
   if (text === "HISTORY") {
     const driver = await getDriverByPhone(message.from);
     if (!driver) {
-      return { body: "Driver not found." };
+      return { body: "❌ Chauffeur non reconnu. Vérifiez votre numéro dans le système." };
     }
 
     const completed = await listCompletedBookings(driver.id);
 
     if (completed.length === 0) {
-      return { body: "🔍 No completed trips yet." };
+      return { body: "🔍 *Historique*\n\nAucune course terminée pour le moment." };
     }
 
     const lines = completed.map((t, idx) => {
@@ -786,7 +924,10 @@ Available for Airport Transfers: ${driver.acceptsAirportTransfers ? "✅" : "❌
       ].join("\n");
     });
 
-    const body = [`🔍 *Trip History* (last ${completed.length})`, ...lines].join("\n\n");
+    const body = [
+      `🔍 *Historique* (${completed.length} dernières courses)`,
+      ...lines,
+    ].join("\n\n");
 
     return { body };
   }
@@ -796,10 +937,10 @@ Available for Airport Transfers: ${driver.acceptsAirportTransfers ? "✅" : "❌
   if (text === "ONLINE") {
     const driver = await getDriverByPhone(message.from);
     if (!driver) {
-      return { body: "Driver not found." };
+      return { body: "❌ Chauffeur non reconnu. Vérifiez votre numéro dans le système." };
     }
     if (driver.status === true) {
-      return { body: "🟢 You are already online." };
+      return { body: "🟢 Vous êtes déjà en ligne." };
     }
     await setDriverOnlineStatus(driver.id, true);
     return { body: WHATSAPP_REPLY_MESSAGES.online };
@@ -807,35 +948,22 @@ Available for Airport Transfers: ${driver.acceptsAirportTransfers ? "✅" : "❌
   if (text === "OFFLINE") {
     const driver = await getDriverByPhone(message.from);
     if (!driver) {
-      return { body: "Driver not found." };
+      return { body: "❌ Chauffeur non reconnu. Vérifiez votre numéro dans le système." };
     }
     if (driver.status === false) {
-      return { body: "🔴 You are already offline." };
+      return { body: "🔴 Vous êtes déjà hors ligne." };
     }
     await setDriverOnlineStatus(driver.id, false);
     return { body: WHATSAPP_REPLY_MESSAGES.offline };
   }
 
-  if (text?.startsWith("MENU_MAIN")) {
-    return { body: WHATSAPP_REPLY_MESSAGES.menu };
+  if (text === "MENU_MAIN" || text?.startsWith("MENU_MAIN")) {
+    return buildMainMenuReply();
   }
 
-  if (
-    lower === "hi" ||
-    lower === "hello" ||
-    lower?.startsWith("привіт") ||
-    lower?.startsWith("privit") ||
-    lower === "menu" ||
-    lower === "меню"
-  ) {
-    return {
-      body: "Вітаємо! Нижче — меню з опціями (відкрий кнопку «Меню»).",
-    };
+  if (isMenuCommand(text, lower)) {
+    return buildMainMenuReply(WHATSAPP_REPLY_MESSAGES.menuWelcome);
   }
-
-  // if (lower === "help" || lower === "допомога" || lower === "?") {
-  //   return { body: WHATSAPP_REPLY_MESSAGES.help };
-  // }
 
   return {
     body: WHATSAPP_REPLY_MESSAGES.defaultEcho.replace(

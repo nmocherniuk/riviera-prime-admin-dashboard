@@ -40,49 +40,49 @@ export function formatEur(value: number): string {
 }
 
 export function formatAvailableDate(date: Date | null): string {
-  if (!date) return "soon";
+  if (!date) return "bientôt";
   try {
-    return new Intl.DateTimeFormat("en-GB", {
+    return new Intl.DateTimeFormat("fr-FR", {
       day: "2-digit",
       month: "short",
       year: "numeric",
       timeZone: "Europe/Paris",
     }).format(date);
   } catch {
-    return "soon";
+    return "bientôt";
   }
 }
 
 function formatEarningsBody(args: EarningsFormatArgs): string {
   const common = [
-    "💰 *Earnings update*",
+    "💰 *Mise à jour des gains*",
     "",
-    "Trip completed successfully ✅",
+    "Course terminée avec succès ✅",
     "",
-    `Amount earned: ${formatEur(args.amountEarnedEur)}`,
+    `Montant gagné : ${formatEur(args.amountEarnedEur)}`,
     "",
   ];
 
   if (args.availableEur > 0) {
     return [
       ...common,
-      `💳 Available to withdraw: ${formatEur(args.availableEur)}`,
+      `💳 Disponible au retrait : ${formatEur(args.availableEur)}`,
       ...(args.pendingEur > 0
-        ? ["", `⏳ Still pending: ${formatEur(args.pendingEur)}`]
+        ? ["", `⏳ Encore en attente : ${formatEur(args.pendingEur)}`]
         : []),
       "",
-      "Tap below to withdraw your earnings 👇",
+      "Appuyez ci-dessous pour retirer vos gains 👇",
     ].join("\n");
   }
 
   return [
     ...common,
-    `⏳ Pending: ${formatEur(args.pendingEur)}`,
-    `Available on: ${formatAvailableDate(args.availableOn)}`,
+    `⏳ En attente : ${formatEur(args.pendingEur)}`,
+    `Disponible le : ${formatAvailableDate(args.availableOn)}`,
     "",
-    `💳 Available to withdraw: ${formatEur(0)}`,
+    `💳 Disponible au retrait : ${formatEur(0)}`,
     "",
-    "We'll notify you when your funds become available.",
+    "Nous vous informerons dès que vos fonds seront disponibles.",
   ].join("\n");
 }
 
@@ -201,7 +201,7 @@ export async function sendDriverEarningsMessage(
   try {
     if (availableEur > 0) {
       await sendWhatsAppInteractiveButtons(to, body, [
-        { id: "WITHDRAW", title: "💸 Withdraw" },
+        { id: "WITHDRAW", title: "💸 Retirer" },
       ]);
     } else {
       await sendWhatsAppText(to, body);
