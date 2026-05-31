@@ -282,7 +282,8 @@ async function handleStartTrip(
   return { body: "🚀 Trip started.\nDrive safely!" };
 }
 
-function parseAcceptBookingIdFromListRow(text: string): string | null {
+function parseAcceptBookingIdFromListRow(text: string | undefined): string | null {
+  if (!text) return null;
   const id = text.split("_")[1]?.trim();
   return id && id.length > 0 ? id : null;
 }
