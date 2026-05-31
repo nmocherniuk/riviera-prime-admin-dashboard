@@ -19,7 +19,7 @@ import {
   notifyDriverBookingPaidIfNeeded,
 } from "../whatsapp/whatsapp.bookingPaid.js";
 import { sendBookingPendingEmail } from "./booking.emails.js";
-import { parseEmailLocale } from "../../emails/locale.js";
+import { parseEmailLocale, type EmailLocale } from "../../emails/locale.js";
 import {
   toDbVehicleClass,
   toPublicVehicleClass,
@@ -72,6 +72,7 @@ export type PublicBooking = {
   status: PublicBookingStatus;
   paymentStatus: PublicPaymentStatus;
   driverResponseDeadline: Date | null;
+  clientLocale: EmailLocale;
   createdAt: string;
   updatedAt: string;
 };
@@ -121,6 +122,7 @@ function toPublicBooking(row: BookingPricingRow): PublicBooking {
     status: toPublicStatus(row.status),
     paymentStatus: toPublicPaymentStatus(row.paymentStatus),
     driverResponseDeadline: row.driverResponseDeadline ?? null,
+    clientLocale: parseEmailLocale(row.clientLocale),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
