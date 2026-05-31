@@ -91,7 +91,7 @@ export async function sendBookingAcceptedEmail(
   const locale = parseEmailLocale(booking.locale);
   const copy = getBookingEmailCopy(locale);
   const token = signPaymentToken(booking.bookingId);
-  const paymentUrl = `${SITE_ORIGIN}/security-payment/${token}`;
+  const paymentUrl = `${SITE_ORIGIN}/${locale}/security-payment/${token}`;
 
   const html = wrapEmailLayout(`
     ${emailHeading(copy.accepted.heading)}
