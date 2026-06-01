@@ -1,12 +1,12 @@
-import { Grid, MenuItem, TextField, Typography } from "@mui/material";
+import { Grid, MenuItem, Typography } from "@mui/material";
 import { memo, type ChangeEvent } from "react";
 import DetailField from "../../../../../../../components/DetailField";
+import FormTextField from "../../../../../../../components/form/FormTextField";
 import {
   modalTextFieldSx,
   sectionLabelSx,
   valueBoxSx,
 } from "../../../../../../../components/ui/modalStyles";
-;
 import { LANGUAGE_OPTIONS } from "../../../ModalManagement/constants";
 import type { DriverFormValues } from "../../types";
 
@@ -33,7 +33,8 @@ function BasicInfoSection({ readOnly, driverId, formValues, onChange }: Props) {
           {readOnly ? (
             <DetailField label="Name" value={formValues.name} />
           ) : (
-            <TextField
+            <FormTextField
+              field="name"
               fullWidth
               size="small"
               label="Name"
@@ -48,7 +49,8 @@ function BasicInfoSection({ readOnly, driverId, formValues, onChange }: Props) {
           {readOnly ? (
             <DetailField label="Phone" value={formValues.phone} />
           ) : (
-            <TextField
+            <FormTextField
+              field="phone"
               fullWidth
               size="small"
               label="Phone"
@@ -63,7 +65,8 @@ function BasicInfoSection({ readOnly, driverId, formValues, onChange }: Props) {
           {readOnly ? (
             <DetailField label="Email" value={formValues.email} />
           ) : (
-            <TextField
+            <FormTextField
+              field="email"
               fullWidth
               size="small"
               label="Email"
@@ -78,7 +81,8 @@ function BasicInfoSection({ readOnly, driverId, formValues, onChange }: Props) {
           {readOnly ? (
             <DetailField label="Address" value={formValues.address} />
           ) : (
-            <TextField
+            <FormTextField
+              field="address"
               fullWidth
               size="small"
               label="Address"
@@ -92,7 +96,8 @@ function BasicInfoSection({ readOnly, driverId, formValues, onChange }: Props) {
           {readOnly ? (
             <DetailField label="Nationality" value={formValues.nationality} />
           ) : (
-            <TextField
+            <FormTextField
+              field="nationality"
               fullWidth
               size="small"
               label="Nationality"
@@ -106,7 +111,8 @@ function BasicInfoSection({ readOnly, driverId, formValues, onChange }: Props) {
           {readOnly ? (
             <DetailField label="Birth Date" value={formValues.birthDate} />
           ) : (
-            <TextField
+            <FormTextField
+              field="birthDate"
               fullWidth
               size="small"
               type="date"
@@ -125,7 +131,8 @@ function BasicInfoSection({ readOnly, driverId, formValues, onChange }: Props) {
               value={(formValues.languages ?? []).join(", ")}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="languages"
               fullWidth
               size="small"
               select
@@ -144,7 +151,7 @@ function BasicInfoSection({ readOnly, driverId, formValues, onChange }: Props) {
                   {l}
                 </MenuItem>
               ))}
-            </TextField>
+            </FormTextField>
           )}
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
@@ -154,7 +161,8 @@ function BasicInfoSection({ readOnly, driverId, formValues, onChange }: Props) {
               value={formValues.emergencyContact}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="emergencyContact"
               fullWidth
               size="small"
               label="Emergency contact"
@@ -171,7 +179,8 @@ function BasicInfoSection({ readOnly, driverId, formValues, onChange }: Props) {
               value={formValues.status ? "Active" : "Inactive"}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="status"
               select
               fullWidth
               size="small"
@@ -192,7 +201,7 @@ function BasicInfoSection({ readOnly, driverId, formValues, onChange }: Props) {
             >
               <MenuItem value="active">Active</MenuItem>
               <MenuItem value="inactive">Inactive</MenuItem>
-            </TextField>
+            </FormTextField>
           )}
         </Grid>
       </Grid>
@@ -201,4 +210,3 @@ function BasicInfoSection({ readOnly, driverId, formValues, onChange }: Props) {
 }
 
 export default memo(BasicInfoSection);
-

@@ -16,6 +16,8 @@ import SecurityAgentDocumentsSection from "./components/SecurityAgentDocumentsSe
 import SecurityAgentOperationsSection from "./components/SecurityAgentOperationsSection";
 import { securityAgentToFormValues } from "./securityAgent.mapper";
 import { securityAgentContent } from "../../../../../../content/securityAgent";
+import { FormFieldErrorsProvider } from "../../../../../../components/form/FormFieldErrorsProvider";
+import type { FieldErrors } from "../../../../../../utils/formErrors";
 
 const m = securityAgentContent.modal;
 
@@ -24,6 +26,8 @@ type Props = {
   onClose: () => void;
   securityAgent: SecurityAgent | null;
   readOnly?: boolean;
+  fieldErrors?: FieldErrors;
+  onClearFieldError?: (field: string) => void;
   onSave?: (
     agentId: string | null,
     values: SecurityAgentFormValues,
@@ -35,6 +39,8 @@ export default function SecurityAgentManagementModal({
   onClose,
   securityAgent,
   readOnly = false,
+  fieldErrors = {},
+  onClearFieldError,
   onSave,
 }: Props) {
   const [formValues, setFormValues] = useState<SecurityAgentFormValues>(
@@ -55,6 +61,7 @@ export default function SecurityAgentManagementModal({
   const handleChange =
     <K extends keyof SecurityAgentFormValues>(field: K) =>
       (e: ChangeEvent<HTMLInputElement>) => {
+        onClearFieldError?.(field);
         const nextValue =
           e.target.type === "checkbox" ? e.target.checked : e.target.value;
         setFormValues((prev) => ({ ...prev, [field]: nextValue }));
@@ -129,29 +136,34 @@ export default function SecurityAgentManagementModal({
         </>
       ) : null}
 
-      <SecurityAgentPersonalSection
-        readOnly={readOnly}
-        formValues={formValues}
-        onChange={handleChange}
-      />
-      <Divider sx={{ my: 2 }} />
-      <SecurityAgentProfessionalSection
-        readOnly={readOnly}
-        formValues={formValues}
-        onChange={handleChange}
-      />
-      <Divider sx={{ my: 2 }} />
-      <SecurityAgentDocumentsSection
-        readOnly={readOnly}
-        formValues={formValues}
-        onChange={handleChange}
-      />
-      <Divider sx={{ my: 2 }} />
-      <SecurityAgentOperationsSection
-        readOnly={readOnly}
-        formValues={formValues}
-        onChange={handleChange}
-      />
+      <FormFieldErrorsProvider
+        fieldErrors={fieldErrors}
+        onClearField={onClearFieldError}
+      >
+        <SecurityAgentPersonalSection
+          readOnly={readOnly}
+          formValues={formValues}
+          onChange={handleChange}
+        />
+        <Divider sx={{ my: 2 }} />
+        <SecurityAgentProfessionalSection
+          readOnly={readOnly}
+          formValues={formValues}
+          onChange={handleChange}
+        />
+        <Divider sx={{ my: 2 }} />
+        <SecurityAgentDocumentsSection
+          readOnly={readOnly}
+          formValues={formValues}
+          onChange={handleChange}
+        />
+        <Divider sx={{ my: 2 }} />
+        <SecurityAgentOperationsSection
+          readOnly={readOnly}
+          formValues={formValues}
+          onChange={handleChange}
+        />
+      </FormFieldErrorsProvider>
     </BaseModal>
   );
 }

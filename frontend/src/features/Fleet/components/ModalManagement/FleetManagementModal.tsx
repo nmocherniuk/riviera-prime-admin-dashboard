@@ -1,6 +1,5 @@
 import {
   Typography,
-  TextField,
   Grid,
   Button,
   MenuItem,
@@ -8,6 +7,7 @@ import {
   IconButton,
   Paper,
 } from "@mui/material";
+import FormTextField from "../../../../components/form/FormTextField";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import EditIcon from "@mui/icons-material/Edit";
@@ -30,6 +30,8 @@ import {
 import { fleetToFormValues } from "./fleetManagementForm.mapper";
 import { FLEET_STATUS_LABELS } from "../../data/dummyFleet";
 import { fleetClassLabel, vehiclesContent } from "../../../../content/vehicles";
+import { FormFieldErrorsProvider } from "../../../../components/form/FormFieldErrorsProvider";
+import type { FieldErrors } from "../../../../utils/formErrors";
 
 type Props = {
   open: boolean;
@@ -38,6 +40,8 @@ type Props = {
   readOnly?: boolean;
   organizations: Array<{ id: string; name: string }>;
   drivers: Array<{ id: string; name: string; organizationId: string }>;
+  fieldErrors?: FieldErrors;
+  onClearFieldError?: (field: string) => void;
   onSave?: (
     vehicleId: string | null,
     values: FleetFormValues,
@@ -51,6 +55,8 @@ export default function FleetManagementModal({
   readOnly = false,
   organizations,
   drivers,
+  fieldErrors = {},
+  onClearFieldError,
   onSave,
 }: Props) {
   const [formValues, setFormValues] =
@@ -62,11 +68,13 @@ export default function FleetManagementModal({
   const handleChange =
     (field: keyof FleetFormValues) =>
     (e: React.ChangeEvent<HTMLInputElement>) => {
+      onClearFieldError?.(field);
       setFormValues((prev) => ({ ...prev, [field]: e.target.value }));
     };
 
   const handleBindingOrgSelect =
     (index: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      onClearFieldError?.(`driverBindings.${index}.organizationId`);
       const organizationId = e.target.value;
       setFormValues((prev) => {
         const next = [...prev.driverBindings];
@@ -87,6 +95,7 @@ export default function FleetManagementModal({
 
   const handleBindingDriverSelect =
     (index: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      onClearFieldError?.(`driverBindings.${index}.driverId`);
       const driverId = e.target.value;
       setFormValues((prev) => {
         const next = [...prev.driverBindings];
@@ -210,6 +219,10 @@ export default function FleetManagementModal({
         ) : undefined
       }
     >
+      <FormFieldErrorsProvider
+        fieldErrors={fieldErrors}
+        onClearField={onClearFieldError}
+      >
       <Typography sx={sectionLabelSx}>
         {vehiclesContent.modal.sections.vehicleId}
       </Typography>
@@ -228,7 +241,8 @@ export default function FleetManagementModal({
               value={formValues.vehicleName}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="vehicleName"
               fullWidth
               size="small"
               label={vehiclesContent.modal.fields.vehicleName.label}
@@ -246,7 +260,8 @@ export default function FleetManagementModal({
               value={formValues.year}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="year"
               fullWidth
               size="small"
               label={vehiclesContent.modal.fields.year.label}
@@ -264,7 +279,8 @@ export default function FleetManagementModal({
               value={formValues.color}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="color"
               fullWidth
               size="small"
               label={vehiclesContent.modal.fields.color.label}
@@ -282,7 +298,8 @@ export default function FleetManagementModal({
               value={formValues.licensePlate}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="licensePlate"
               fullWidth
               size="small"
               label={vehiclesContent.modal.fields.licensePlate.label}
@@ -300,7 +317,8 @@ export default function FleetManagementModal({
               value={formValues.imageUrl}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="imageUrl"
               fullWidth
               size="small"
               label={vehiclesContent.modal.fields.imageUrl.label}
@@ -318,7 +336,8 @@ export default function FleetManagementModal({
               value={formValues.description}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="description"
               fullWidth
               multiline
               minRows={2}
@@ -339,7 +358,8 @@ export default function FleetManagementModal({
               emptyAsDash={false}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="class"
               fullWidth
               size="small"
               select
@@ -353,7 +373,7 @@ export default function FleetManagementModal({
                   {fleetClassLabel(c)}
                 </MenuItem>
               ))}
-            </TextField>
+            </FormTextField>
           )}
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
@@ -364,7 +384,8 @@ export default function FleetManagementModal({
               emptyAsDash={false}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="status"
               fullWidth
               size="small"
               select
@@ -378,7 +399,7 @@ export default function FleetManagementModal({
                   {FLEET_STATUS_LABELS[s]}
                 </MenuItem>
               ))}
-            </TextField>
+            </FormTextField>
           )}
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
@@ -388,7 +409,8 @@ export default function FleetManagementModal({
               value={formValues.passengers}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="passengers"
               fullWidth
               size="small"
               label={vehiclesContent.modal.fields.passengers.label}
@@ -407,7 +429,8 @@ export default function FleetManagementModal({
               value={formValues.baggageCount}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="baggageCount"
               fullWidth
               size="small"
               label={vehiclesContent.modal.fields.baggageCount.label}
@@ -426,7 +449,8 @@ export default function FleetManagementModal({
               value={formValues.vehicleType}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="vehicleType"
               fullWidth
               size="small"
               label={vehiclesContent.modal.fields.vehicleType.label}
@@ -444,7 +468,8 @@ export default function FleetManagementModal({
               value={formValues.transmission}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="transmission"
               fullWidth
               size="small"
               label={vehiclesContent.modal.fields.transmission.label}
@@ -462,7 +487,8 @@ export default function FleetManagementModal({
               value={formValues.interior}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="interior"
               fullWidth
               size="small"
               label={vehiclesContent.modal.fields.interior.label}
@@ -480,7 +506,8 @@ export default function FleetManagementModal({
               value={formValues.amenitiesText}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="amenitiesText"
               fullWidth
               size="small"
               label={vehiclesContent.modal.fields.amenitiesText.label}
@@ -533,7 +560,8 @@ export default function FleetManagementModal({
             <Box key={`binding-${index}`}>
               <Grid container spacing={1.5}>
                 <Grid size={{ xs: 12, md: 6 }}>
-                  <TextField
+                  <FormTextField
+                    field={`driverBindings.${index}.organizationId`}
                     fullWidth
                     size="small"
                     select
@@ -557,10 +585,11 @@ export default function FleetManagementModal({
                         {org.name}
                       </MenuItem>
                     ))}
-                  </TextField>
+                  </FormTextField>
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
-                  <TextField
+                  <FormTextField
+                    field={`driverBindings.${index}.driverId`}
                     fullWidth
                     size="small"
                     select
@@ -573,7 +602,7 @@ export default function FleetManagementModal({
                       <em>{vehiclesContent.modal.binding.notAssigned}</em>
                     </MenuItem>
                     {renderDriverMenuItems(index)}
-                  </TextField>
+                  </FormTextField>
                 </Grid>
               </Grid>
             </Box>
@@ -589,6 +618,7 @@ export default function FleetManagementModal({
           </Button>
         </Box>
       )}
+      </FormFieldErrorsProvider>
     </BaseModal>
   );
 }

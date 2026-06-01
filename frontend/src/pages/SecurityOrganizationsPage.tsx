@@ -22,6 +22,7 @@ import { useToast } from "../providers/ToastProvider";
 import SecurityOrganizationManagementModal from "../features/partners/Security/components/ModalManagement/SecurityOrganizationManagementModal";
 import SecurityOrganizationStats from "../features/partners/Security/components/SecurityOrganizationStats";
 import { securityPartnersContent } from "../content/securityPartners";
+import { useModalFormErrors } from "../hooks/useModalFormErrors";
 
 export default function SecurityOrganizationsPage() {
   const navigate = useNavigate();
@@ -39,6 +40,12 @@ export default function SecurityOrganizationsPage() {
   });
   const [orgToDelete, setOrgToDelete] = useState<SecurityOrganization | null>(null);
   const { showToast } = useToast();
+  const {
+    fieldErrors,
+    clearFieldError,
+    clearAllFieldErrors,
+    applySubmitError,
+  } = useModalFormErrors();
 
   const { data: securityOrganizations = [], isPending, error: securityOrganizationsError } = useQuery({
     queryKey: queryKeys.organizations.list("SECURITY"),
@@ -64,6 +71,7 @@ export default function SecurityOrganizationsPage() {
   ) => {
     try {
       setError(null);
+      clearAllFieldErrors();
       if (organizationId) {
         await updateOrganization(
           organizationId,
@@ -90,7 +98,7 @@ export default function SecurityOrganizationsPage() {
         organization: null,
       }));
     } catch (e) {
-      const msg = getApiErrorMessage(e, securityPartnersContent.errors.save);
+      const msg = applySubmitError(e, securityPartnersContent.errors.save);
       showToast({ message: msg, severity: "error" });
       throw e;
     }
@@ -109,9 +117,10 @@ export default function SecurityOrganizationsPage() {
         ) : null}
 
         <SecurityPartnersHeader
-          onAddOrganization={() =>
-            setOrgModal({ open: true, organization: null, readOnly: false })
-          }
+          onAddOrganization={() => {
+            clearAllFieldErrors();
+            setOrgModal({ open: true, organization: null, readOnly: false });
+          }}
         />
         <Box sx={{ mt: 2 }}>
           <SecurityOrganizationStats
@@ -146,12 +155,14 @@ export default function SecurityOrganizationsPage() {
           ) : (
             <SecurityOrganizationTable
               organizations={securityOrganizations as SecurityOrganization[]}
-              onOrganizationView={(organization) =>
-                setOrgModal({ open: true, organization, readOnly: true })
-              }
-              onOrganizationEdit={(organization) =>
-                setOrgModal({ open: true, organization, readOnly: false })
-              }
+              onOrganizationView={(organization) => {
+                clearAllFieldErrors();
+                setOrgModal({ open: true, organization, readOnly: true });
+              }}
+              onOrganizationEdit={(organization) => {
+                clearAllFieldErrors();
+                setOrgModal({ open: true, organization, readOnly: false });
+              }}
               onOrganizationDelete={(organization) => setOrgToDelete(organization)}
               onViewBodyguards={(organization) =>
                 navigate(`/security-partners/${organization.id}`)
@@ -161,9 +172,14 @@ export default function SecurityOrganizationsPage() {
         </Box>
         <SecurityOrganizationManagementModal
           open={orgModal.open}
-          onClose={() => setOrgModal((prev) => ({ ...prev, open: false }))}
+          onClose={() => {
+            clearAllFieldErrors();
+            setOrgModal((prev) => ({ ...prev, open: false }));
+          }}
           organization={orgModal.organization}
           readOnly={orgModal.readOnly}
+          fieldErrors={fieldErrors}
+          onClearFieldError={clearFieldError}
           onSave={handleSavePartner}
         />
         <ConfirmDeleteDialog

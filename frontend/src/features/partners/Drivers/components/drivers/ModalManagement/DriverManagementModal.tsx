@@ -13,6 +13,8 @@ import ProfessionalSection from "./components/ProfessionalSection";
 import DocumentsSection from "./components/DocumentsSection";
 import DriverPayoutSection from "./components/DriverPayoutSection";
 import type { Driver, DriverFormValues } from "../types";
+import { FormFieldErrorsProvider } from "../../../../../../components/form/FormFieldErrorsProvider";
+import type { FieldErrors } from "../../../../../../utils/formErrors";
 
 type DriverManagementModalProps = {
   open: boolean;
@@ -20,6 +22,8 @@ type DriverManagementModalProps = {
   driver: Driver | null;
   readOnly?: boolean;
   managedVehicles?: Array<{ id: string; label: string; vehicleClass: string }>;
+  fieldErrors?: FieldErrors;
+  onClearFieldError?: (field: string) => void;
   onSave?: (
     driverId: string | null,
     values: DriverFormValues,
@@ -33,6 +37,8 @@ export default function DriverManagementModal({
   driver,
   readOnly = false,
   managedVehicles = [],
+  fieldErrors = {},
+  onClearFieldError,
   onSave,
 }: DriverManagementModalProps) {
   const [formValues, setFormValues] =
@@ -45,6 +51,7 @@ export default function DriverManagementModal({
   const handleChange =
     (field: keyof DriverFormValues) =>
       (e: React.ChangeEvent<HTMLInputElement>) => {
+        onClearFieldError?.(field);
         const nextValue =
           e.target.type === "checkbox" ? e.target.checked : e.target.value;
         setFormValues((prev: DriverFormValues) => ({ ...prev, [field]: nextValue }));
@@ -124,24 +131,29 @@ export default function DriverManagementModal({
         ) : undefined
       }
     >
-      <BasicInfoSection
-        readOnly={readOnly}
-        driverId={driver?.id}
-        formValues={formValues}
-        onChange={handleChange}
-      />
-      <Divider sx={{ my: 2 }} />
-      <ProfessionalSection
-        readOnly={readOnly}
-        formValues={formValues}
-        onChange={handleChange}
-      />
-      <Divider sx={{ my: 2 }} />
-      <DocumentsSection
-        readOnly={readOnly}
-        formValues={formValues}
-        onChange={handleChange}
-      />
+      <FormFieldErrorsProvider
+        fieldErrors={fieldErrors}
+        onClearField={onClearFieldError}
+      >
+        <BasicInfoSection
+          readOnly={readOnly}
+          driverId={driver?.id}
+          formValues={formValues}
+          onChange={handleChange}
+        />
+        <Divider sx={{ my: 2 }} />
+        <ProfessionalSection
+          readOnly={readOnly}
+          formValues={formValues}
+          onChange={handleChange}
+        />
+        <Divider sx={{ my: 2 }} />
+        <DocumentsSection
+          readOnly={readOnly}
+          formValues={formValues}
+          onChange={handleChange}
+        />
+      </FormFieldErrorsProvider>
       <Divider sx={{ my: 2 }} />
       <DriverPayoutSection
         readOnly={readOnly}

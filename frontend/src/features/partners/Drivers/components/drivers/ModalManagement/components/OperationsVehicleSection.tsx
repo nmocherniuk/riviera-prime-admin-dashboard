@@ -1,6 +1,7 @@
-import { Checkbox, FormControlLabel, Grid, MenuItem, TextField, Typography } from "@mui/material";
+import { Checkbox, FormControlLabel, Grid, MenuItem, Typography } from "@mui/material";
 import { memo } from "react";
 import DetailField from "../../../../../../../components/DetailField";
+import FormTextField from "../../../../../../../components/form/FormTextField";
 import {
   modalTextFieldSx,
   sectionLabelSx,
@@ -37,7 +38,8 @@ function OperationsVehicleSection({
           {readOnly ? (
             <DetailField label="Vehicle ID" value={vehicleIdValue} />
           ) : (
-            <TextField
+            <FormTextField
+              field="vehicle"
               fullWidth
               size="small"
               label="Vehicle ID (optional)"
@@ -48,26 +50,12 @@ function OperationsVehicleSection({
             />
           )}
         </Grid>
-        {/* <Grid size={{ xs: 12, md: 6 }}>
-          {readOnly ? (
-            <DetailField label="Type" value={vehicleTypeValue} />
-          ) : (
-            <TextField
-              fullWidth
-              size="small"
-              label="Type"
-              placeholder="Enter vehicle type"
-              value={formValues.vehicleType}
-              onChange={onChange("vehicleType")}
-              sx={modalTextFieldSx}
-            />
-          )}
-        </Grid> */}
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
             <DetailField label="Vehicle" value={vehicleNameValue} />
           ) : (
-            <TextField
+            <FormTextField
+              field="vehicle"
               fullWidth
               size="small"
               label="Vehicle"
@@ -82,7 +70,8 @@ function OperationsVehicleSection({
           {readOnly ? (
             <DetailField label="Vehicle plate" value={formValues.vehiclePlate} />
           ) : (
-            <TextField
+            <FormTextField
+              field="vehiclePlate"
               fullWidth
               size="small"
               label="Vehicle plate"
@@ -96,7 +85,8 @@ function OperationsVehicleSection({
           {readOnly ? (
             <DetailField label="Vehicle color" value={formValues.vehicleColor} />
           ) : (
-            <TextField
+            <FormTextField
+              field="vehicleColor"
               fullWidth
               size="small"
               label="Vehicle color"
@@ -110,7 +100,8 @@ function OperationsVehicleSection({
           {readOnly ? (
             <DetailField label="Base city" value={formValues.baseCity} />
           ) : (
-            <TextField
+            <FormTextField
+              field="baseCity"
               fullWidth
               size="small"
               label="Base city"
@@ -124,7 +115,8 @@ function OperationsVehicleSection({
           {readOnly ? (
             <DetailField label="Working radius (km)" value={formValues.workingRadiusKm} />
           ) : (
-            <TextField
+            <FormTextField
+              field="workingRadiusKm"
               fullWidth
               size="small"
               type="number"
@@ -142,7 +134,8 @@ function OperationsVehicleSection({
               value={formValues.availabilityDays}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="availabilityDays"
               fullWidth
               size="small"
               label="Availability days (comma separated)"
@@ -156,7 +149,8 @@ function OperationsVehicleSection({
           {readOnly ? (
             <DetailField label="Availability hours" value={formValues.availabilityHours} />
           ) : (
-            <TextField
+            <FormTextField
+              field="availabilityHours"
               fullWidth
               size="small"
               label="Availability hours"
@@ -173,7 +167,8 @@ function OperationsVehicleSection({
               value={formValues.status ? "Active" : "Inactive"}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="status"
               select
               fullWidth
               size="small"
@@ -194,14 +189,15 @@ function OperationsVehicleSection({
             >
               <MenuItem value="active">Active</MenuItem>
               <MenuItem value="inactive">Inactive</MenuItem>
-            </TextField>
+            </FormTextField>
           )}
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
             <DetailField label="Rides" value={formValues.rides} />
           ) : (
-            <TextField
+            <FormTextField
+              field="rides"
               fullWidth
               size="small"
               type="number"
@@ -216,7 +212,8 @@ function OperationsVehicleSection({
           {readOnly ? (
             <DetailField label="Today shift" value={formValues.todayShift} />
           ) : (
-            <TextField
+            <FormTextField
+              field="todayShift"
               fullWidth
               size="small"
               label="Today shift"
@@ -247,4 +244,3 @@ function OperationsVehicleSection({
 }
 
 export default memo(OperationsVehicleSection);
-

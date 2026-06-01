@@ -3,10 +3,10 @@ import {
   FormControlLabel,
   Grid,
   MenuItem,
-  TextField,
   Typography,
 } from "@mui/material";
 import DetailField from "../../../../../../../components/DetailField";
+import FormTextField from "../../../../../../../components/form/FormTextField";
 import {
   modalTextFieldSx,
   sectionLabelSx,
@@ -57,7 +57,8 @@ function SecurityAgentProfessionalSection({
               }
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="employmentStatus"
               fullWidth
               size="small"
               select
@@ -71,7 +72,7 @@ function SecurityAgentProfessionalSection({
                   {o.label}
                 </MenuItem>
               ))}
-            </TextField>
+            </FormTextField>
           )}
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
@@ -85,7 +86,8 @@ function SecurityAgentProfessionalSection({
               }
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="physicalLevel"
               fullWidth
               size="small"
               select
@@ -99,7 +101,7 @@ function SecurityAgentProfessionalSection({
                   {o.label}
                 </MenuItem>
               ))}
-            </TextField>
+            </FormTextField>
           )}
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
@@ -109,7 +111,8 @@ function SecurityAgentProfessionalSection({
               value={formValues.professionalCardNumber}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="professionalCardNumber"
               fullWidth
               size="small"
               label={pr.professionalCardNumber.label}
@@ -123,7 +126,8 @@ function SecurityAgentProfessionalSection({
           {readOnly ? (
             <DetailField label={pr.cnapsNumber.label} value={formValues.cnapsNumber} />
           ) : (
-            <TextField
+            <FormTextField
+              field="cnapsNumber"
               fullWidth
               size="small"
               label={pr.cnapsNumber.label}
@@ -137,7 +141,8 @@ function SecurityAgentProfessionalSection({
           {readOnly ? (
             <DetailField label={pr.cardIssuedAt.label} value={formValues.cardIssuedAt} />
           ) : (
-            <TextField
+            <FormTextField
+              field="cardIssuedAt"
               fullWidth
               size="small"
               label={pr.cardIssuedAt.label}
@@ -156,7 +161,8 @@ function SecurityAgentProfessionalSection({
               value={formValues.cardExpiresAt}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="cardExpiresAt"
               fullWidth
               size="small"
               label={pr.cardExpiresAt.label}
@@ -175,7 +181,8 @@ function SecurityAgentProfessionalSection({
               value={formValues.specializations}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="specializations"
               fullWidth
               size="small"
               label={pr.specializations.label}
@@ -193,7 +200,8 @@ function SecurityAgentProfessionalSection({
               value={formValues.experienceYears}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="experienceYears"
               fullWidth
               size="small"
               label={pr.experienceYears.label}
@@ -210,7 +218,8 @@ function SecurityAgentProfessionalSection({
               value={formValues.additionalLicenses}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="additionalLicenses"
               fullWidth
               size="small"
               label={pr.additionalLicenses.label}

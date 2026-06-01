@@ -1,5 +1,6 @@
-import { Grid, MenuItem, TextField, Typography } from "@mui/material";
+import { Grid, MenuItem, Typography } from "@mui/material";
 import DetailField from "../../../../../../components/DetailField";
+import FormTextField from "../../../../../../components/form/FormTextField";
 import {
   modalTextFieldSx,
   sectionLabelSx,
@@ -32,7 +33,8 @@ function FinancialSection({ readOnly, formValues, handleChange }: Props) {
               value={formValues.bankAccountIban}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="bankAccountIban"
               fullWidth
               size="small"
               label={fin.bankAccountIban.label}
@@ -50,7 +52,8 @@ function FinancialSection({ readOnly, formValues, handleChange }: Props) {
               value={formValues.paymentTerms}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="paymentTerms"
               fullWidth
               size="small"
               label={fin.paymentTerms.label}
@@ -67,7 +70,8 @@ function FinancialSection({ readOnly, formValues, handleChange }: Props) {
           {readOnly ? (
             <DetailField label={fin.currency.label} value={formValues.currency} />
           ) : (
-            <TextField
+            <FormTextField
+              field="currency"
               fullWidth
               size="small"
               select
@@ -81,7 +85,7 @@ function FinancialSection({ readOnly, formValues, handleChange }: Props) {
                   {c}
                 </MenuItem>
               ))}
-            </TextField>
+            </FormTextField>
           )}
         </Grid>
 
@@ -93,7 +97,8 @@ function FinancialSection({ readOnly, formValues, handleChange }: Props) {
                 value={String(formValues[f.key] ?? "")}
               />
             ) : (
-              <TextField
+              <FormTextField
+                field={String(f.key)}
                 fullWidth
                 size="small"
                 type="number"

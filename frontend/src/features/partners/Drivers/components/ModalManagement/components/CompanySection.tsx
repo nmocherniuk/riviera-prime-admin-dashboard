@@ -1,11 +1,11 @@
 import React, { memo } from "react";
 import { Typography } from "@mui/material";
 import { Grid } from "@mui/material";
-import { TextField } from "@mui/material";
 import { Checkbox } from "@mui/material";
 import { FormControlLabel } from "@mui/material";
 
 import DetailField from "../../../../../../components/DetailField";
+import FormTextField from "../../../../../../components/form/FormTextField";
 import {
   modalTextFieldSx,
   sectionLabelSx,
@@ -29,7 +29,8 @@ function CompanySection({ readOnly, formValues, handleChange }: Props) {
           {readOnly ? (
             <DetailField label="Legal form" value={formValues.legalForm} />
           ) : (
-            <TextField
+            <FormTextField
+              field="legalForm"
               fullWidth
               size="small"
               label="Legal form"
@@ -47,13 +48,14 @@ function CompanySection({ readOnly, formValues, handleChange }: Props) {
               value={formValues.sirenOrSiret}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="sirenOrSiret"
               fullWidth
               size="small"
               label="SIREN / SIRET"
               value={formValues.sirenOrSiret}
               onChange={handleChange("sirenOrSiret")}
-              helperText="Digits only (if applicable)"
+              hint="Digits only (if applicable)"
               sx={modalTextFieldSx}
             />
           )}
@@ -63,13 +65,14 @@ function CompanySection({ readOnly, formValues, handleChange }: Props) {
           {readOnly ? (
             <DetailField label="VAT number" value={formValues.vatNumber} />
           ) : (
-            <TextField
+            <FormTextField
+              field="vatNumber"
               fullWidth
               size="small"
               label="VAT number"
               value={formValues.vatNumber}
               onChange={handleChange("vatNumber")}
-              helperText="EU VAT (optional)"
+              hint="EU VAT (optional)"
               sx={modalTextFieldSx}
             />
           )}
@@ -82,7 +85,8 @@ function CompanySection({ readOnly, formValues, handleChange }: Props) {
               value={formValues.registrationDate}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="registrationDate"
               fullWidth
               size="small"
               type="date"
@@ -102,7 +106,8 @@ function CompanySection({ readOnly, formValues, handleChange }: Props) {
               value={formValues.registrationCountry}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="registrationCountry"
               fullWidth
               size="small"
               label="Registration country"
@@ -120,7 +125,8 @@ function CompanySection({ readOnly, formValues, handleChange }: Props) {
               value={formValues.registeredAddress}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="registeredAddress"
               fullWidth
               size="small"
               label="Registered address"
@@ -159,7 +165,8 @@ function CompanySection({ readOnly, formValues, handleChange }: Props) {
               value={formValues.mailingAddress}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="mailingAddress"
               fullWidth
               size="small"
               label="Mailing address"
@@ -177,7 +184,8 @@ function CompanySection({ readOnly, formValues, handleChange }: Props) {
           {readOnly ? (
             <DetailField label="Website URL" value={formValues.websiteUrl} />
           ) : (
-            <TextField
+            <FormTextField
+              field="websiteUrl"
               fullWidth
               size="small"
               label="Website URL"
@@ -195,7 +203,8 @@ function CompanySection({ readOnly, formValues, handleChange }: Props) {
               value={formValues.directorFullName}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="directorFullName"
               fullWidth
               size="small"
               label="Director full name"
@@ -213,7 +222,8 @@ function CompanySection({ readOnly, formValues, handleChange }: Props) {
               value={formValues.directorPosition}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="directorPosition"
               fullWidth
               size="small"
               label="Director position"

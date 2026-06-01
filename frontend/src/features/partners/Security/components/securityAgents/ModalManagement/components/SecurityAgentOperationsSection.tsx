@@ -3,10 +3,10 @@ import {
   FormControlLabel,
   Grid,
   MenuItem,
-  TextField,
   Typography,
 } from "@mui/material";
 import DetailField from "../../../../../../../components/DetailField";
+import FormTextField from "../../../../../../../components/form/FormTextField";
 import {
   modalTextFieldSx,
   sectionLabelSx,
@@ -40,7 +40,8 @@ function SecurityAgentOperationsSection({
           {readOnly ? (
             <DetailField label={mo.baseCity.label} value={formValues.baseCity} />
           ) : (
-            <TextField
+            <FormTextField
+              field="baseCity"
               fullWidth
               size="small"
               label={mo.baseCity.label}
@@ -57,7 +58,8 @@ function SecurityAgentOperationsSection({
               value={formValues.workingRadiusKm}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="workingRadiusKm"
               fullWidth
               size="small"
               label={mo.workingRadiusKm.label}
@@ -74,7 +76,8 @@ function SecurityAgentOperationsSection({
               value={formValues.availability}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="availability"
               fullWidth
               size="small"
               label={mo.availability.label}
@@ -93,7 +96,8 @@ function SecurityAgentOperationsSection({
               value={formValues.status ? commonContent.status.active : commonContent.status.inactive}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="status"
               fullWidth
               size="small"
               select
@@ -114,14 +118,15 @@ function SecurityAgentOperationsSection({
             >
               <MenuItem value="active">{commonContent.status.active}</MenuItem>
               <MenuItem value="inactive">{commonContent.status.inactive}</MenuItem>
-            </TextField>
+            </FormTextField>
           )}
         </Grid>
         <Grid size={{ xs: 12, md: 4 }}>
           {readOnly ? (
             <DetailField label={mo.hourlyRate.label} value={formValues.hourlyRate} />
           ) : (
-            <TextField
+            <FormTextField
+              field="hourlyRate"
               fullWidth
               size="small"
               label={mo.hourlyRate.label}
@@ -135,7 +140,8 @@ function SecurityAgentOperationsSection({
           {readOnly ? (
             <DetailField label={mo.dailyRate.label} value={formValues.dailyRate} />
           ) : (
-            <TextField
+            <FormTextField
+              field="dailyRate"
               fullWidth
               size="small"
               label={mo.dailyRate.label}
@@ -149,7 +155,8 @@ function SecurityAgentOperationsSection({
           {readOnly ? (
             <DetailField label={mo.nightRate.label} value={formValues.nightRate} />
           ) : (
-            <TextField
+            <FormTextField
+              field="nightRate"
               fullWidth
               size="small"
               label={mo.nightRate.label}
@@ -185,7 +192,8 @@ function SecurityAgentOperationsSection({
           {readOnly ? (
             <DetailField label={mo.notes.label} value={formValues.notes} />
           ) : (
-            <TextField
+            <FormTextField
+              field="notes"
               fullWidth
               size="small"
               label={mo.notes.label}

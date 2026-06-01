@@ -2,7 +2,6 @@ import {
   Box,
   Button,
   Container,
-  TextField,
   Typography,
   useTheme,
   Alert,
@@ -13,6 +12,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { loginRequest } from "../api/auth";
 import { useAuthStore } from "../store/authStore";
 import { commonContent } from "../content/common";
+import FormTextField from "../components/form/FormTextField";
+import { parseSubmitError, type FieldErrors } from "../utils/formErrors";
 
 export default function LoginPage() {
   const theme = useTheme();
@@ -23,20 +24,35 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [loading, setLoading] = useState(false);
+
+  const clearFieldError = (field: string) => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setFieldErrors({});
     setLoading(true);
     try {
       const { data } = await loginRequest(email, password);
       useAuthStore.getState().setAccessToken(data.accessToken);
       useAuthStore.getState().setUser(data.user);
       navigate(from, { replace: true });
-    } catch (error) {
-      console.log(error);
-      setError("E-mail ou mot de passe incorrect.");
+    } catch (err) {
+      const { message, fieldErrors: nextFieldErrors } = parseSubmitError(
+        err,
+        "E-mail ou mot de passe incorrect.",
+      );
+      setFieldErrors(nextFieldErrors);
+      setError(Object.keys(nextFieldErrors).length === 0 ? message : null);
     } finally {
       setLoading(false);
     }
@@ -112,14 +128,19 @@ export default function LoginPage() {
                 >
                   E-mail
                 </Typography>
-                <TextField
+                <FormTextField
+                  field="email"
+                  fieldErrors={fieldErrors}
                   fullWidth
                   size="small"
                   placeholder="Saisissez votre e-mail"
                   type="email"
                   autoComplete="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    clearFieldError("email");
+                    setEmail(e.target.value);
+                  }}
                   disabled={loading}
                   sx={formTextFieldSx(theme)}
                 />
@@ -138,14 +159,19 @@ export default function LoginPage() {
                   Mot de passe
                 </Typography>
 
-                <TextField
+                <FormTextField
+                  field="password"
+                  fieldErrors={fieldErrors}
                   fullWidth
                   size="small"
                   placeholder="Saisissez votre mot de passe"
                   type="password"
                   autoComplete="current-password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    clearFieldError("password");
+                    setPassword(e.target.value);
+                  }}
                   disabled={loading}
                   sx={formTextFieldSx(theme)}
                 />

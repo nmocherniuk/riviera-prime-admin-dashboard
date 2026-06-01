@@ -10,12 +10,19 @@ import { queryKeys } from "../api/queryKeys";
 import type { VehiclePricing } from "../features/Pricing/data/pricingData";
 import { useToast } from "../providers/ToastProvider";
 import { pricingContent } from "../content/pricing";
+import { useModalFormErrors } from "../hooks/useModalFormErrors";
 
 export default function PricingPage() {
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
   const [editRow, setEditRow] = useState<VehiclePricing | null>(null);
   const { showToast } = useToast();
+  const {
+    fieldErrors,
+    clearFieldError,
+    clearAllFieldErrors,
+    applySubmitError,
+  } = useModalFormErrors();
   const { data: pricingData = [], isPending, error: pricingError } = useQuery({
     queryKey: queryKeys.pricing.list(),
     queryFn: listPricingRows,
@@ -28,8 +35,9 @@ export default function PricingPage() {
       : null;
 
   const onEditRow = useCallback((row: VehiclePricing) => {
+    clearAllFieldErrors();
     setEditRow(row);
-  }, []);
+  }, [clearAllFieldErrors]);
 
   const onSaveEdit = useCallback(
     async (
@@ -43,6 +51,7 @@ export default function PricingPage() {
       },
     ) => {
       try {
+        clearAllFieldErrors();
         await savePricingRow(vehicleId, {
           perHour: Number(payload.perHour),
           perKm: Number(payload.perKm),
@@ -56,14 +65,15 @@ export default function PricingPage() {
           severity: "success",
         });
       } catch (e) {
+        const msg = applySubmitError(e, pricingContent.toasts.saveFailed);
         showToast({
-          message: pricingContent.toasts.saveFailed,
+          message: msg,
           severity: "error",
         });
         throw e;
       }
     },
-    [queryClient],
+    [queryClient, clearAllFieldErrors, applySubmitError, showToast],
   );
 
   return (
@@ -98,8 +108,13 @@ export default function PricingPage() {
         </Box>
         <PricingEditModal
           open={!!editRow}
-          onClose={() => setEditRow(null)}
+          onClose={() => {
+            clearAllFieldErrors();
+            setEditRow(null);
+          }}
           row={editRow}
+          fieldErrors={fieldErrors}
+          onClearFieldError={clearFieldError}
           onSave={onSaveEdit}
         />
       </Container>

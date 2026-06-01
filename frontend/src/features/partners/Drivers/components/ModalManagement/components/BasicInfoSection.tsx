@@ -1,8 +1,9 @@
-import { Grid, MenuItem, TextField, Typography } from "@mui/material";
+import { Grid, MenuItem, Typography } from "@mui/material";
 import { memo, type ChangeEvent } from "react";
 import { modalTextFieldSx, sectionLabelSx } from "../../../../../../components/ui/modalStyles";
 import type { DriverOrganizationFormValues } from "../../../data/types";
 import DetailField from "../../../../../../components/DetailField";
+import FormTextField from "../../../../../../components/form/FormTextField";
 
 type Props = {
   formValues: DriverOrganizationFormValues;
@@ -26,13 +27,14 @@ function BasicInfoSection({ formValues, readOnly, handleChange }: Props) {
             value={formValues.organizationName}
           />
         ) : (
-          <TextField
+          <FormTextField
+            field="organizationName"
             fullWidth
             size="small"
             label="Organization Name"
             value={formValues.organizationName}
             onChange={handleChange("organizationName")}
-            helperText="Digits only (if applicable)"
+            hint="Digits only (if applicable)"
             sx={modalTextFieldSx}
           />
         )}
@@ -44,13 +46,14 @@ function BasicInfoSection({ formValues, readOnly, handleChange }: Props) {
             value={formValues.email}
           />
         ) : (
-          <TextField
+          <FormTextField
+            field="email"
             fullWidth
             size="small"
             label="Email"
             value={formValues.email}
             onChange={handleChange("email")}
-            helperText="Enter a valid email address"
+            hint="Enter a valid email address"
             sx={modalTextFieldSx}
           />
         )}
@@ -62,13 +65,14 @@ function BasicInfoSection({ formValues, readOnly, handleChange }: Props) {
             value={formValues.phone}
           />
         ) : (
-          <TextField
+          <FormTextField
+            field="phone"
             fullWidth
             size="small"
             label="Phone"
             value={formValues.phone}
             onChange={handleChange("phone")}
-            helperText="Enter a valid phone number"
+            hint="Enter a valid phone number"
             sx={modalTextFieldSx}
           />
         )}
@@ -80,13 +84,14 @@ function BasicInfoSection({ formValues, readOnly, handleChange }: Props) {
             value={formValues.contactPerson}
           />
         ) : (
-          <TextField
+          <FormTextField
+            field="contactPerson"
             fullWidth
             size="small"
             label="Contact Person"
             value={formValues.contactPerson}
             onChange={handleChange("contactPerson")}
-            helperText="Enter a valid contact person name"
+            hint="Enter a valid contact person name"
             sx={modalTextFieldSx}
           />
         )}
@@ -98,13 +103,14 @@ function BasicInfoSection({ formValues, readOnly, handleChange }: Props) {
             value={formValues.serviceAreas}
           />
         ) : (
-          <TextField
+          <FormTextField
+            field="serviceAreas"
             fullWidth
             size="small"
             label="Service Areas"
             value={formValues.serviceAreas}
             onChange={handleChange("serviceAreas")}
-            helperText="Enter the service areas separated by commas"
+            hint="Enter the service areas separated by commas"
             sx={modalTextFieldSx}
           />
         )}
@@ -116,7 +122,8 @@ function BasicInfoSection({ formValues, readOnly, handleChange }: Props) {
             value={formValues.status ? "Active" : "Inactive"}
           />
         ) : (
-          <TextField
+          <FormTextField
+            field="status"
             select
             fullWidth
             size="small"
@@ -137,7 +144,7 @@ function BasicInfoSection({ formValues, readOnly, handleChange }: Props) {
           >
             <MenuItem value="active">Active</MenuItem>
             <MenuItem value="inactive">Inactive</MenuItem>
-          </TextField>
+          </FormTextField>
         )}
       </Grid>
     </>

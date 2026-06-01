@@ -1,6 +1,7 @@
-import { Grid, TextField, Typography } from "@mui/material";
+import { Grid, Typography } from "@mui/material";
 import { memo } from "react";
 import DetailField from "../../../../../../components/DetailField";
+import FormTextField from "../../../../../../components/form/FormTextField";
 import {
   modalTextFieldSx,
   sectionLabelSx,
@@ -28,7 +29,8 @@ function CompanyDetailsSection({ readOnly, formValues, handleChange }: Props) {
           {readOnly ? (
             <DetailField label={cd.legalForm.label} value={formValues.legalForm} />
           ) : (
-            <TextField
+            <FormTextField
+              field="legalForm"
               fullWidth
               size="small"
               label={cd.legalForm.label}
@@ -45,7 +47,8 @@ function CompanyDetailsSection({ readOnly, formValues, handleChange }: Props) {
               value={formValues.sirenOrSiret}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="sirenOrSiret"
               fullWidth
               size="small"
               label={cd.sirenOrSiret.label}
@@ -62,7 +65,8 @@ function CompanyDetailsSection({ readOnly, formValues, handleChange }: Props) {
               value={formValues.licenseNumber}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="licenseNumber"
               fullWidth
               size="small"
               label={cd.licenseNumber.label}
@@ -76,7 +80,8 @@ function CompanyDetailsSection({ readOnly, formValues, handleChange }: Props) {
           {readOnly ? (
             <DetailField label={cd.cnapsNumber.label} value={formValues.cnapsNumber} />
           ) : (
-            <TextField
+            <FormTextField
+              field="cnapsNumber"
               fullWidth
               size="small"
               label={cd.cnapsNumber.label}
@@ -93,7 +98,8 @@ function CompanyDetailsSection({ readOnly, formValues, handleChange }: Props) {
               value={formValues.registrationDate}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="registrationDate"
               fullWidth
               size="small"
               type="date"
@@ -112,7 +118,8 @@ function CompanyDetailsSection({ readOnly, formValues, handleChange }: Props) {
               value={formValues.registeredAddress}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="registeredAddress"
               fullWidth
               size="small"
               label={cd.registeredAddress.label}
@@ -131,7 +138,8 @@ function CompanyDetailsSection({ readOnly, formValues, handleChange }: Props) {
               value={formValues.officeAddress}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="officeAddress"
               fullWidth
               size="small"
               label={cd.officeAddress.label}
@@ -147,7 +155,8 @@ function CompanyDetailsSection({ readOnly, formValues, handleChange }: Props) {
           {readOnly ? (
             <DetailField label={cd.websiteUrl.label} value={formValues.websiteUrl} />
           ) : (
-            <TextField
+            <FormTextField
+              field="websiteUrl"
               fullWidth
               size="small"
               label={cd.websiteUrl.label}
@@ -164,7 +173,8 @@ function CompanyDetailsSection({ readOnly, formValues, handleChange }: Props) {
               value={formValues.directorFullName}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="directorFullName"
               fullWidth
               size="small"
               label={cd.directorFullName.label}

@@ -71,6 +71,7 @@ export const bookingContent = {
 
   errors: {
     loadBookings: "Échec du chargement des réservations.",
+    save: "Échec de l'enregistrement de la réservation.",
   },
 } as const;
 

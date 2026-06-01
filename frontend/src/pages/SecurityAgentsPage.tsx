@@ -35,12 +35,19 @@ import {
   securityAgentFormToUpdateBody,
 } from "../features/partners/Security/components/securityAgents/ModalManagement/securityAgent.mapper";
 import { securityAgentContent } from "../content/securityAgent";
+import { useModalFormErrors } from "../hooks/useModalFormErrors";
 
 export default function SecurityAgentsPage() {
   const { organizationId } = useParams<{ organizationId: string }>();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const {
+    fieldErrors,
+    clearFieldError,
+    clearAllFieldErrors,
+    applySubmitError,
+  } = useModalFormErrors();
 
   const [securityAgentModal, setSecurityAgentModal] = useState<{
     open: boolean;
@@ -79,6 +86,7 @@ export default function SecurityAgentsPage() {
     values: SecurityAgentFormValues,
   ) => {
     try {
+      clearAllFieldErrors();
       if (securityAgentId) {
         await updateSecurityAgent(
           securityAgentId,
@@ -96,7 +104,7 @@ export default function SecurityAgentsPage() {
       showToast({ message: securityAgentContent.toasts.saved, severity: "success" });
       setSecurityAgentModal((prev) => ({ ...prev, open: false }));
     } catch (error) {
-      const msg = getApiErrorMessage(error, securityAgentContent.errors.save);
+      const msg = applySubmitError(error, securityAgentContent.errors.save);
       showToast({ message: msg, severity: "error" });
       throw error;
     }
@@ -151,13 +159,14 @@ export default function SecurityAgentsPage() {
               <Button
                 variant="contained"
                 startIcon={<AddIcon />}
-                onClick={() =>
+                onClick={() => {
+                  clearAllFieldErrors();
                   setSecurityAgentModal({
                     open: true,
                     securityAgent: null,
                     readOnly: false,
-                  })
-                }
+                  });
+                }}
                 sx={{
                   width: { xs: "100%", sm: "auto" },
                   bgcolor: "primary.main",
@@ -182,31 +191,36 @@ export default function SecurityAgentsPage() {
           ) : (
             <SecurityAgentsTable
               securityAgents={securityAgents}
-              onSecurityAgentView={(b) =>
+              onSecurityAgentView={(b) => {
+                clearAllFieldErrors();
                 setSecurityAgentModal({
                   open: true,
                   securityAgent: b,
                   readOnly: true,
-                })
-              }
-              onSecurityAgentEdit={(b) =>
+                });
+              }}
+              onSecurityAgentEdit={(b) => {
+                clearAllFieldErrors();
                 setSecurityAgentModal({
                   open: true,
                   securityAgent: b,
                   readOnly: false,
-                })
-              }
+                });
+              }}
               onSecurityAgentDelete={setSecurityAgentToDelete}
             />
           )}
         </Box>
         <SecurityAgentManagementModal
           open={securityAgentModal.open}
-          onClose={() =>
-            setSecurityAgentModal((prev) => ({ ...prev, open: false }))
-          }
+          onClose={() => {
+            clearAllFieldErrors();
+            setSecurityAgentModal((prev) => ({ ...prev, open: false }));
+          }}
           securityAgent={securityAgentModal.securityAgent}
           readOnly={securityAgentModal.readOnly}
+          fieldErrors={fieldErrors}
+          onClearFieldError={clearFieldError}
           onSave={handleSaveSecurityAgent}
         />
         <ConfirmDeleteDialog

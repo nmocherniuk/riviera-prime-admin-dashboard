@@ -2,10 +2,10 @@ import {
   Checkbox,
   FormControlLabel,
   Grid,
-  TextField,
   Typography,
 } from "@mui/material";
 import DetailField from "../../../../../../components/DetailField";
+import FormTextField from "../../../../../../components/form/FormTextField";
 import {
   modalTextFieldSx,
   sectionLabelSx,
@@ -65,7 +65,8 @@ function DocumentsSection({ readOnly, formValues, handleChange }: Props) {
               value={formValues.additionalCertifications}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="additionalCertifications"
               fullWidth
               size="small"
               label={om.documents.additionalCertifications.label}

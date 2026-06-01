@@ -1,5 +1,6 @@
-import { Grid, MenuItem, TextField, Typography } from "@mui/material";
+import { Grid, MenuItem, Typography } from "@mui/material";
 import DetailField from "../../../../../../../components/DetailField";
+import FormTextField from "../../../../../../../components/form/FormTextField";
 import {
   modalTextFieldSx,
   sectionLabelSx,
@@ -28,7 +29,8 @@ function SecurityAgentPersonalSection({ readOnly, formValues, onChange }: Props)
           {readOnly ? (
             <DetailField label={mp.firstName.label} value={formValues.firstName} />
           ) : (
-            <TextField
+            <FormTextField
+              field="firstName"
               fullWidth
               size="small"
               label={mp.firstName.label}
@@ -43,7 +45,8 @@ function SecurityAgentPersonalSection({ readOnly, formValues, onChange }: Props)
           {readOnly ? (
             <DetailField label={mp.lastName.label} value={formValues.lastName} />
           ) : (
-            <TextField
+            <FormTextField
+              field="lastName"
               fullWidth
               size="small"
               label={mp.lastName.label}
@@ -58,7 +61,8 @@ function SecurityAgentPersonalSection({ readOnly, formValues, onChange }: Props)
           {readOnly ? (
             <DetailField label={mp.birthDate.label} value={formValues.birthDate} />
           ) : (
-            <TextField
+            <FormTextField
+              field="birthDate"
               fullWidth
               size="small"
               label={mp.birthDate.label}
@@ -74,7 +78,8 @@ function SecurityAgentPersonalSection({ readOnly, formValues, onChange }: Props)
           {readOnly ? (
             <DetailField label={mp.nationality.label} value={formValues.nationality} />
           ) : (
-            <TextField
+            <FormTextField
+              field="nationality"
               fullWidth
               size="small"
               label={mp.nationality.label}
@@ -88,7 +93,8 @@ function SecurityAgentPersonalSection({ readOnly, formValues, onChange }: Props)
           {readOnly ? (
             <DetailField label={mp.phone.label} value={formValues.phone} />
           ) : (
-            <TextField
+            <FormTextField
+              field="phone"
               fullWidth
               size="small"
               label={mp.phone.label}
@@ -102,7 +108,8 @@ function SecurityAgentPersonalSection({ readOnly, formValues, onChange }: Props)
           {readOnly ? (
             <DetailField label={mp.email.label} value={formValues.email} />
           ) : (
-            <TextField
+            <FormTextField
+              field="email"
               fullWidth
               size="small"
               label={mp.email.label}
@@ -117,7 +124,8 @@ function SecurityAgentPersonalSection({ readOnly, formValues, onChange }: Props)
           {readOnly ? (
             <DetailField label={mp.address.label} value={formValues.address} />
           ) : (
-            <TextField
+            <FormTextField
+              field="address"
               fullWidth
               size="small"
               label={mp.address.label}
@@ -136,7 +144,8 @@ function SecurityAgentPersonalSection({ readOnly, formValues, onChange }: Props)
               value={(formValues.languages ?? []).join(", ")}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="languages"
               fullWidth
               size="small"
               select
@@ -153,7 +162,7 @@ function SecurityAgentPersonalSection({ readOnly, formValues, onChange }: Props)
                   {l}
                 </MenuItem>
               ))}
-            </TextField>
+            </FormTextField>
           )}
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
@@ -163,7 +172,8 @@ function SecurityAgentPersonalSection({ readOnly, formValues, onChange }: Props)
               value={formValues.emergencyContact}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="emergencyContact"
               fullWidth
               size="small"
               label={mp.emergencyContact.label}
@@ -180,7 +190,8 @@ function SecurityAgentPersonalSection({ readOnly, formValues, onChange }: Props)
               value={formValues.profilePhotoUrl}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="profilePhotoUrl"
               fullWidth
               size="small"
               label={mp.profilePhotoUrl.label}

@@ -4,8 +4,9 @@ import {
   modalTextFieldSx,
   sectionLabelSx,
 } from "../../../../../../components/ui/modalStyles";
-import { Grid, MenuItem, TextField, Typography } from "@mui/material";
+import { Grid, MenuItem, Typography } from "@mui/material";
 import DetailField from "../../../../../../components/DetailField";
+import FormTextField from "../../../../../../components/form/FormTextField";
 import { COOPERATION_OPTIONS, CURRENCY_OPTIONS } from "../constants";
 import type { DriverOrganizationFormValues } from "../../../data/types";
 
@@ -29,7 +30,8 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
               value={formValues.cooperationType}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="cooperationType"
               fullWidth
               size="small"
               select
@@ -43,7 +45,7 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
                   {o.label}
                 </MenuItem>
               ))}
-            </TextField>
+            </FormTextField>
           )}
         </Grid>
 
@@ -66,7 +68,8 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
               value={formValues.paymentTerms}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="paymentTerms"
               fullWidth
               size="small"
               label="Payment terms"
@@ -83,7 +86,8 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
           {readOnly ? (
             <DetailField label="Currency" value={formValues.currency} />
           ) : (
-            <TextField
+            <FormTextField
+              field="currency"
               fullWidth
               size="small"
               select
@@ -97,7 +101,7 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
                   {c}
                 </MenuItem>
               ))}
-            </TextField>
+            </FormTextField>
           )}
         </Grid>
 
@@ -109,7 +113,8 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
                 value={formValues.commissionPercent}
               />
             ) : (
-              <TextField
+              <FormTextField
+                field="commissionPercent"
                 fullWidth
                 size="small"
                 type="number"
@@ -129,7 +134,8 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
               value={formValues.minimumFare}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="minimumFare"
               fullWidth
               size="small"
               type="number"
@@ -148,7 +154,8 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
               value={formValues.holidaySurchargePercent}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="holidaySurchargePercent"
               fullWidth
               size="small"
               type="number"
@@ -167,7 +174,8 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
               value={formValues.nightSurchargePercent}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="nightSurchargePercent"
               fullWidth
               size="small"
               type="number"
@@ -183,7 +191,8 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
           {readOnly ? (
             <DetailField label="Hourly rate (org ref.)" value={formValues.hourlyRate} />
           ) : (
-            <TextField
+            <FormTextField
+              field="hourlyRate"
               fullWidth
               size="small"
               type="number"
@@ -202,7 +211,8 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
               value={formValues.transferBaseRate}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="transferBaseRate"
               fullWidth
               size="small"
               type="number"
@@ -221,7 +231,8 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
               value={formValues.waitingTimeFee}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="waitingTimeFee"
               fullWidth
               size="small"
               type="number"

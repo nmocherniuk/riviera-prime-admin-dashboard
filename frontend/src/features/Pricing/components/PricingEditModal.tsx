@@ -1,10 +1,10 @@
 import {
   Typography,
-  TextField,
   Box,
   Button,
   Grid,
 } from "@mui/material";
+import FormTextField from "../../../components/form/FormTextField";
 import CloseIcon from "@mui/icons-material/Close";
 import EditIcon from "@mui/icons-material/Edit";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
@@ -13,24 +13,30 @@ import type { VehiclePricing } from "../data/pricingData";
 import { modalTextFieldSx } from "../../../components/ui/modalStyles";
 import BaseModal from "../../../components/BaseModal";
 import { pricingContent } from "../../../content/pricing";
+import { FormFieldErrorsProvider } from "../../../components/form/FormFieldErrorsProvider";
+import type { FieldErrors } from "../../../utils/formErrors";
 
 type Props = {
   open: boolean;
   onClose: () => void;
   row: VehiclePricing | null;
+  fieldErrors?: FieldErrors;
+  onClearFieldError?: (field: string) => void;
   onSave: (vehicleId: string, payload: {
     perHour: string;
     perKm: string;
     minimumFare: string;
     holidaySurchargePercent: string;
     nightSurchargePercent: string;
-  }) => void;
+  }) => void | Promise<void>;
 };
 
 export default function PricingEditModal({
   open,
   onClose,
   row,
+  fieldErrors = {},
+  onClearFieldError,
   onSave,
 }: Props) {
   const [perHour, setPerHour] = useState("");
@@ -49,9 +55,10 @@ export default function PricingEditModal({
     }
   }, [row, open]);
 
-  const handleSave = () => {
-    if (row) {
-      onSave(row.vehicle.id, {
+  const handleSave = async () => {
+    if (!row) return;
+    try {
+      await onSave(row.vehicle.id, {
         perHour,
         perKm,
         minimumFare,
@@ -59,6 +66,8 @@ export default function PricingEditModal({
         nightSurchargePercent,
       });
       onClose();
+    } catch {
+      // Keep modal open; field errors come from parent.
     }
   };
 
@@ -115,9 +124,14 @@ export default function PricingEditModal({
         </>
       }
     >
+      <FormFieldErrorsProvider
+        fieldErrors={fieldErrors}
+        onClearField={onClearFieldError}
+      >
       <Grid container spacing={2} sx={{ mt: 3 }}>
         <Grid size={{ xs: 12, md: 6 }}>
-          <TextField
+          <FormTextField
+            field="perHour"
             fullWidth
             size="small"
             label={pricingContent.modal.fields.perHour.label}
@@ -131,7 +145,8 @@ export default function PricingEditModal({
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <TextField
+          <FormTextField
+            field="perKm"
             fullWidth
             size="small"
             label={pricingContent.modal.fields.perKm.label}
@@ -145,7 +160,8 @@ export default function PricingEditModal({
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <TextField
+          <FormTextField
+            field="minimumFare"
             fullWidth
             size="small"
             label={pricingContent.modal.fields.minimumFare.label}
@@ -158,7 +174,8 @@ export default function PricingEditModal({
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <TextField
+          <FormTextField
+            field="holidaySurchargePercent"
             fullWidth
             size="small"
             label={pricingContent.modal.fields.holidaySurchargePercent.label}
@@ -171,7 +188,8 @@ export default function PricingEditModal({
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <TextField
+          <FormTextField
+            field="nightSurchargePercent"
             fullWidth
             size="small"
             label={pricingContent.modal.fields.nightSurchargePercent.label}
@@ -184,6 +202,7 @@ export default function PricingEditModal({
           />
         </Grid>
       </Grid>
+      </FormFieldErrorsProvider>
     </BaseModal>
   );
 }

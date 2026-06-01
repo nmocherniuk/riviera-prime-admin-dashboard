@@ -29,6 +29,7 @@ import { listDrivers } from "../api/drivers";
 import { queryKeys } from "../api/queryKeys";
 import { useToast } from "../providers/ToastProvider";
 import { vehiclesContent } from "../content/vehicles";
+import { useModalFormErrors } from "../hooks/useModalFormErrors";
 
 export default function FleetPage() {
   const queryClient = useQueryClient();
@@ -43,6 +44,12 @@ export default function FleetPage() {
     readOnly: false,
   });
   const { showToast } = useToast();
+  const {
+    fieldErrors,
+    clearFieldError,
+    clearAllFieldErrors,
+    applySubmitError,
+  } = useModalFormErrors();
   const [vehicleToDelete, setVehicleToDelete] = useState<FleetVehicle | null>(
     null,
   );
@@ -140,6 +147,7 @@ export default function FleetPage() {
     values: FleetFormValues,
   ) => {
     setError(null);
+    clearAllFieldErrors();
     try {
       if (vehicleId) {
         await updateVehicle(vehicleId, fleetFormToUpdateBody(values));
@@ -157,8 +165,9 @@ export default function FleetPage() {
       });
       setFleetModal((prev) => ({ ...prev, open: false }));
     } catch (e) {
+      const msg = applySubmitError(e, vehiclesContent.toasts.saveFailed);
       showToast({
-        message: vehiclesContent.toasts.saveFailed,
+        message: msg,
         severity: "error",
       });
       throw e;
@@ -178,9 +187,10 @@ export default function FleetPage() {
         ) : null}
 
         <FleetHeader
-          onAddFleet={() =>
-            setFleetModal({ open: true, vehicle: null, readOnly: false })
-          }
+          onAddFleet={() => {
+            clearAllFieldErrors();
+            setFleetModal({ open: true, vehicle: null, readOnly: false });
+          }}
         />
         <Box sx={{ mt: 2 }}>
           <FleetStats vehicles={allVehicles} />
@@ -204,23 +214,30 @@ export default function FleetPage() {
           ) : (
             <FleetTable
               vehicles={allVehicles}
-              onVehicleView={(v) =>
-                setFleetModal({ open: true, vehicle: v, readOnly: true })
-              }
-              onVehicleEdit={(v) =>
-                setFleetModal({ open: true, vehicle: v, readOnly: false })
-              }
+              onVehicleView={(v) => {
+                clearAllFieldErrors();
+                setFleetModal({ open: true, vehicle: v, readOnly: true });
+              }}
+              onVehicleEdit={(v) => {
+                clearAllFieldErrors();
+                setFleetModal({ open: true, vehicle: v, readOnly: false });
+              }}
               onVehicleDelete={handleDeleteClick}
             />
           )}
         </Box>
         <FleetManagementModal
           open={fleetModal.open}
-          onClose={() => setFleetModal((prev) => ({ ...prev, open: false }))}
+          onClose={() => {
+            clearAllFieldErrors();
+            setFleetModal((prev) => ({ ...prev, open: false }));
+          }}
           vehicle={fleetModal.vehicle}
           readOnly={fleetModal.readOnly}
           organizations={organizationOptions}
           drivers={driverOptions}
+          fieldErrors={fieldErrors}
+          onClearFieldError={clearFieldError}
           onSave={handleSaveVehicle}
         />
         <ConfirmDeleteDialog

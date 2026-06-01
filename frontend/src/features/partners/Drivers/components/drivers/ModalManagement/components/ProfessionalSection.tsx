@@ -1,6 +1,7 @@
-import { Checkbox, FormControlLabel, Grid, MenuItem, TextField, Typography } from "@mui/material";
+import { Checkbox, FormControlLabel, Grid, MenuItem, Typography } from "@mui/material";
 import { memo } from "react";
 import DetailField from "../../../../../../../components/DetailField";
+import FormTextField from "../../../../../../../components/form/FormTextField";
 import {
   modalTextFieldSx,
   sectionLabelSx,
@@ -29,7 +30,8 @@ function ProfessionalSection({ readOnly, formValues, onChange }: Props) {
               value={formValues.employmentStatus || "—"}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="employmentStatus"
               select
               fullWidth
               size="small"
@@ -42,14 +44,15 @@ function ProfessionalSection({ readOnly, formValues, onChange }: Props) {
               <MenuItem value="EMPLOYEE">Employee</MenuItem>
               <MenuItem value="FREELANCE">Freelance</MenuItem>
               <MenuItem value="SUBCONTRACTOR">Subcontractor</MenuItem>
-            </TextField>
+            </FormTextField>
           )}
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
             <DetailField label="VTC card number" value={formValues.vtcCardNumber} />
           ) : (
-            <TextField
+            <FormTextField
+              field="vtcCardNumber"
               fullWidth
               size="small"
               label="VTC card number"
@@ -63,7 +66,8 @@ function ProfessionalSection({ readOnly, formValues, onChange }: Props) {
           {readOnly ? (
             <DetailField label="License number" value={formValues.driverLicenseNumber} />
           ) : (
-            <TextField
+            <FormTextField
+              field="driverLicenseNumber"
               fullWidth
               size="small"
               label="License number"
@@ -77,7 +81,8 @@ function ProfessionalSection({ readOnly, formValues, onChange }: Props) {
           {readOnly ? (
             <DetailField label="License category" value={formValues.licenseCategory} />
           ) : (
-            <TextField
+            <FormTextField
+              field="licenseCategory"
               fullWidth
               size="small"
               label="License category"
@@ -91,7 +96,8 @@ function ProfessionalSection({ readOnly, formValues, onChange }: Props) {
           {readOnly ? (
             <DetailField label="Experience years" value={formValues.drivingExperienceYears} />
           ) : (
-            <TextField
+            <FormTextField
+              field="drivingExperienceYears"
               fullWidth
               size="small"
               type="number"
@@ -106,7 +112,8 @@ function ProfessionalSection({ readOnly, formValues, onChange }: Props) {
           {readOnly ? (
             <DetailField label="Language level" value={formValues.languageLevel} />
           ) : (
-            <TextField
+            <FormTextField
+              field="languageLevel"
               fullWidth
               size="small"
               label="Language level"
@@ -137,4 +144,3 @@ function ProfessionalSection({ readOnly, formValues, onChange }: Props) {
 }
 
 export default memo(ProfessionalSection);
-

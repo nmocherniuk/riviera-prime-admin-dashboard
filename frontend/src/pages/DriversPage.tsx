@@ -25,6 +25,7 @@ import { queryKeys } from "../api/queryKeys";
 import type { Driver, DriverFormValues } from "../features/partners/Drivers/components/drivers/types";
 import { FormValuesToDriver } from "../features/partners/Drivers/components/drivers/ModalManagement/driverManagementForm.mapper";
 import { useToast } from "../providers/ToastProvider";
+import { useModalFormErrors } from "../hooks/useModalFormErrors";
 import type { DriverOrganization } from "../features/partners/Drivers/data/types";
 
 // type VehiclesByDriver = Record<
@@ -85,6 +86,12 @@ export default function DriversPage() {
   const [driverToDelete, setDriverToDelete] = useState<Driver | null>(null);
 
   const { showToast } = useToast();
+  const {
+    fieldErrors,
+    clearFieldError,
+    clearAllFieldErrors,
+    applySubmitError,
+  } = useModalFormErrors();
   const [driverModal, setDriverModal] = useState<{
     open: boolean;
     driver: Driver | null;
@@ -151,6 +158,7 @@ export default function DriversPage() {
 
       try {
         setError(null);
+        clearAllFieldErrors();
         if (driverId) {
           await updateDriver(
             driverId,
@@ -191,7 +199,7 @@ export default function DriversPage() {
           driver: null,
         }));
       } catch (e) {
-        const msg = getApiErrorMessage(e, "Failed to save driver");
+        const msg = applySubmitError(e, "Failed to save driver");
         showToast({ message: msg, severity: "error" });
         throw e;
       }
@@ -282,7 +290,10 @@ export default function DriversPage() {
           <DriversHeader
             organizationName={organization?.organizationName ?? ""}
             onAddDriver={() =>
-              setDriverModal({ open: true, driver: null, readOnly: false })
+              {
+                clearAllFieldErrors();
+                setDriverModal({ open: true, driver: null, readOnly: false });
+              }
             }
           />
         </Box>
@@ -313,12 +324,14 @@ export default function DriversPage() {
           ) : (
             <DriversTable
               drivers={drivers}
-              onDriverView={(d) =>
-                setDriverModal({ open: true, driver: d, readOnly: true })
-              }
-              onDriverEdit={(d) =>
-                setDriverModal({ open: true, driver: d, readOnly: false })
-              }
+              onDriverView={(d) => {
+                clearAllFieldErrors();
+                setDriverModal({ open: true, driver: d, readOnly: true });
+              }}
+              onDriverEdit={(d) => {
+                clearAllFieldErrors();
+                setDriverModal({ open: true, driver: d, readOnly: false });
+              }}
               onDriverDelete={handleDeleteClick}
             />
           )}
@@ -326,7 +339,10 @@ export default function DriversPage() {
 
         <DriverManagementModal
           open={driverModal.open}
-          onClose={() => setDriverModal((prev) => ({ ...prev, open: false }))}
+          onClose={() => {
+            clearAllFieldErrors();
+            setDriverModal((prev) => ({ ...prev, open: false }));
+          }}
           driver={driverModal.driver}
           readOnly={driverModal.readOnly}
           managedVehicles={
@@ -335,6 +351,8 @@ export default function DriversPage() {
             //   ? (vehiclesByDriverId[driverModal.driver.id] ?? [])
             //   : []
           }
+          fieldErrors={fieldErrors}
+          onClearFieldError={clearFieldError}
           onSave={handleSaveDriver}
         />
 

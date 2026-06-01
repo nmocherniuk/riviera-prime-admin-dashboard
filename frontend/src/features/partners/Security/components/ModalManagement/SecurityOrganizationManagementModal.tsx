@@ -13,6 +13,8 @@ import FinancialSection from "./components/FinancialSection";
 import type { SecurityOrganization, SecurityOrganizationFormValues } from "../../data/types";
 import { securityOrganizationToFormValues } from "./securityOrganizationForm.mapper";
 import { securityPartnersContent } from "../../../../../content/securityPartners";
+import { FormFieldErrorsProvider } from "../../../../../components/form/FormFieldErrorsProvider";
+import type { FieldErrors } from "../../../../../utils/formErrors";
 
 const om = securityPartnersContent.organizationModal;
 
@@ -21,6 +23,8 @@ type Props = {
   onClose: () => void;
   organization: SecurityOrganization | null;
   readOnly?: boolean;
+  fieldErrors?: FieldErrors;
+  onClearFieldError?: (field: string) => void;
   onSave?: (
     organizationId: string | null,
     values: SecurityOrganizationFormValues,
@@ -32,6 +36,8 @@ export default function SecurityOrganizationManagementModal({
   onClose,
   organization,
   readOnly = false,
+  fieldErrors = {},
+  onClearFieldError,
   onSave,
 }: Props) {
   const [formValues, setFormValues] =
@@ -45,6 +51,7 @@ export default function SecurityOrganizationManagementModal({
   const handleChange =
     <K extends keyof SecurityOrganizationFormValues>(field: K) =>
       (e: ChangeEvent<HTMLInputElement>) => {
+        onClearFieldError?.(field);
         const nextValue =
           e.target.type === "checkbox" ? e.target.checked : e.target.value;
         setFormValues((prev) => ({ ...prev, [field]: nextValue }));
@@ -111,31 +118,36 @@ export default function SecurityOrganizationManagementModal({
         ) : undefined
       }
     >
-      <BasicInfoSection formValues={formValues} readOnly={readOnly} handleChange={handleChange} />
-      <Divider sx={{ my: 2 }} />
-      <CompanyDetailsSection
-        readOnly={readOnly}
-        formValues={formValues}
-        handleChange={handleChange}
-      />
-      <Divider sx={{ my: 2 }} />
-      <DocumentsSection
-        readOnly={readOnly}
-        formValues={formValues}
-        handleChange={handleChange}
-      />
-      <Divider sx={{ my: 2 }} />
-      <OperationsSection
-        readOnly={readOnly}
-        formValues={formValues}
-        handleChange={handleChange}
-      />
-      <Divider sx={{ my: 2 }} />
-      <FinancialSection
-        readOnly={readOnly}
-        formValues={formValues}
-        handleChange={handleChange}
-      />
+      <FormFieldErrorsProvider
+        fieldErrors={fieldErrors}
+        onClearField={onClearFieldError}
+      >
+        <BasicInfoSection formValues={formValues} readOnly={readOnly} handleChange={handleChange} />
+        <Divider sx={{ my: 2 }} />
+        <CompanyDetailsSection
+          readOnly={readOnly}
+          formValues={formValues}
+          handleChange={handleChange}
+        />
+        <Divider sx={{ my: 2 }} />
+        <DocumentsSection
+          readOnly={readOnly}
+          formValues={formValues}
+          handleChange={handleChange}
+        />
+        <Divider sx={{ my: 2 }} />
+        <OperationsSection
+          readOnly={readOnly}
+          formValues={formValues}
+          handleChange={handleChange}
+        />
+        <Divider sx={{ my: 2 }} />
+        <FinancialSection
+          readOnly={readOnly}
+          formValues={formValues}
+          handleChange={handleChange}
+        />
+      </FormFieldErrorsProvider>
     </BaseModal>
   );
 }

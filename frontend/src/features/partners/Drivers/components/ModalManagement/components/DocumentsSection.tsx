@@ -4,11 +4,11 @@ import {
   sectionLabelSx,
 } from "../../../../../../components/ui/modalStyles";
 import DetailField from "../../../../../../components/DetailField";
+import FormTextField from "../../../../../../components/form/FormTextField";
 import {
   Checkbox,
   FormControlLabel,
   Grid,
-  TextField,
   Typography,
 } from "@mui/material";
 import { DOCUMENTS_OPTIONS } from "../constants";
@@ -63,7 +63,8 @@ const DocumentsSection = ({ readOnly, formValues, handleChange }: Props) => {
               value={formValues.additionalCertifications}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="additionalCertifications"
               fullWidth
               size="small"
               label="Additional certifications"
@@ -83,7 +84,8 @@ const DocumentsSection = ({ readOnly, formValues, handleChange }: Props) => {
               value={formValues.documentNotes}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="documentNotes"
               fullWidth
               size="small"
               label="Document notes"

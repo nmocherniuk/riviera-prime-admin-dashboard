@@ -1,8 +1,9 @@
-import { Grid, MenuItem, TextField, Typography } from "@mui/material";
+import { Grid, MenuItem, Typography } from "@mui/material";
 import { modalTextFieldSx, sectionLabelSx } from "../../../../../../components/ui/modalStyles";
 import { memo, type ChangeEvent } from "react";
 import type { SecurityOrganizationFormValues } from "../../../data/types";
 import DetailField from "../../../../../../components/DetailField";
+import FormTextField from "../../../../../../components/form/FormTextField";
 import { commonContent } from "../../../../../../content/common";
 import { securityPartnersContent } from "../../../../../../content/securityPartners";
 
@@ -31,13 +32,14 @@ function BasicInfoSection({ formValues, readOnly, handleChange }: Props) {
             value={formValues.organizationName}
           />
         ) : (
-          <TextField
+          <FormTextField
+            field="organizationName"
             fullWidth
             size="small"
             label={bi.organizationName.label}
             value={formValues.organizationName}
             onChange={handleChange("organizationName")}
-            helperText={bi.organizationName.helperEdit}
+            hint={bi.organizationName.helperEdit}
             sx={modalTextFieldSx}
           />
         )}
@@ -49,13 +51,14 @@ function BasicInfoSection({ formValues, readOnly, handleChange }: Props) {
             value={formValues.email}
           />
         ) : (
-          <TextField
+          <FormTextField
+            field="email"
             fullWidth
             size="small"
             label={bi.email.label}
             value={formValues.email}
             onChange={handleChange("email")}
-            helperText={bi.email.helperEdit}
+            hint={bi.email.helperEdit}
             sx={modalTextFieldSx}
           />
         )}
@@ -67,13 +70,14 @@ function BasicInfoSection({ formValues, readOnly, handleChange }: Props) {
             value={formValues.phone}
           />
         ) : (
-          <TextField
+          <FormTextField
+            field="phone"
             fullWidth
             size="small"
             label={bi.phone.label}
             value={formValues.phone}
             onChange={handleChange("phone")}
-            helperText={bi.phone.helperEdit}
+            hint={bi.phone.helperEdit}
             sx={modalTextFieldSx}
           />
         )}
@@ -85,13 +89,14 @@ function BasicInfoSection({ formValues, readOnly, handleChange }: Props) {
             value={formValues.contactPerson}
           />
         ) : (
-          <TextField
+          <FormTextField
+            field="contactPerson"
             fullWidth
             size="small"
             label={bi.contactPerson.label}
             value={formValues.contactPerson}
             onChange={handleChange("contactPerson")}
-            helperText={bi.contactPerson.helperEdit}
+            hint={bi.contactPerson.helperEdit}
             sx={modalTextFieldSx}
           />
         )}
@@ -103,13 +108,14 @@ function BasicInfoSection({ formValues, readOnly, handleChange }: Props) {
             value={formValues.serviceAreas}
           />
         ) : (
-          <TextField
+          <FormTextField
+            field="serviceAreas"
             fullWidth
             size="small"
             label={bi.serviceAreas.label}
             value={formValues.serviceAreas}
             onChange={handleChange("serviceAreas")}
-            helperText={bi.serviceAreas.helperEdit}
+            hint={bi.serviceAreas.helperEdit}
             sx={modalTextFieldSx}
           />
         )}
@@ -121,7 +127,8 @@ function BasicInfoSection({ formValues, readOnly, handleChange }: Props) {
             value={formValues.status ? commonContent.status.active : commonContent.status.inactive}
           />
         ) : (
-          <TextField
+          <FormTextField
+            field="status"
             select
             fullWidth
             size="small"
@@ -142,7 +149,7 @@ function BasicInfoSection({ formValues, readOnly, handleChange }: Props) {
           >
             <MenuItem value="active">{commonContent.status.active}</MenuItem>
             <MenuItem value="inactive">{commonContent.status.inactive}</MenuItem>
-          </TextField>
+          </FormTextField>
         )}
       </Grid>
     </>

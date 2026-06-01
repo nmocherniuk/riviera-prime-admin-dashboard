@@ -21,11 +21,18 @@ import { formValuesToDriverOrganization } from "../features/partners/Drivers/com
 import DriversOrganizationsStats from "../features/partners/Drivers/components/DriversOrganizationsStats";
 import { useToast } from "../providers/ToastProvider";
 import { driversContent } from "../content/drivers";
+import { useModalFormErrors } from "../hooks/useModalFormErrors";
 
 export default function DriverOrganizationsPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { showToast } = useToast();
+  const {
+    fieldErrors,
+    clearFieldError,
+    clearAllFieldErrors,
+    applySubmitError,
+  } = useModalFormErrors();
 
   const [error, setError] = useState<string | null>(null);
 
@@ -66,6 +73,7 @@ export default function DriverOrganizationsPage() {
   ) => {
     try {
       setError(null);
+      clearAllFieldErrors();
       if (organizationId) {
         await updateOrganization(
           organizationId,
@@ -92,7 +100,7 @@ export default function DriverOrganizationsPage() {
         organization: null,
       }));
     } catch (e) {
-      const msg = getApiErrorMessage(e, driversContent.errors.save);
+      const msg = applySubmitError(e, driversContent.errors.save);
       showToast({ message: msg, severity: "error" });
       throw e;
     }
@@ -111,13 +119,14 @@ export default function DriverOrganizationsPage() {
         ) : null}
 
         <DriversOrganizationsHeader
-          onAddOrganization={() =>
+          onAddOrganization={() => {
+            clearAllFieldErrors();
             setOrgModal({
               open: true,
               organization: null,
               readOnly: false,
-            })
-          }
+            });
+          }}
         />
 
         <Box sx={{ mt: 2 }}>
@@ -159,6 +168,7 @@ export default function DriverOrganizationsPage() {
               onViewDetails={async (org) => {
                 try {
                   setError(null);
+                  clearAllFieldErrors();
                   setOrgModal({
                     open: true,
                     organization: org,
@@ -173,6 +183,7 @@ export default function DriverOrganizationsPage() {
               onEdit={async (org) => {
                 try {
                   setError(null);
+                  clearAllFieldErrors();
                   setOrgModal({
                     open: true,
                     organization: org,
@@ -191,15 +202,18 @@ export default function DriverOrganizationsPage() {
 
         <DriverOrganizationManagementModal
           open={orgModal.open}
-          onClose={() =>
+          onClose={() => {
+            clearAllFieldErrors();
             setOrgModal((prev) => ({
               ...prev,
               open: false,
               organization: null,
-            }))
-          }
+            }));
+          }}
           organization={orgModal.organization}
           readOnly={orgModal.readOnly}
+          fieldErrors={fieldErrors}
+          onClearFieldError={clearFieldError}
           onSave={handleSaveOrganization}
         />
 

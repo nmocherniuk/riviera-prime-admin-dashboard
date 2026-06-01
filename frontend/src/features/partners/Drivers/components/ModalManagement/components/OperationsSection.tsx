@@ -4,7 +4,6 @@ import {
   Grid,
   MenuItem,
   Switch,
-  TextField,
   Typography,
 } from "@mui/material";
 import {
@@ -12,6 +11,7 @@ import {
   sectionLabelSx,
 } from "../../../../../../components/ui/modalStyles";
 import DetailField from "../../../../../../components/DetailField";
+import FormTextField from "../../../../../../components/form/FormTextField";
 import { LANGUAGE_OPTIONS, SERVICE_TYPES } from "../constants";
 import type { DriverOrganizationFormValues } from "../../../data/types";
 
@@ -35,7 +35,8 @@ const OperationsSection = ({ readOnly, formValues, handleChange }: Props) => {
               value={(formValues.serviceTypes ?? []).join(", ")}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="serviceTypes"
               fullWidth
               size="small"
               select
@@ -52,7 +53,7 @@ const OperationsSection = ({ readOnly, formValues, handleChange }: Props) => {
                   {t}
                 </MenuItem>
               ))}
-            </TextField>
+            </FormTextField>
           )}
         </Grid>
 
@@ -63,13 +64,14 @@ const OperationsSection = ({ readOnly, formValues, handleChange }: Props) => {
               value={formValues.workingHours}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="workingHours"
               fullWidth
               size="small"
               label="Working hours"
               value={formValues.workingHours}
               onChange={handleChange("workingHours")}
-              helperText="Example: 08:00-22:00"
+              hint="Example: 08:00-22:00"
               sx={modalTextFieldSx}
             />
           )}
@@ -82,7 +84,8 @@ const OperationsSection = ({ readOnly, formValues, handleChange }: Props) => {
               value={(formValues.languagesSpoken ?? []).join(", ")}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="languagesSpoken"
               fullWidth
               size="small"
               select
@@ -101,7 +104,7 @@ const OperationsSection = ({ readOnly, formValues, handleChange }: Props) => {
                   {l}
                 </MenuItem>
               ))}
-            </TextField>
+            </FormTextField>
           )}
         </Grid>
 
@@ -112,7 +115,8 @@ const OperationsSection = ({ readOnly, formValues, handleChange }: Props) => {
               value={formValues.maxConcurrentBookings}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="maxConcurrentBookings"
               fullWidth
               size="small"
               type="number"
@@ -131,7 +135,8 @@ const OperationsSection = ({ readOnly, formValues, handleChange }: Props) => {
               value={formValues.minAdvanceBookingHours}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="minAdvanceBookingHours"
               fullWidth
               size="small"
               type="number"
@@ -196,7 +201,8 @@ const OperationsSection = ({ readOnly, formValues, handleChange }: Props) => {
               value={formValues.cancellationPolicy}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="cancellationPolicy"
               fullWidth
               size="small"
               label="Cancellation policy"
@@ -216,7 +222,8 @@ const OperationsSection = ({ readOnly, formValues, handleChange }: Props) => {
               value={formValues.specialConditionsNotes}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="specialConditionsNotes"
               fullWidth
               size="small"
               label="Special conditions notes"

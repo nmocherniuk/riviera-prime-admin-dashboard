@@ -4,11 +4,11 @@ import {
   Grid,
   MenuItem,
   Switch,
-  TextField,
   Typography,
   Checkbox,
 } from "@mui/material";
 import DetailField from "../../../../../../components/DetailField";
+import FormTextField from "../../../../../../components/form/FormTextField";
 import {
   modalTextFieldSx,
   sectionLabelSx,
@@ -50,7 +50,8 @@ function OperationsSection({ readOnly, formValues, handleChange }: Props) {
               value={formValues.serviceAreas}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="serviceAreas"
               fullWidth
               size="small"
               label={op.serviceAreas.label}
@@ -70,7 +71,8 @@ function OperationsSection({ readOnly, formValues, handleChange }: Props) {
               value={(formValues.serviceTypes ?? []).join(", ")}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="serviceTypes"
               fullWidth
               size="small"
               select
@@ -87,7 +89,7 @@ function OperationsSection({ readOnly, formValues, handleChange }: Props) {
                   {securityServiceTypeLabel(t)}
                 </MenuItem>
               ))}
-            </TextField>
+            </FormTextField>
           )}
         </Grid>
 
@@ -117,7 +119,8 @@ function OperationsSection({ readOnly, formValues, handleChange }: Props) {
               value={(formValues.languagesSpoken ?? []).join(", ")}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="languagesSpoken"
               fullWidth
               size="small"
               select
@@ -134,7 +137,7 @@ function OperationsSection({ readOnly, formValues, handleChange }: Props) {
                   {l}
                 </MenuItem>
               ))}
-            </TextField>
+            </FormTextField>
           )}
         </Grid>
 
@@ -145,7 +148,8 @@ function OperationsSection({ readOnly, formValues, handleChange }: Props) {
               value={formValues.minBookingHours}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="minBookingHours"
               fullWidth
               size="small"
               type="number"
@@ -163,7 +167,8 @@ function OperationsSection({ readOnly, formValues, handleChange }: Props) {
               value={formValues.mobilizationTimeMinutes}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="mobilizationTimeMinutes"
               fullWidth
               size="small"
               type="number"
@@ -178,7 +183,8 @@ function OperationsSection({ readOnly, formValues, handleChange }: Props) {
           {readOnly ? (
             <DetailField label={op.agentsCount.label} value={formValues.agentsCount} />
           ) : (
-            <TextField
+            <FormTextField
+              field="agentsCount"
               fullWidth
               size="small"
               type="number"
@@ -218,7 +224,8 @@ function OperationsSection({ readOnly, formValues, handleChange }: Props) {
               value={formValues.specialRequirements}
             />
           ) : (
-            <TextField
+            <FormTextField
+              field="specialRequirements"
               fullWidth
               size="small"
               label={op.specialRequirements.label}

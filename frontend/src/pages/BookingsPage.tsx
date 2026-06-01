@@ -32,6 +32,8 @@ import {
   useScrollSyncWeekStrip,
   useInfiniteScrollWeeks,
 } from "../features/Bookings/hooks";
+import { useToast } from "../providers/ToastProvider";
+import { useModalFormErrors } from "../hooks/useModalFormErrors";
 
 export type BookingsViewMode = "day" | "week" | "month";
 
@@ -39,6 +41,13 @@ const INITIAL_WEEKS_AFTER = 4;
 
 export default function BookingsPage() {
   const queryClient = useQueryClient();
+  const { showToast } = useToast();
+  const {
+    fieldErrors,
+    clearFieldError,
+    clearAllFieldErrors,
+    applySubmitError,
+  } = useModalFormErrors();
   const { selectedDate, setSelectedDate, registerScrollToDate } =
     useBookingsDate();
   const [bookingModal, setBookingModal] = useState<{
@@ -195,6 +204,8 @@ export default function BookingsPage() {
     bookingId: string | null,
     values: BookingFormValues,
   ) => {
+    try {
+      clearAllFieldErrors();
     const bookingAt = new Date(
       `${values.date}T${values.startTime}:00`,
     ).toISOString();
@@ -229,6 +240,12 @@ export default function BookingsPage() {
       await createBooking(body);
     }
     await queryClient.invalidateQueries({ queryKey: queryKeys.bookings.all });
+    setBookingModal({ open: false, booking: null });
+    } catch (e) {
+      const msg = applySubmitError(e, bookingContent.errors.save);
+      showToast({ message: msg, severity: "error" });
+      throw e;
+    }
   };
 
   return (
@@ -254,7 +271,10 @@ export default function BookingsPage() {
         filters={filters}
         onFilterChange={setFilter}
         filteredBookings={sortedBookings}
-        onNewBooking={() => setBookingModal({ open: true, booking: null })}
+        onNewBooking={() => {
+          clearAllFieldErrors();
+          setBookingModal({ open: true, booking: null });
+        }}
         activeTransfersToday={activeTransfersToday}
       />
 
@@ -268,7 +288,10 @@ export default function BookingsPage() {
         stats={stats}
         filters={filters}
         onFilterChange={setFilter}
-        onNewBooking={() => setBookingModal({ open: true, booking: null })}
+        onNewBooking={() => {
+          clearAllFieldErrors();
+          setBookingModal({ open: true, booking: null });
+        }}
         onBookingClick={setSelectedBookingDetail}
         activeTransfersToday={activeTransfersToday}
       />
@@ -280,8 +303,13 @@ export default function BookingsPage() {
       />
       <BookingManagementModal
         open={bookingModal.open}
-        onClose={() => setBookingModal({ open: false, booking: null })}
+        onClose={() => {
+          clearAllFieldErrors();
+          setBookingModal({ open: false, booking: null });
+        }}
         booking={bookingModal.booking}
+        fieldErrors={fieldErrors}
+        onClearFieldError={clearFieldError}
         onSave={handleSaveBooking}
       />
     </Box>

@@ -13,12 +13,16 @@ import { defaultFormValues } from "./driverOrganizationForm.types";
 import { driverOrganizationToFormValues } from "./driverOrganizationForm.mapper";
 import BasicInfoSection from "./components/BasicInfoSection";
 import type { DriverOrganizationFormValues } from "../../data/types";
+import { FormFieldErrorsProvider } from "../../../../../components/form/FormFieldErrorsProvider";
+import type { FieldErrors } from "../../../../../utils/formErrors";
 
 type Props = {
   open: boolean;
   onClose: () => void;
   organization: DriverOrganization | null;
   readOnly?: boolean;
+  fieldErrors?: FieldErrors;
+  onClearFieldError?: (field: string) => void;
   onSave: (
     organizationId: string | null,
     values: DriverOrganizationFormValues,
@@ -30,6 +34,8 @@ export default function DriverOrganizationManagementModal({
   onClose,
   organization,
   readOnly = false,
+  fieldErrors = {},
+  onClearFieldError,
   onSave,
 }: Props) {
   const [formValues, setFormValues] =
@@ -42,6 +48,7 @@ export default function DriverOrganizationManagementModal({
 
   const handleChange =
     (field: keyof DriverOrganizationFormValues) => (e: ChangeEvent<HTMLInputElement>) => {
+      onClearFieldError?.(field);
       const nextValue =
         e.target.type === "checkbox" ? e.target.checked : e.target.value;
       setFormValues(
@@ -113,39 +120,44 @@ export default function DriverOrganizationManagementModal({
         ) : undefined
       }
     >
-      <BasicInfoSection readOnly={readOnly} formValues={formValues} handleChange={handleChange} />
+      <FormFieldErrorsProvider
+        fieldErrors={fieldErrors}
+        onClearField={onClearFieldError}
+      >
+        <BasicInfoSection readOnly={readOnly} formValues={formValues} handleChange={handleChange} />
 
-      <Divider sx={{ my: 2 }} />
+        <Divider sx={{ my: 2 }} />
 
-      <CompanySection
-        readOnly={readOnly}
-        formValues={formValues}
-        handleChange={handleChange}
-      />
+        <CompanySection
+          readOnly={readOnly}
+          formValues={formValues}
+          handleChange={handleChange}
+        />
 
-      <Divider sx={{ my: 2 }} />
+        <Divider sx={{ my: 2 }} />
 
-      <DocumentsSection
-        readOnly={readOnly}
-        formValues={formValues}
-        handleChange={handleChange}
-      />
+        <DocumentsSection
+          readOnly={readOnly}
+          formValues={formValues}
+          handleChange={handleChange}
+        />
 
-      <Divider sx={{ my: 2 }} />
+        <Divider sx={{ my: 2 }} />
 
-      <OperationsSection
-        readOnly={readOnly}
-        formValues={formValues}
-        handleChange={handleChange}
-      />
+        <OperationsSection
+          readOnly={readOnly}
+          formValues={formValues}
+          handleChange={handleChange}
+        />
 
-      <Divider sx={{ my: 2 }} />
+        <Divider sx={{ my: 2 }} />
 
-      <FinancialSection
-        readOnly={readOnly}
-        formValues={formValues}
-        handleChange={handleChange}
-      />
+        <FinancialSection
+          readOnly={readOnly}
+          formValues={formValues}
+          handleChange={handleChange}
+        />
+      </FormFieldErrorsProvider>
     </BaseModal>
   );
 }
