@@ -38,16 +38,19 @@ type BookingPaymentReceiptEmailData = BookingEmailData & {
 function tripSummaryHtml(
   b: BookingEmailData,
   locale: EmailLocale,
+  options?: { includeBookingId?: boolean },
 ): string {
   const copy = getBookingEmailCopy(locale);
   const { date, time } = formatBookingDateTimeZone(b.bookingAt);
-  return emailDetailTable(
-    [
-      emailDetailRow(copy.common.route, `${b.from} → ${b.to}`),
-      emailDetailRow(copy.common.date, `${date} at ${time}`),
-      emailDetailRow(copy.common.duration, `${b.durationMin} min`),
-    ].join(""),
-  );
+  const rows = [
+    emailDetailRow(copy.common.route, `${b.from} → ${b.to}`),
+    emailDetailRow(copy.common.date, `${date} at ${time}`),
+    emailDetailRow(copy.common.duration, `${b.durationMin} min`),
+  ];
+  if (options?.includeBookingId) {
+    rows.push(emailDetailRow(copy.common.bookingId, b.bookingId));
+  }
+  return emailDetailTable(rows.join(""));
 }
 
 export async function sendBookingPendingEmail(
@@ -150,22 +153,11 @@ export async function sendBookingPaymentReceiptEmail(
 
   const locale = parseEmailLocale(booking.locale);
   const copy = getBookingEmailCopy(locale);
-  const amount = Number.isFinite(booking.amountEur) ? booking.amountEur : 0;
-  const paymentRef = booking.paymentIntentId?.trim();
-
-  const paymentRows = [
-    emailDetailRow(copy.common.amountPaid, `${amount.toFixed(2)} EUR`),
-    ...(paymentRef
-      ? [emailDetailRow(copy.common.paymentReference, paymentRef)]
-      : []),
-    emailDetailRow(copy.common.bookingId, booking.bookingId),
-  ].join("");
 
   const html = wrapEmailLayout(`
     ${emailHeading(copy.receipt.heading)}
     ${emailParagraph(`${copy.receipt.greeting(escapeHtml(booking.clientName))}<br>${copy.receipt.body}`)}
-    ${tripSummaryHtml(booking, locale)}
-    ${emailDetailTable(paymentRows)}
+    ${tripSummaryHtml(booking, locale, { includeBookingId: true })}
     ${emailParagraph(copy.receipt.thanks)}
   `);
 

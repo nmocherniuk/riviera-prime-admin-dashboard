@@ -79,11 +79,11 @@ const COPY: Record<EmailLocale, BookingEmailCopy> = {
       cta: "Try Again",
     },
     receipt: {
-      subject: "Aurevia — payment receipt",
-      heading: "Payment received ✅",
+      subject: "Your reservation is confirmed",
+      heading: "Your reservation is confirmed",
       greeting: (name) => `Hello <strong>${name}</strong>,`,
-      body: "We confirm that your payment has been received successfully.",
-      thanks: "Thank you for choosing Aurevia.",
+      body: "Your payment has been received and your reservation is confirmed.",
+      thanks: "Thank you for choosing Riviera Prime.",
     },
   },
   fr: {
@@ -123,11 +123,11 @@ const COPY: Record<EmailLocale, BookingEmailCopy> = {
       cta: "Réessayer",
     },
     receipt: {
-      subject: "Aurevia — reçu de paiement",
-      heading: "Paiement reçu ✅",
+      subject: "Votre réservation est confirmée",
+      heading: "Votre réservation est confirmée",
       greeting: (name) => `Bonjour <strong>${name}</strong>,`,
-      body: "Nous confirmons que votre paiement a bien été reçu.",
-      thanks: "Merci d'avoir choisi Aurevia.",
+      body: "Votre paiement a bien été reçu et votre réservation est confirmée.",
+      thanks: "Merci d'avoir choisi Riviera Prime.",
     },
   },
 };

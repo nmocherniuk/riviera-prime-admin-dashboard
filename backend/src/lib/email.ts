@@ -3,7 +3,7 @@ import nodemailer from "nodemailer";
 const transporter = createTransport();
 
 const defaultFrom =
-  process.env.SMTP_FROM || "Aurevia <no-reply@aurevia.com>";
+  process.env.SMTP_FROM || "Riviera Prime <no-reply@rivieraprime.com>";
 
 function createTransport() {
   const host = process.env.SMTP_HOST;
