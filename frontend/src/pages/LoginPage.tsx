@@ -12,6 +12,7 @@ import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { loginRequest } from "../api/auth";
 import { useAuthStore } from "../store/authStore";
+import { commonContent } from "../content/common";
 
 export default function LoginPage() {
   const theme = useTheme();
@@ -71,7 +72,7 @@ export default function LoginPage() {
                   color: "primary.main",
                 }}
               >
-                Aurevia
+                {commonContent.nav.brand.name}
               </Typography>
 
               <Typography

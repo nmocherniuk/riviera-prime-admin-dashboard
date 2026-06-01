@@ -42,7 +42,7 @@ export const commonContent = {
       financials: "Finances",
     },
     brand: {
-      name: "Aurevia",
+      name: "Riviera Prime",
       subtitle: "Admin chauffeur",
     },
   },

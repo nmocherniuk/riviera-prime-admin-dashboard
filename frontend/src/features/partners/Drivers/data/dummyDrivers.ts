@@ -7,7 +7,7 @@ export const DUMMY_DRIVERS: Driver[] = [
   {
     id: "DRV-001",
     organizationId: "ORG-001",
-    organizationName: "Aurevia Executive Travel",
+    organizationName: "Riviera Prime Executive Travel",
     name: "James Sterling",
     vehicle: "Mercedes-Benz S-Class",
     vehiclePlate: "LIMO-992",
@@ -20,7 +20,7 @@ export const DUMMY_DRIVERS: Driver[] = [
   {
     id: "DRV-002",
     organizationId: "ORG-001",
-    organizationName: "Aurevia Executive Travel",
+    organizationName: "Riviera Prime Executive Travel",
     name: "Maria Chen",
     vehicle: "BMW 7 Series",
     vehiclePlate: "LIMO-881",

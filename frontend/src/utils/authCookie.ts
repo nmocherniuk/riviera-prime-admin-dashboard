@@ -1,7 +1,7 @@
 /** Must match access JWT lifetime on the backend (15m). */
 const ACCESS_MAX_AGE_SEC = 15 * 60;
 
-const COOKIE_NAME = "aurevia_access_token";
+const COOKIE_NAME = "riviera_prime_access_token";
 
 function getCookie(name: string): string | null {
   if (typeof document === "undefined") return null;
