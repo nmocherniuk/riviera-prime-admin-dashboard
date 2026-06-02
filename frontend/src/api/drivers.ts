@@ -37,3 +37,10 @@ export async function getDriverEarnings(id: string) {
   const { data } = await api.get<DriverEarningsSummary>(`/drivers/${id}/earnings`);
   return data;
 }
+
+export async function sendDriverTestWhatsApp(id: string) {
+  const { data } = await api.post<{ ok: boolean; message: string }>(
+    `/drivers/${id}/send-test-whatsapp`,
+  );
+  return data;
+}

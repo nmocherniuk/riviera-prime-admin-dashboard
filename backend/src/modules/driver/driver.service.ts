@@ -14,6 +14,7 @@ import {
   getDriverEarningsSummary,
   syncCompletedTransfersForDriver,
 } from "../stripe/stripeEarnings.service.js";
+import { sendInteractiveReplyWithMenu } from "../whatsapp/whatsapp.service.js";
 
 export async function listDrivers(organizationId?: string) {
   const data = await findDriversByOrganizationId(organizationId);
@@ -98,4 +99,27 @@ export async function getDriversByVehicleId(vehicleId: string) {
 export async function getDriverEarnings(driverId: string) {
   await syncCompletedTransfersForDriver(driverId);
   return getDriverEarningsSummary(driverId);
+}
+
+export async function sendDriverTestWhatsAppMessage(driverId: string) {
+  const driver = await findDriverById(driverId);
+  if (!driver) {
+    return { status: "not_found" as const };
+  }
+  const phone = driver.phone?.trim();
+  if (!phone) {
+    return { status: "missing_phone" as const };
+  }
+
+  const body = [
+    "👋 Bonjour !",
+    "",
+    "Riviera Prime vous souhaite la bienvenue.",
+    "Ceci est un message de test depuis le panneau admin.",
+    "",
+    "Utilisez le menu ci-dessous pour accéder rapidement aux actions chauffeur.",
+  ].join("\n");
+
+  await sendInteractiveReplyWithMenu(phone, body);
+  return { status: "sent" as const, phone };
 }

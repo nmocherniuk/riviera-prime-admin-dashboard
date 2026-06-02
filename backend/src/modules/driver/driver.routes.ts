@@ -16,6 +16,7 @@ import {
   getDriverByIdController,
   getDriverEarningsController,
   listDriversController,
+  sendDriverTestWhatsAppController,
   updateDriverController,
 } from "./driver.controller.js";
 
@@ -35,6 +36,13 @@ router.get(
   validateParams(driverIdParamsSchema),
   validateQuery(driverByIdQuerySchema),
   getDriverEarningsController,
+);
+router.post(
+  "/:id/send-test-whatsapp",
+  requireAuth,
+  validateParams(driverIdParamsSchema),
+  validateQuery(driverByIdQuerySchema),
+  sendDriverTestWhatsAppController,
 );
 router.post("/", requireAuth, validateBody(createDriverSchema), createDriverController);
 router.patch(

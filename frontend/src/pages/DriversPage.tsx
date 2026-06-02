@@ -20,7 +20,13 @@ import {
   getOrganization,
   isNotFoundError,
 } from "../api/organizations";
-import { createDriver, deleteDriver, listDrivers, updateDriver } from "../api/drivers";
+import {
+  createDriver,
+  deleteDriver,
+  listDrivers,
+  sendDriverTestWhatsApp,
+  updateDriver,
+} from "../api/drivers";
 import { queryKeys } from "../api/queryKeys";
 import type { Driver, DriverFormValues } from "../features/partners/Drivers/components/drivers/types";
 import { FormValuesToDriver } from "../features/partners/Drivers/components/drivers/ModalManagement/driverManagementForm.mapper";
@@ -212,6 +218,26 @@ export default function DriversPage() {
     [],
   );
 
+  const handleSendTestMessage = useCallback(
+    async (driver: Driver) => {
+      if (!driver.id) {
+        showToast({ message: "Driver ID is missing.", severity: "error" });
+        return;
+      }
+      try {
+        await sendDriverTestWhatsApp(driver.id);
+        showToast({
+          message: "Test WhatsApp message sent successfully.",
+          severity: "success",
+        });
+      } catch (e) {
+        const msg = getApiErrorMessage(e, "Failed to send test WhatsApp message");
+        showToast({ message: msg, severity: "error" });
+      }
+    },
+    [showToast],
+  );
+
   const activeCount = useMemo(
     () => drivers.filter((d) => d.status !== false).length,
     [drivers],
@@ -333,6 +359,7 @@ export default function DriversPage() {
                 setDriverModal({ open: true, driver: d, readOnly: false });
               }}
               onDriverDelete={handleDeleteClick}
+              onSendTestMessage={handleSendTestMessage}
             />
           )}
         </Box>

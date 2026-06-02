@@ -14,6 +14,7 @@ import Chip from "@mui/material/Chip";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import PersonIcon from "@mui/icons-material/Person";
 import type { Driver } from "./types";
 
@@ -31,6 +32,7 @@ type Props = {
   onView?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
+  onSendTestMessage?: () => void;
 };
 
 export default function DriverCard({
@@ -38,6 +40,7 @@ export default function DriverCard({
   onView,
   onEdit,
   onDelete,
+  onSendTestMessage,
 }: Props) {
   const chip = statusStyle(d.status ?? true);
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
@@ -53,6 +56,10 @@ export default function DriverCard({
   };
   const handleDelete = () => {
     onDelete?.();
+    closeMenu();
+  };
+  const handleSendTestMessage = () => {
+    onSendTestMessage?.();
     closeMenu();
   };
 
@@ -132,6 +139,12 @@ export default function DriverCard({
             <EditIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText>Edit</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={handleSendTestMessage}>
+          <ListItemIcon>
+            <WhatsAppIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Send test WhatsApp</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleDelete} sx={{ color: "error.main" }}>
           <ListItemIcon sx={{ color: "error.main" }}>

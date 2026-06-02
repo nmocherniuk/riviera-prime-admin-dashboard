@@ -60,6 +60,13 @@ export const WHATSAPP_REPLY_MESSAGES = {
     "• *Mes courses* : consultez les trajets payés et en attente de paiement",
   ].join("\n"),
 
+  unknownDriver: [
+    "⚠️ *Numéro non autorisé*",
+    "",
+    "Ce numéro n'est pas lié à un profil chauffeur Riviera Prime.",
+    "Si vous pensez qu'il s'agit d'une erreur, contactez l'administrateur pour vérifier votre téléphone dans la base chauffeurs.",
+  ].join("\n"),
+
   defaultEcho:
     'Message reçu : « {{text}} ».\n\nTapez *menu* ou */menu* pour voir les options disponibles.',
 } as const;
@@ -494,6 +501,11 @@ export async function buildReplyPayload(
 ): Promise<WhatsAppReplyPayload> {
   const text = message.text?.trim();
   const lower = text?.toLowerCase();
+  const driver = await getDriverByPhone(message.from);
+
+  if (!driver) {
+    return { body: WHATSAPP_REPLY_MESSAGES.unknownDriver };
+  }
 
   if (text?.startsWith("TRIP_")) {
     const bookingId = text.slice("TRIP_".length).trim();
@@ -505,10 +517,6 @@ export async function buildReplyPayload(
 
   /** Must run before `PENDING_*` row handler: nav id is `PENDING_TRIPS` (also starts with PENDING_). */
   if (text === "PENDING_TRIPS") {
-    const driver = await getDriverByPhone(message.from);
-    if (!driver) {
-      return { body: "❌ Chauffeur non reconnu. Vérifiez votre numéro dans le système." };
-    }
     return buildPendingTripsReply(driver.id);
   }
 
@@ -522,10 +530,6 @@ export async function buildReplyPayload(
       return { body: "❌ Course introuvable." };
     }
 
-    const driver = await getDriverByPhone(message.from);
-    if (!driver) {
-      return { body: "❌ Chauffeur non reconnu. Vérifiez votre numéro dans le système." };
-    }
     if (booking.status !== "PENDING") {
       return { body: "ℹ️ Cette offre n'est plus en attente." };
     }
@@ -629,11 +633,6 @@ export async function buildReplyPayload(
       return { body: "❌ Impossible d'identifier votre numéro de téléphone." };
     }
 
-    const driver = await getDriverByPhone(message.from);
-    if (!driver) {
-      return { body: "❌ Chauffeur non reconnu. Vérifiez votre numéro dans le système." };
-    }
-
     const bookingId = text
       ? await resolveBookingIdForDriverAction(text, driver.id)
       : null;
@@ -709,11 +708,6 @@ export async function buildReplyPayload(
   if (isRejectAction(text)) {
     if (!message.from) {
       return { body: "❌ Impossible d'identifier votre numéro de téléphone." };
-    }
-
-    const driver = await getDriverByPhone(message.from);
-    if (!driver) {
-      return { body: "❌ Chauffeur non reconnu. Vérifiez votre numéro dans le système." };
     }
 
     const bookingId = text
@@ -796,11 +790,6 @@ export async function buildReplyPayload(
   }
 
   if (text === "CURRENT_TRIP") {
-    const driver = await getDriverByPhone(message.from);
-    if (!driver) {
-      return { body: "❌ Chauffeur non reconnu. Vérifiez votre numéro dans le système." };
-    }
-
     const trips = await listBookingsService({ driverId: driver.id });
     const current = trips.find((t) => t.status === "in_progress");
 
@@ -839,18 +828,10 @@ export async function buildReplyPayload(
   }
 
   if (text === "EARNING" || lower === "earning" || lower === "earnings") {
-    const driver = await getDriverByPhone(message.from);
-    if (!driver) {
-      return { body: "❌ Chauffeur non reconnu. Vérifiez votre numéro dans le système." };
-    }
     return buildEarningsReply(driver.id);
   }
 
   if (text === "WITHDRAW") {
-    const driver = await getDriverByPhone(message.from);
-    if (!driver) {
-      return { body: "❌ Chauffeur non reconnu. Vérifiez votre numéro dans le système." };
-    }
     await syncCompletedTransfersForDriver(driver.id);
     const payout = await requestDriverManualPayout(driver.id);
     if (payout.status === "no_funds") {
@@ -862,20 +843,10 @@ export async function buildReplyPayload(
   }
 
   if (text === "TRIPS") {
-    const driver = await getDriverByPhone(message.from);
-    if (!driver) {
-      return { body: "❌ Chauffeur non reconnu. Vérifiez votre numéro dans le système." };
-    }
     return buildTripsListReply(driver.id);
   }
 
   if (text === "PROFILE") {
-    const driver = await getDriverByPhone(message.from);
-
-    if (!driver) {
-      return { body: "❌ Chauffeur non reconnu. Vérifiez votre numéro dans le système." };
-    }
-
     const profileMessage = `
 👤 *Votre profil*
 
@@ -904,11 +875,6 @@ Transferts aéroport : ${driver.acceptsAirportTransfers ? "✅" : "❌"}
     return { body: profileMessage };
   }
   if (text === "HISTORY") {
-    const driver = await getDriverByPhone(message.from);
-    if (!driver) {
-      return { body: "❌ Chauffeur non reconnu. Vérifiez votre numéro dans le système." };
-    }
-
     const completed = await listCompletedBookings(driver.id);
 
     if (completed.length === 0) {
@@ -935,10 +901,6 @@ Transferts aéroport : ${driver.acceptsAirportTransfers ? "✅" : "❌"}
     return { body: WHATSAPP_REPLY_MESSAGES.help };
   }
   if (text === "ONLINE") {
-    const driver = await getDriverByPhone(message.from);
-    if (!driver) {
-      return { body: "❌ Chauffeur non reconnu. Vérifiez votre numéro dans le système." };
-    }
     if (driver.status === true) {
       return { body: "🟢 Vous êtes déjà en ligne." };
     }
@@ -946,10 +908,6 @@ Transferts aéroport : ${driver.acceptsAirportTransfers ? "✅" : "❌"}
     return { body: WHATSAPP_REPLY_MESSAGES.online };
   }
   if (text === "OFFLINE") {
-    const driver = await getDriverByPhone(message.from);
-    if (!driver) {
-      return { body: "❌ Chauffeur non reconnu. Vérifiez votre numéro dans le système." };
-    }
     if (driver.status === false) {
       return { body: "🔴 Vous êtes déjà hors ligne." };
     }

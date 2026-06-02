@@ -2,6 +2,7 @@ import { Avatar, Box, Typography } from "@mui/material";
 import Chip from "@mui/material/Chip";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import PersonIcon from "@mui/icons-material/Person";
 import { useCallback, useState } from "react";
 import { GenericTable } from "../../../../../components/GenericTable";
@@ -23,6 +24,7 @@ type Props = {
   onDriverView?: (driver: Driver) => void;
   onDriverEdit?: (driver: Driver) => void;
   onDriverDelete?: (driver: Driver) => void;
+  onSendTestMessage?: (driver: Driver) => void;
 };
 
 export default function DriversTable({
@@ -30,6 +32,7 @@ export default function DriversTable({
   onDriverView,
   onDriverEdit,
   onDriverDelete,
+  onSendTestMessage,
 }: Props) {
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const [selected, setSelected] = useState<Driver | null>(null);
@@ -150,6 +153,9 @@ export default function DriversTable({
             onView={onDriverView ? () => onDriverView(driver) : undefined}
             onEdit={onDriverEdit ? () => onDriverEdit(driver) : undefined}
             onDelete={onDriverDelete ? () => onDriverDelete(driver) : undefined}
+            onSendTestMessage={
+              onSendTestMessage ? () => onSendTestMessage(driver) : undefined
+            }
           />
         )}
       />
@@ -164,6 +170,14 @@ export default function DriversTable({
             icon: <EditIcon fontSize="small" />,
             onClick: () => {
               if (selected) onDriverEdit?.(selected);
+              closeMenu();
+            },
+          },
+          {
+            label: "Send test WhatsApp",
+            icon: <WhatsAppIcon fontSize="small" />,
+            onClick: () => {
+              if (selected) onSendTestMessage?.(selected);
               closeMenu();
             },
           },
