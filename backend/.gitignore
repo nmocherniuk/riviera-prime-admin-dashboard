@@ -3,3 +3,8 @@ node_modules
 .env
 
 /src/generated/prisma
+
+# User-uploaded files (keep directory structure)
+/uploads/*
+!/uploads/vehicles/
+!/uploads/vehicles/.gitkeep

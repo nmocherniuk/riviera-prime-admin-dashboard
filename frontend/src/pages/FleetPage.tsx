@@ -20,6 +20,7 @@ import {
   listVehicles,
   updateVehicle,
 } from "../api/vehicles";
+import { uploadVehiclePhoto } from "../api/uploads";
 import {
   getApiErrorMessage,
   isNotFoundError,
@@ -145,14 +146,22 @@ export default function FleetPage() {
   const handleSaveVehicle = async (
     vehicleId: string | null,
     values: FleetFormValues,
+    pendingImageFile: File | null,
   ) => {
     setError(null);
     clearAllFieldErrors();
     try {
+      let imageUrl = values.imageUrl.trim();
+      if (pendingImageFile) {
+        const uploaded = await uploadVehiclePhoto(pendingImageFile);
+        imageUrl = uploaded.url;
+      }
+      const valuesToSave = { ...values, imageUrl };
+
       if (vehicleId) {
-        await updateVehicle(vehicleId, fleetFormToUpdateBody(values));
+        await updateVehicle(vehicleId, fleetFormToUpdateBody(valuesToSave));
       } else {
-        await createVehicle(fleetFormToCreateBody(values));
+        await createVehicle(fleetFormToCreateBody(valuesToSave));
       }
       await queryClient.invalidateQueries({
         queryKey: queryKeys.vehicles.all,

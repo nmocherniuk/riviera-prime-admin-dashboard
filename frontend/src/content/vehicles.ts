@@ -106,9 +106,16 @@ export const vehiclesContent = {
         label: "Immatriculation",
         placeholder: "Saisir l’immatriculation",
       },
-      imageUrl: {
-        label: "URL de l’image (facultatif)",
-        placeholder: "https://exemple.com/voiture.jpg",
+      image: {
+        label: "Photo du véhicule (facultatif)",
+        choose: "Choisir une image",
+        replace: "Remplacer l’image",
+        remove: "Supprimer",
+        pendingSave: "Nouvelle image — enregistrez le véhicule pour l’envoyer au serveur.",
+        hint: "JPG, PNG ou WebP — 5 Mo max. L’image est enregistrée sur le serveur lors de la sauvegarde du véhicule.",
+        previewAlt: "Aperçu du véhicule",
+        invalidType: "Format non pris en charge. Utilisez JPG, PNG ou WebP.",
+        tooLarge: "L’image dépasse 5 Mo.",
       },
       description: {
         label: "Description",

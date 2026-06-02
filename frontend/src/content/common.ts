@@ -43,7 +43,7 @@ export const commonContent = {
     },
     brand: {
       name: "Riviera Prime",
-      subtitle: "Admin chauffeur",
+      subtitle: "Admin",
     },
   },
 

@@ -18,6 +18,7 @@ import {
   withdrawAdminBalanceController,
 } from "./modules/payments/controllers/admin/payments.controller.js";
 import stripeConnectRoutes from "./modules/stripe/stripeConnect.routes.js";
+import uploadRoutes from "./modules/upload/upload.routes.js";
 import { requireAuth } from "./middleware/requireAuth.js";
 import { validateQuery } from "./middleware/validateQuery.js";
 import { driverBookingsGroupedQuerySchema } from "./modules/booking/booking.validation.js";
@@ -37,6 +38,7 @@ routes.use("/auth", authRoutes);
 routes.use("/organizations", organizationRoutes);
 routes.use("/drivers", driverRoutes);
 routes.use("/security-agents", securityAgentRoutes);
+routes.use("/uploads", uploadRoutes);
 routes.use("/vehicles", adminVehicleRoutes);
 routes.use("/pricing", pricingRoutes);
 routes.use("/payments", paymentsRoutes);

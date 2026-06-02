@@ -32,6 +32,8 @@ import { FLEET_STATUS_LABELS } from "../../data/dummyFleet";
 import { fleetClassLabel, vehiclesContent } from "../../../../content/vehicles";
 import { FormFieldErrorsProvider } from "../../../../components/form/FormFieldErrorsProvider";
 import type { FieldErrors } from "../../../../utils/formErrors";
+import VehicleImageUpload from "../VehicleImageUpload";
+import { getFieldError } from "../../../../utils/formErrors";
 
 type Props = {
   open: boolean;
@@ -45,6 +47,7 @@ type Props = {
   onSave?: (
     vehicleId: string | null,
     values: FleetFormValues,
+    pendingImageFile: File | null,
   ) => void | Promise<void>;
 };
 
@@ -61,8 +64,11 @@ export default function FleetManagementModal({
 }: Props) {
   const [formValues, setFormValues] =
     useState<FleetFormValues>(defaultFormValues);
+  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
+
   useEffect(() => {
     setFormValues(fleetToFormValues(vehicle));
+    setPendingImageFile(null);
   }, [vehicle, open]);
 
   const handleChange =
@@ -202,7 +208,9 @@ export default function FleetManagementModal({
               color="primary"
               startIcon={<EditIcon />}
               onClick={() =>
-                void Promise.resolve(onSave?.(vehicle?.id ?? null, formValues))
+                void Promise.resolve(
+                  onSave?.(vehicle?.id ?? null, formValues, pendingImageFile),
+                )
               }
               sx={{
                 borderRadius: 2,
@@ -311,23 +319,28 @@ export default function FleetManagementModal({
           )}
         </Grid>
         <Grid size={{ xs: 12 }}>
-          {readOnly ? (
-            <DetailField
-              label={vehiclesContent.modal.fields.imageUrl.label}
-              value={formValues.imageUrl}
-            />
-          ) : (
-            <FormTextField
-              field="imageUrl"
-              fullWidth
-              size="small"
-              label={vehiclesContent.modal.fields.imageUrl.label}
-              placeholder={vehiclesContent.modal.fields.imageUrl.placeholder}
-              value={formValues.imageUrl}
-              onChange={handleChange("imageUrl")}
-              sx={modalTextFieldSx}
-            />
-          )}
+          <VehicleImageUpload
+            imageUrl={formValues.imageUrl}
+            pendingFile={pendingImageFile}
+            readOnly={readOnly}
+            onPendingFileChange={(file) => {
+              setPendingImageFile(file);
+              onClearFieldError?.("imageUrl");
+            }}
+            onImageUrlChange={(url) => {
+              onClearFieldError?.("imageUrl");
+              setFormValues((prev) => ({ ...prev, imageUrl: url }));
+            }}
+            onClearFieldError={() => onClearFieldError?.("imageUrl")}
+          />
+          {getFieldError(fieldErrors, "imageUrl") ? (
+            <Typography
+              variant="caption"
+              sx={{ display: "block", mt: 0.5, color: "error.main" }}
+            >
+              {getFieldError(fieldErrors, "imageUrl")}
+            </Typography>
+          ) : null}
         </Grid>
         <Grid size={{ xs: 12 }}>
           {readOnly ? (

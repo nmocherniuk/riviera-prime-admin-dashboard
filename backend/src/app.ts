@@ -5,6 +5,9 @@ import cookieParser from "cookie-parser";
 import routes from "./routes.js";
 import stripeWebhookRoutes from "./modules/stripe/stripe.routes.js";
 import bcrypt from "bcryptjs";
+import { UPLOADS_ROOT, ensureUploadDirs } from "./lib/uploads.js";
+
+ensureUploadDirs();
 
 const app = express();
 
@@ -55,6 +58,8 @@ app.use(
 
 app.use(express.json());
 app.use(cookieParser());
+
+app.use("/uploads", express.static(UPLOADS_ROOT));
 
 app.use("/api", routes);
 

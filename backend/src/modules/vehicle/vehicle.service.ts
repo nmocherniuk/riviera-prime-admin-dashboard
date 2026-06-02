@@ -15,6 +15,10 @@ import {
 import type { CreateVehicleBody } from "./vehicle.schemas.js";
 import type { PublicVehicleJson, VehicleJson } from "./vehicle.types.js";
 import { toDbClass, toPublicClass } from "./vehicle.utils.js";
+import {
+  deleteVehicleUploadForImageUrl,
+  resolveImageUrlForClient,
+} from "../../lib/uploads.js";
 
 function toPublicVehicle(row: VehicleWithDriverIds): VehicleJson {
   return {
@@ -25,7 +29,7 @@ function toPublicVehicle(row: VehicleWithDriverIds): VehicleJson {
     year: row.year,
     color: row.color,
     licensePlate: row.licensePlate,
-    imageUrl: row.imageUrl,
+    imageUrl: resolveImageUrlForClient(row.imageUrl),
     description: row.description ?? "",
     passengers: row.passengers,
     baggageCount: row.baggageCount,
@@ -47,7 +51,7 @@ function toPublicLandingVehicle(row: VehicleWithDriverIds): PublicVehicleJson {
     vehicleName: row.vehicleName,
     class: classValue,
     year: row.year,
-    imageUrl: row.imageUrl,
+    imageUrl: resolveImageUrlForClient(row.imageUrl),
     description: row.description ?? "",
     passengers: row.passengers,
     baggageCount: row.baggageCount,
@@ -166,6 +170,9 @@ export async function updateVehicleService(
 
   await validateOrgAndDriversLink(organizationId, driverIds);
 
+  const nextImageUrl = body.imageUrl?.trim() ? body.imageUrl.trim() : null;
+  const prevImageUrl = existing.imageUrl;
+
   const updated = await updateVehicleRepo(id, {
     organizationId,
     driverIds,
@@ -173,7 +180,7 @@ export async function updateVehicleService(
     year: body.year,
     color: body.color,
     licensePlate: body.licensePlate,
-    imageUrl: body.imageUrl?.trim() ? body.imageUrl.trim() : null,
+    imageUrl: nextImageUrl,
     description: body.description?.trim() ?? "",
     passengers: body.passengers ?? null,
     baggageCount: body.baggageCount ?? null,
@@ -184,6 +191,10 @@ export async function updateVehicleService(
     class: toDbClass(body.class),
     status: body.status,
   });
+
+  if (prevImageUrl && prevImageUrl !== nextImageUrl) {
+    await deleteVehicleUploadForImageUrl(prevImageUrl);
+  }
 
   return toPublicVehicle(updated);
 }
@@ -207,5 +218,6 @@ export async function deleteVehicleService(id: string) {
   if (!data) return null;
 
   await deleteVehicleById(id);
+  await deleteVehicleUploadForImageUrl(data.imageUrl);
   return true;
 }
