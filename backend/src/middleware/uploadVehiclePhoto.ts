@@ -1,5 +1,6 @@
 import path from "path";
 import { randomUUID } from "crypto";
+import type { Request } from "express";
 import multer from "multer";
 import {
   ALLOWED_IMAGE_MIME_TYPES,
@@ -23,10 +24,18 @@ function extensionForMime(mime: string): string {
 }
 
 const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
+  destination: (
+    _req: Request,
+    _file: Express.Multer.File,
+    cb: (error: Error | null, destination: string) => void,
+  ) => {
     cb(null, VEHICLE_UPLOADS_DIR);
   },
-  filename: (_req, file, cb) => {
+  filename: (
+    _req: Request,
+    file: Express.Multer.File,
+    cb: (error: Error | null, filename: string) => void,
+  ) => {
     const ext =
       extensionForMime(file.mimetype) ||
       path.extname(file.originalname).toLowerCase() ||
@@ -38,7 +47,11 @@ const storage = multer.diskStorage({
 export const uploadVehiclePhotoMiddleware = multer({
   storage,
   limits: { fileSize: MAX_IMAGE_BYTES },
-  fileFilter: (_req, file, cb) => {
+  fileFilter: (
+    _req: Request,
+    file: Express.Multer.File,
+    cb: multer.FileFilterCallback,
+  ) => {
     if (ALLOWED_IMAGE_MIME_TYPES.has(file.mimetype)) {
       cb(null, true);
       return;
