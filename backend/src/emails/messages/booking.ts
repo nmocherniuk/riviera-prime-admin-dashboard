@@ -8,7 +8,7 @@ export type BookingEmailCopy = {
     amountPaid: string;
     paymentReference: string;
     bookingId: string;
-    paymentLinkNote: string;
+    paymentLinkNote: (payBefore: string) => string;
   };
   pending: {
     subject: string;
@@ -51,7 +51,8 @@ const COPY: Record<EmailLocale, BookingEmailCopy> = {
       amountPaid: "Amount paid",
       paymentReference: "Payment reference",
       bookingId: "Booking ID",
-      paymentLinkNote: "This link is valid for 72 hours and is unique to your booking.",
+      paymentLinkNote: (payBefore) =>
+        `Please complete payment by ${payBefore}. This link is unique to your booking.`,
     },
     pending: {
       subject: "Aurevia — your booking request is being processed",
@@ -94,8 +95,8 @@ const COPY: Record<EmailLocale, BookingEmailCopy> = {
       amountPaid: "Montant payé",
       paymentReference: "Référence de paiement",
       bookingId: "Référence réservation",
-      paymentLinkNote:
-        "Ce lien est valable 72 heures et est unique à votre réservation.",
+      paymentLinkNote: (payBefore) =>
+        `Veuillez finaliser le paiement avant le ${payBefore}. Ce lien est unique à votre réservation.`,
     },
     pending: {
       subject: "Aurevia — votre demande est en cours de traitement",

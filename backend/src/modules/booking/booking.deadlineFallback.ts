@@ -2,6 +2,10 @@ import { prisma } from "../../lib/prisma.js";
 import type { Prisma } from "../../generated/prisma/client.js";
 import { parseCandidateDriverIdsJson } from "./booking.repository.js";
 import { sendBookingAllRejectedEmail } from "./booking.emails.js";
+import {
+  computeDriverResponseDeadline,
+  shouldRecalculateStaleDriverDeadline,
+} from "./booking.deadlines.js";
 
 const DEFAULT_INTERVAL_MS = 60_000;
 let missingDeadlineColumnWarned = false;
@@ -24,6 +28,8 @@ async function processExpiredPendingBookings(): Promise<void> {
     bookingAt: Date;
     durationMin: number;
     candidateDriverIds: unknown;
+    createdAt: Date;
+    driverResponseDeadline: Date | null;
   }> = [];
   try {
     expired = await prisma.bookings.findMany({
@@ -42,6 +48,8 @@ async function processExpiredPendingBookings(): Promise<void> {
         bookingAt: true,
         durationMin: true,
         candidateDriverIds: true,
+        createdAt: true,
+        driverResponseDeadline: true,
       },
       take: 100,
       orderBy: { driverResponseDeadline: "asc" },
@@ -67,6 +75,26 @@ async function processExpiredPendingBookings(): Promise<void> {
   if (!expired.length) return;
 
   for (const booking of expired) {
+    if (
+      shouldRecalculateStaleDriverDeadline(
+        booking.bookingAt,
+        booking.createdAt,
+        booking.driverResponseDeadline,
+        now,
+      )
+    ) {
+      const nextDeadline = computeDriverResponseDeadline(booking.bookingAt, now);
+      const extended = await prisma.bookings.updateMany({
+        where: {
+          id: booking.id,
+          status: "PENDING",
+          driverId: null,
+        },
+        data: { driverResponseDeadline: nextDeadline },
+      });
+      if (extended.count > 0) continue;
+    }
+
     const candidates = parseCandidateDriverIdsJson(
       booking.candidateDriverIds as Prisma.JsonValue,
     );

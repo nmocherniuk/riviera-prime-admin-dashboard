@@ -1,6 +1,10 @@
 import { sendEmail } from "../../lib/email.js";
 import { signPaymentToken } from "../../lib/paymentToken.js";
 import {
+  computePaymentDeadline,
+  formatDeadlineDateTime,
+} from "./booking.deadlines.js";
+import {
   emailButton,
   emailDetailRow,
   emailDetailTable,
@@ -93,7 +97,9 @@ export async function sendBookingAcceptedEmail(
 
   const locale = parseEmailLocale(booking.locale);
   const copy = getBookingEmailCopy(locale);
-  const token = signPaymentToken(booking.bookingId);
+  const paymentDeadline = computePaymentDeadline(booking.bookingAt);
+  const payBefore = formatDeadlineDateTime(paymentDeadline, locale);
+  const token = signPaymentToken(booking.bookingId, booking.bookingAt);
   const paymentUrl = `${SITE_ORIGIN}/${locale}/security-payment/${token}`;
 
   const html = wrapEmailLayout(`
@@ -102,7 +108,7 @@ export async function sendBookingAcceptedEmail(
     ${tripSummaryHtml(booking, locale)}
     ${emailButton(paymentUrl, copy.accepted.cta, "gold")}
     <p style="color:#999;font-size:13px;text-align:center">
-      ${escapeHtml(copy.common.paymentLinkNote)}
+      ${escapeHtml(copy.common.paymentLinkNote(payBefore))}
     </p>
   `);
 

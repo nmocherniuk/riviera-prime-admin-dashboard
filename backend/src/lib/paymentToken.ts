@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { paymentTokenExpiresInSeconds } from "../modules/booking/booking.deadlines.js";
 
 type PaymentTokenPayload = {
   bookingId: string;
@@ -16,12 +17,13 @@ function getSecret(): string {
   return secret;
 }
 
-/** 72-hour signed link for a specific booking. */
-export function signPaymentToken(bookingId: string): string {
+/** Signed payment link — expiry scales with time until pickup. */
+export function signPaymentToken(bookingId: string, bookingAt: Date): string {
+  const expiresIn = paymentTokenExpiresInSeconds(bookingAt);
   return jwt.sign(
     { bookingId, purpose: "payment" } satisfies PaymentTokenPayload,
     getSecret(),
-    { expiresIn: "72h" },
+    { expiresIn },
   );
 }
 

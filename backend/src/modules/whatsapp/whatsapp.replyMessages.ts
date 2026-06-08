@@ -158,10 +158,26 @@ function formatTripDate(date: Date): string {
 
 function formatDeadlineTime(date: Date | null | undefined): string {
   if (!date) return "—";
+  const timeZone = process.env.BOOKING_DISPLAY_TIMEZONE ?? "Europe/Paris";
   const d = new Date(date);
-  const hh = String(d.getHours()).padStart(2, "0");
-  const mm = String(d.getMinutes()).padStart(2, "0");
-  return `${hh}:${mm}`;
+  const now = new Date();
+  const dayKey = (value: Date) =>
+    new Intl.DateTimeFormat("en-CA", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(value);
+  const sameDay = dayKey(d) === dayKey(now);
+  return new Intl.DateTimeFormat("fr-FR", {
+    timeZone,
+    ...(sameDay
+      ? {}
+      : { day: "2-digit", month: "2-digit", year: "numeric" }),
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(d);
 }
 
 async function buildTripsListReply(

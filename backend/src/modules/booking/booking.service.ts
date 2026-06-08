@@ -32,6 +32,9 @@ import { computeBookingPricingSnapshot } from "../pricing/marketplacePricing.ser
 import {
   buildPricingDataForBooking,
 } from "./booking.pricing.js";
+import { computeDriverResponseDeadline } from "./booking.deadlines.js";
+
+export { computeDriverResponseDeadline } from "./booking.deadlines.js";
 
 export type { PublicVehicleClass };
 
@@ -126,46 +129,6 @@ function toPublicBooking(row: BookingPricingRow): PublicBooking {
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
-}
-
-function endOfDay(d: Date): Date {
-  const e = new Date(d);
-  e.setHours(23, 59, 59, 999);
-  return e;
-}
-
-/**
- * Dynamic deadline for driver response.
- * Keeps backward-compatible statuses by applying logic on PENDING offers.
- */
-export function computeDriverResponseDeadline(bookingAt: Date): Date {
-  const now = new Date();
-  const minBufferMs = 5 * 60_000;
-  const minAllowed = new Date(now.getTime() + minBufferMs);
-  const diffMs = bookingAt.getTime() - now.getTime();
-  const diffHours = diffMs / 3_600_000;
-
-  let candidate: Date;
-  if (diffHours <= 2) {
-    candidate = new Date(now.getTime() + 13 * 60_000);
-  } else {
-    const tomorrow = new Date(now);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const isToday = bookingAt <= endOfDay(now);
-    const isTomorrow =
-      bookingAt >= new Date(tomorrow.setHours(0, 0, 0, 0)) &&
-      bookingAt <= endOfDay(tomorrow);
-
-    if (isToday) {
-      candidate = new Date(now.getTime() + 60 * 60_000);
-    } else if (isTomorrow) {
-      candidate = new Date(now.getTime() + 6 * 60 * 60_000);
-    } else {
-      candidate = new Date(bookingAt.getTime() - 72 * 60 * 60_000);
-    }
-  }
-
-  return candidate < minAllowed ? minAllowed : candidate;
 }
 
 /** When frontend sends only vehicleId, attach the vehicle owner as driver. */
@@ -542,6 +505,23 @@ export async function updateBookingService(
     updateData.durationMin = input.durationMin;
   if (input.bookingAt !== undefined)
     updateData.bookingAt = new Date(input.bookingAt);
+  const nextBookingAt =
+    input.bookingAt !== undefined
+      ? new Date(input.bookingAt)
+      : existing.bookingAt;
+  const nextStatus =
+    input.status !== undefined ? toDbStatus(input.status) : existing.status;
+  const nextDriverIdForDeadline =
+    input.driverId !== undefined ? input.driverId : existing.driverId;
+  if (
+    nextStatus === "PENDING" &&
+    !nextDriverIdForDeadline &&
+    (input.bookingAt !== undefined ||
+      existing.driverResponseDeadline == null)
+  ) {
+    updateData.driverResponseDeadline =
+      computeDriverResponseDeadline(nextBookingAt);
+  }
   if (input.status !== undefined) updateData.status = toDbStatus(input.status);
   if (input.paymentStatus !== undefined) {
     updateData.paymentStatus = toDbPaymentStatus(input.paymentStatus);
