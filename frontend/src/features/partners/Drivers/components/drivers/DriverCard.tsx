@@ -17,6 +17,11 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import PersonIcon from "@mui/icons-material/Person";
 import type { Driver } from "./types";
+import {
+  driverVehicleName,
+  driverVehicleSubtitle,
+  hasAssignedVehicle,
+} from "./driverVehicleDisplay";
 
 const statusStyle = (active: boolean) =>
   active
@@ -110,11 +115,17 @@ export default function DriverCard({
               ID: {d.id}
             </Typography>
             <Typography variant="body2" sx={{ color: "text.primary", mt: 0.5 }}>
-              {d.vehicle}
+              {driverVehicleName(d)}
             </Typography>
-            <Typography variant="caption" sx={{ color: "text.secondary" }}>
-              {d.vehicleColor} · {d.vehiclePlate}
-            </Typography>
+            {driverVehicleSubtitle(d) ? (
+              <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                {driverVehicleSubtitle(d)}
+              </Typography>
+            ) : !hasAssignedVehicle(d) ? (
+              <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                No vehicle assigned
+              </Typography>
+            ) : null}
           </Box>
         </Box>
         <IconButton

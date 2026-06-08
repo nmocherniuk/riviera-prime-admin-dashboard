@@ -15,6 +15,7 @@ import {
   syncCompletedTransfersForDriver,
 } from "../stripe/stripeEarnings.service.js";
 import { sendInteractiveReplyWithMenu } from "../whatsapp/whatsapp.service.js";
+import { mapDriverForApi } from "./driver.utils.js";
 
 export async function listDrivers(organizationId?: string) {
   const data = await findDriversByOrganizationId(organizationId);
@@ -26,9 +27,10 @@ export async function listDrivers(organizationId?: string) {
         stripeAccountId: driver.stripeAccountId,
         stripeOnboardingCompleted: driver.stripeOnboardingCompleted,
       });
-      if (completed == null) return driver;
+      const mapped = mapDriverForApi(driver);
+      if (completed == null) return mapped;
       return {
-        ...driver,
+        ...mapped,
         stripeOnboardingCompleted: completed,
       };
     }),
@@ -48,8 +50,9 @@ export async function getDriverById(id: string) {
     stripeOnboardingCompleted: data.stripeOnboardingCompleted,
   });
 
-  if (completed == null) return data;
-  return { ...data, stripeOnboardingCompleted: completed };
+  const mapped = mapDriverForApi(data);
+  if (completed == null) return mapped;
+  return { ...mapped, stripeOnboardingCompleted: completed };
 }
 
 export async function createDriver(data: DriverData) {

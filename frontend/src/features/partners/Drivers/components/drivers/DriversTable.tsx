@@ -9,6 +9,11 @@ import { GenericTable } from "../../../../../components/GenericTable";
 import EntityActionsMenu from "../../../../../components/EntityActionsMenu";
 import DriverCard from "./DriverCard";
 import type { Driver } from "./types";
+import {
+  driverVehicleName,
+  driverVehicleSubtitle,
+  hasAssignedVehicle,
+} from "./driverVehicleDisplay";
 
 const statusStyle = (active: boolean) =>
   active
@@ -84,16 +89,25 @@ export default function DriversTable({
     {
       key: "vehicle",
       label: "Vehicle",
-      render: (d: Driver) => (
-        <>
-          <Typography variant="body2" sx={{ color: "text.primary" }}>
-            {d.vehicle}
-          </Typography>
-          <Typography variant="caption" sx={{ color: "text.secondary" }}>
-            {d.vehicleColor} · {d.vehiclePlate}
-          </Typography>
-        </>
-      ),
+      render: (d: Driver) => {
+        const subtitle = driverVehicleSubtitle(d);
+        return (
+          <>
+            <Typography variant="body2" sx={{ color: "text.primary" }}>
+              {driverVehicleName(d)}
+            </Typography>
+            {subtitle ? (
+              <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                {subtitle}
+              </Typography>
+            ) : !hasAssignedVehicle(d) ? (
+              <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                No vehicle assigned
+              </Typography>
+            ) : null}
+          </>
+        );
+      },
     },
     {
       key: "status",
