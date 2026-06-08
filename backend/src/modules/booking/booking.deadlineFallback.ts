@@ -27,6 +27,7 @@ async function processExpiredPendingBookings(): Promise<void> {
     to: string;
     bookingAt: Date;
     durationMin: number;
+    tripType: string;
     candidateDriverIds: unknown;
     createdAt: Date;
     driverResponseDeadline: Date | null;
@@ -47,6 +48,7 @@ async function processExpiredPendingBookings(): Promise<void> {
         to: true,
         bookingAt: true,
         durationMin: true,
+        tripType: true,
         candidateDriverIds: true,
         createdAt: true,
         driverResponseDeadline: true,
@@ -125,6 +127,7 @@ async function processExpiredPendingBookings(): Promise<void> {
       to: booking.to,
       bookingAt: booking.bookingAt,
       durationMin: booking.durationMin,
+      tripType: booking.tripType,
       locale: booking.clientLocale,
     });
   }

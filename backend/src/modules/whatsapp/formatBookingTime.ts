@@ -2,17 +2,27 @@ export function formatBookingDateTimeZone(
   d: Date,
   timeZone: string = process.env.BOOKING_DISPLAY_TIMEZONE ?? "Europe/Paris",
 ): { date: string; time: string } {
-  const fmt = new Intl.DateTimeFormat("en-GB", {
+  const dateParts = new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).formatToParts(d);
+  const timeParts = new Intl.DateTimeFormat("en-GB", {
     timeZone,
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
-  });
-  const parts = fmt.formatToParts(d);
-  const hour = parts.find((p) => p.type === "hour")?.value ?? "00";
-  const minute = parts.find((p) => p.type === "minute")?.value ?? "00";
+  }).formatToParts(d);
+
+  const day = dateParts.find((p) => p.type === "day")?.value ?? "01";
+  const month = dateParts.find((p) => p.type === "month")?.value ?? "01";
+  const year = dateParts.find((p) => p.type === "year")?.value ?? "1970";
+  const hour = timeParts.find((p) => p.type === "hour")?.value ?? "00";
+  const minute = timeParts.find((p) => p.type === "minute")?.value ?? "00";
+
   return {
-    date: `${String(d.getUTCDate()).padStart(2, "0")}.${String(d.getUTCMonth() + 1).padStart(2, "0")}.${d.getUTCFullYear()}`,
+    date: `${day}.${month}.${year}`,
     time: `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}`,
   };
 }

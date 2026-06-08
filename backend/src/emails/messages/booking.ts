@@ -4,6 +4,7 @@ export type BookingEmailCopy = {
   common: {
     route: string;
     date: string;
+    pickup: string;
     duration: string;
     amountPaid: string;
     paymentReference: string;
@@ -47,6 +48,7 @@ const COPY: Record<EmailLocale, BookingEmailCopy> = {
     common: {
       route: "Route",
       date: "Date",
+      pickup: "Pickup",
       duration: "Duration",
       amountPaid: "Amount paid",
       paymentReference: "Payment reference",
@@ -91,6 +93,7 @@ const COPY: Record<EmailLocale, BookingEmailCopy> = {
     common: {
       route: "Trajet",
       date: "Date",
+      pickup: "Prise en charge",
       duration: "Durée",
       amountPaid: "Montant payé",
       paymentReference: "Référence de paiement",

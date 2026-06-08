@@ -428,6 +428,7 @@ export async function createBookingService(input: CreateBookingServiceInput) {
       to: created.to,
       bookingAt: created.bookingAt,
       durationMin: created.durationMin,
+      tripType: created.tripType,
       locale: created.clientLocale,
     });
   }

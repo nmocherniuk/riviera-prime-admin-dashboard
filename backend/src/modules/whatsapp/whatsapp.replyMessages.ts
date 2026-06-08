@@ -19,6 +19,7 @@ import {
   syncCompletedTransfersForDriver,
 } from "../stripe/stripeEarnings.service.js";
 import { formatBookingDateTimeZone } from "./formatBookingTime.js";
+import { isHourlyTripType } from "../pricing/marketplacePricing.service.js";
 import type {
   ProcessableMessage,
   WhatsAppReplyPayload,
@@ -320,8 +321,10 @@ async function buildTripDetailReply(
     `*Type :* ${formatTripTypeFr(trip.tripType)}`,
     `*Trajet :* ${trip.from} → ${trip.to}`,
     `*Véhicule :* ${dashIfEmpty(trip.vehicleName)} (${trip.vehicleClass ?? "—"})`,
-    `*Date :* ${date} à ${time}`,
-    `*Durée :* ${trip.durationMin} min`,
+    `*${isHourlyTripType(trip.tripType) ? "Date" : "Prise en charge"} :* ${date} à ${time}`,
+    ...(isHourlyTripType(trip.tripType)
+      ? [`*Durée :* ${trip.durationMin} min`]
+      : []),
     `*Statut :* ${formatStatusFr(trip.status)}`,
     `*Paiement :* ${formatPaymentFr(trip.paymentStatus)}`,
     `*Notes :* ${dashIfEmpty(trip.notesForDriver)}`,
@@ -711,6 +714,7 @@ export async function buildReplyPayload(
         to: booking.to,
         bookingAt: booking.bookingAt,
         durationMin: booking.durationMin,
+        tripType: booking.tripType,
         locale: booking.clientLocale,
       });
 
@@ -788,6 +792,7 @@ export async function buildReplyPayload(
           to: booking.to,
           bookingAt: booking.bookingAt,
           durationMin: booking.durationMin,
+          tripType: booking.tripType,
           locale: booking.clientLocale,
         });
       } else {

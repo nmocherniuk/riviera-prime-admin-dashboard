@@ -87,6 +87,7 @@ async function handlePaymentIntentSucceeded(
       to: true,
       bookingAt: true,
       durationMin: true,
+      tripType: true,
     },
   });
 
@@ -124,6 +125,7 @@ async function handlePaymentIntentSucceeded(
     to: booking.to,
     bookingAt: booking.bookingAt,
     durationMin: booking.durationMin,
+    tripType: booking.tripType,
     locale: booking.clientLocale,
     amountEur: Number(paymentIntent.amount_received || paymentIntent.amount) / 100,
     paymentIntentId: paymentIntent.id,

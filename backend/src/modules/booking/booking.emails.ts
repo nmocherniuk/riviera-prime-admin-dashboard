@@ -17,6 +17,7 @@ import {
   type EmailLocale,
 } from "../../emails/index.js";
 import { formatBookingDateTimeZone } from "../whatsapp/formatBookingTime.js";
+import { isHourlyTripType } from "../pricing/marketplacePricing.service.js";
 
 const SITE_ORIGIN =
   process.env.LANDING_ORIGIN?.trim() ||
@@ -31,6 +32,7 @@ type BookingEmailData = {
   to: string;
   bookingAt: Date;
   durationMin: number;
+  tripType?: string;
   locale?: EmailLocale | string | null;
 };
 
@@ -46,11 +48,18 @@ function tripSummaryHtml(
 ): string {
   const copy = getBookingEmailCopy(locale);
   const { date, time } = formatBookingDateTimeZone(b.bookingAt);
+  const hourly = isHourlyTripType(b.tripType ?? "one-way");
+  const atWord = locale === "fr" ? "à" : "at";
   const rows = [
     emailDetailRow(copy.common.route, `${b.from} → ${b.to}`),
-    emailDetailRow(copy.common.date, `${date} at ${time}`),
-    emailDetailRow(copy.common.duration, `${b.durationMin} min`),
+    emailDetailRow(
+      hourly ? copy.common.date : copy.common.pickup,
+      `${date} ${atWord} ${time}`,
+    ),
   ];
+  if (hourly) {
+    rows.push(emailDetailRow(copy.common.duration, `${b.durationMin} min`));
+  }
   if (options?.includeBookingId) {
     rows.push(emailDetailRow(copy.common.bookingId, b.bookingId));
   }
