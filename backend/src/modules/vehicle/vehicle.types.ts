@@ -37,4 +37,5 @@ export type PublicVehicleJson = {
   transmission: string;
   interior: string;
   amenities: string[];
+  createdAt?: string;
 };

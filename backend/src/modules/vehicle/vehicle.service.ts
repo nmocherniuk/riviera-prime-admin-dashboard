@@ -59,6 +59,7 @@ function toPublicLandingVehicle(row: VehicleWithDriverIds): PublicVehicleJson {
     transmission: row.transmission ?? "",
     interior: row.interior ?? "",
     amenities: row.amenities ?? [],
+    createdAt: row.createdAt.toISOString(),
   };
 }
 
