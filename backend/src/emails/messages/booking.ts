@@ -6,6 +6,11 @@ export type BookingEmailCopy = {
     date: string;
     pickup: string;
     duration: string;
+    phone: string;
+    vehicle: string;
+    vehicleClass: string;
+    estimatedPrice: string;
+    notes: string;
     amountPaid: string;
     paymentReference: string;
     bookingId: string;
@@ -50,6 +55,11 @@ const COPY: Record<EmailLocale, BookingEmailCopy> = {
       date: "Date",
       pickup: "Pickup",
       duration: "Duration",
+      phone: "Phone",
+      vehicle: "Vehicle",
+      vehicleClass: "Class",
+      estimatedPrice: "Estimated price",
+      notes: "Additional notes",
       amountPaid: "Amount paid",
       paymentReference: "Payment reference",
       bookingId: "Booking ID",
@@ -95,6 +105,11 @@ const COPY: Record<EmailLocale, BookingEmailCopy> = {
       date: "Date",
       pickup: "Prise en charge",
       duration: "Durée",
+      phone: "Téléphone",
+      vehicle: "Véhicule",
+      vehicleClass: "Classe",
+      estimatedPrice: "Prix estimé",
+      notes: "Commentaire",
       amountPaid: "Montant payé",
       paymentReference: "Référence de paiement",
       bookingId: "Référence réservation",

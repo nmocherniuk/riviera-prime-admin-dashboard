@@ -13,6 +13,7 @@ import {
   sendBookingAcceptedEmail,
   sendBookingAllRejectedEmail,
 } from "../booking/booking.emails.js";
+import { toBookingEmailData } from "../booking/booking.emailData.js";
 import {
   getDriverEarningsSummary,
   requestDriverManualPayout,
@@ -706,17 +707,7 @@ export async function buildReplyPayload(
         ),
       });
 
-      void sendBookingAcceptedEmail({
-        bookingId: booking.id,
-        clientName: booking.clientName,
-        clientEmail: booking.clientEmail,
-        from: booking.from,
-        to: booking.to,
-        bookingAt: booking.bookingAt,
-        durationMin: booking.durationMin,
-        tripType: booking.tripType,
-        locale: booking.clientLocale,
-      });
+      void sendBookingAcceptedEmail(toBookingEmailData(booking));
 
       return { body: WHATSAPP_REPLY_MESSAGES.tripAccepted };
     } catch (error) {
@@ -784,17 +775,7 @@ export async function buildReplyPayload(
           candidateDriverIds: nextCandidates,
         });
 
-        void sendBookingAllRejectedEmail({
-          bookingId: booking.id,
-          clientName: booking.clientName,
-          clientEmail: booking.clientEmail,
-          from: booking.from,
-          to: booking.to,
-          bookingAt: booking.bookingAt,
-          durationMin: booking.durationMin,
-          tripType: booking.tripType,
-          locale: booking.clientLocale,
-        });
+        void sendBookingAllRejectedEmail(toBookingEmailData(booking));
       } else {
         await updateBookingService(bookingId, {
           status: "pending",

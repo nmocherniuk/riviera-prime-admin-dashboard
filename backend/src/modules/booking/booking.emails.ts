@@ -5,6 +5,11 @@ import {
   formatDeadlineDateTime,
 } from "./booking.deadlines.js";
 import {
+  type BookingEmailData,
+  formatPriceEurForEmail,
+  formatVehicleClassForEmail,
+} from "./booking.emailData.js";
+import {
   emailButton,
   emailDetailRow,
   emailDetailTable,
@@ -24,17 +29,7 @@ const SITE_ORIGIN =
   process.env.FRONTEND_ORIGIN?.trim() ||
   "http://localhost:3000";
 
-type BookingEmailData = {
-  bookingId: string;
-  clientName: string;
-  clientEmail: string;
-  from: string;
-  to: string;
-  bookingAt: Date;
-  durationMin: number;
-  tripType?: string;
-  locale?: EmailLocale | string | null;
-};
+export type { BookingEmailData } from "./booking.emailData.js";
 
 type BookingPaymentReceiptEmailData = BookingEmailData & {
   amountEur: number;
@@ -44,7 +39,7 @@ type BookingPaymentReceiptEmailData = BookingEmailData & {
 function tripSummaryHtml(
   b: BookingEmailData,
   locale: EmailLocale,
-  options?: { includeBookingId?: boolean },
+  options?: { includeBookingId?: boolean; amountPaidEur?: number },
 ): string {
   const copy = getBookingEmailCopy(locale);
   const { date, time } = formatBookingDateTimeZone(b.bookingAt);
@@ -57,12 +52,53 @@ function tripSummaryHtml(
       `${date} ${atWord} ${time}`,
     ),
   ];
+
   if (hourly) {
     rows.push(emailDetailRow(copy.common.duration, `${b.durationMin} min`));
   }
+
+  const phone = b.clientPhone?.trim();
+  if (phone) {
+    rows.push(emailDetailRow(copy.common.phone, phone));
+  }
+
+  const vehicleName = b.vehicleName?.trim();
+  if (vehicleName) {
+    rows.push(emailDetailRow(copy.common.vehicle, vehicleName));
+  }
+
+  const classLabel = formatVehicleClassForEmail(b.vehicleClass, locale);
+  if (classLabel) {
+    rows.push(emailDetailRow(copy.common.vehicleClass, classLabel));
+  }
+
+  if (b.priceEur != null && Number.isFinite(b.priceEur)) {
+    rows.push(
+      emailDetailRow(
+        copy.common.estimatedPrice,
+        formatPriceEurForEmail(b.priceEur, locale),
+      ),
+    );
+  }
+
+  if (options?.amountPaidEur != null && Number.isFinite(options.amountPaidEur)) {
+    rows.push(
+      emailDetailRow(
+        copy.common.amountPaid,
+        formatPriceEurForEmail(options.amountPaidEur, locale),
+      ),
+    );
+  }
+
+  const notes = b.notesForDriver?.trim();
+  if (notes) {
+    rows.push(emailDetailRow(copy.common.notes, notes));
+  }
+
   if (options?.includeBookingId) {
     rows.push(emailDetailRow(copy.common.bookingId, b.bookingId));
   }
+
   return emailDetailTable(rows.join(""));
 }
 
@@ -172,7 +208,10 @@ export async function sendBookingPaymentReceiptEmail(
   const html = wrapEmailLayout(`
     ${emailHeading(copy.receipt.heading)}
     ${emailParagraph(`${copy.receipt.greeting(escapeHtml(booking.clientName))}<br>${copy.receipt.body}`)}
-    ${tripSummaryHtml(booking, locale, { includeBookingId: true })}
+    ${tripSummaryHtml(booking, locale, {
+      includeBookingId: true,
+      amountPaidEur: booking.amountEur,
+    })}
     ${emailParagraph(copy.receipt.thanks)}
   `);
 

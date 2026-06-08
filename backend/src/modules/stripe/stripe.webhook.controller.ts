@@ -4,6 +4,7 @@ import { getStripe } from "../../lib/stripe.js";
 import { prisma } from "../../lib/prisma.js";
 import { isStripeOnboardingCompleted } from "./stripeConnect.service.js";
 import { sendBookingPaymentReceiptEmail } from "../booking/booking.emails.js";
+import { toBookingEmailData } from "../booking/booking.emailData.js";
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -88,6 +89,12 @@ async function handlePaymentIntentSucceeded(
       bookingAt: true,
       durationMin: true,
       tripType: true,
+      clientPhone: true,
+      notesForDriver: true,
+      vehicleClass: true,
+      finalCustomerPrice: true,
+      totalAmount: true,
+      vehicle: { select: { vehicleName: true } },
     },
   });
 
@@ -118,15 +125,7 @@ async function handlePaymentIntentSucceeded(
   );
 
   void sendBookingPaymentReceiptEmail({
-    bookingId: booking.id,
-    clientName: booking.clientName,
-    clientEmail: booking.clientEmail,
-    from: booking.from,
-    to: booking.to,
-    bookingAt: booking.bookingAt,
-    durationMin: booking.durationMin,
-    tripType: booking.tripType,
-    locale: booking.clientLocale,
+    ...toBookingEmailData(booking),
     amountEur: Number(paymentIntent.amount_received || paymentIntent.amount) / 100,
     paymentIntentId: paymentIntent.id,
   }).catch((error) => {

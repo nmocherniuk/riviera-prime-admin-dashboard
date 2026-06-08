@@ -2,6 +2,7 @@ import { prisma } from "../../lib/prisma.js";
 import type { Prisma } from "../../generated/prisma/client.js";
 import { parseCandidateDriverIdsJson } from "./booking.repository.js";
 import { sendBookingAllRejectedEmail } from "./booking.emails.js";
+import { toBookingEmailData } from "./booking.emailData.js";
 import {
   computeDriverResponseDeadline,
   shouldRecalculateStaleDriverDeadline,
@@ -18,20 +19,30 @@ function getIntervalMs(): number {
 
 async function processExpiredPendingBookings(): Promise<void> {
   const now = new Date();
-  let expired: Array<{
-    id: string;
-    clientName: string;
-    clientEmail: string;
-    clientLocale: string;
-    from: string;
-    to: string;
-    bookingAt: Date;
-    durationMin: number;
-    tripType: string;
-    candidateDriverIds: unknown;
-    createdAt: Date;
-    driverResponseDeadline: Date | null;
-  }> = [];
+  const expiredBookingSelect = {
+    id: true,
+    clientName: true,
+    clientEmail: true,
+    clientPhone: true,
+    clientLocale: true,
+    from: true,
+    to: true,
+    bookingAt: true,
+    durationMin: true,
+    tripType: true,
+    notesForDriver: true,
+    vehicleClass: true,
+    finalCustomerPrice: true,
+    totalAmount: true,
+    candidateDriverIds: true,
+    createdAt: true,
+    driverResponseDeadline: true,
+    vehicle: { select: { vehicleName: true } },
+  } as const;
+
+  let expired: Array<
+    Prisma.BookingsGetPayload<{ select: typeof expiredBookingSelect }>
+  > = [];
   try {
     expired = await prisma.bookings.findMany({
       where: {
@@ -39,20 +50,7 @@ async function processExpiredPendingBookings(): Promise<void> {
         driverId: null,
         driverResponseDeadline: { lte: now },
       },
-      select: {
-        id: true,
-        clientName: true,
-        clientEmail: true,
-        clientLocale: true,
-        from: true,
-        to: true,
-        bookingAt: true,
-        durationMin: true,
-        tripType: true,
-        candidateDriverIds: true,
-        createdAt: true,
-        driverResponseDeadline: true,
-      },
+      select: expiredBookingSelect,
       take: 100,
       orderBy: { driverResponseDeadline: "asc" },
     });
@@ -119,17 +117,7 @@ async function processExpiredPendingBookings(): Promise<void> {
     // Update guarded by current status -> prevents duplicate fallback emails.
     if (updated.count === 0) continue;
 
-    void sendBookingAllRejectedEmail({
-      bookingId: booking.id,
-      clientName: booking.clientName,
-      clientEmail: booking.clientEmail,
-      from: booking.from,
-      to: booking.to,
-      bookingAt: booking.bookingAt,
-      durationMin: booking.durationMin,
-      tripType: booking.tripType,
-      locale: booking.clientLocale,
-    });
+    void sendBookingAllRejectedEmail(toBookingEmailData(booking));
   }
 }
 

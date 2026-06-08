@@ -19,6 +19,7 @@ import {
   notifyDriverBookingPaidIfNeeded,
 } from "../whatsapp/whatsapp.bookingPaid.js";
 import { sendBookingPendingEmail } from "./booking.emails.js";
+import { toBookingEmailData } from "./booking.emailData.js";
 import { parseEmailLocale, type EmailLocale } from "../../emails/locale.js";
 import {
   toDbVehicleClass,
@@ -420,17 +421,7 @@ export async function createBookingService(input: CreateBookingServiceInput) {
   );
 
   if (created.status === "PENDING" && created.clientEmail) {
-    void sendBookingPendingEmail({
-      bookingId: created.id,
-      clientName: created.clientName,
-      clientEmail: created.clientEmail,
-      from: created.from,
-      to: created.to,
-      bookingAt: created.bookingAt,
-      durationMin: created.durationMin,
-      tripType: created.tripType,
-      locale: created.clientLocale,
-    });
+    void sendBookingPendingEmail(toBookingEmailData(created));
   }
 
   return toPublicBooking(created);
