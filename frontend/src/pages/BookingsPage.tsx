@@ -16,6 +16,7 @@ import { filterBookings } from "../features/Bookings/utils/filterBookings";
 import type { Booking } from "../features/Bookings/components/BookingsCalendar/data/dummyBookings";
 import {
   createBooking,
+  deleteBooking,
   dtoToBooking,
   listBookings,
   updateBooking,
@@ -59,6 +60,9 @@ export default function BookingsPage() {
   });
   const [selectedBookingDetail, setSelectedBookingDetail] =
     useState<Booking | null>(null);
+  const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(
+    null,
+  );
   const [weeksToShow, setWeeksToShow] = useState(INITIAL_WEEKS_AFTER);
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -200,6 +204,26 @@ export default function BookingsPage() {
     return total > 0 ? total : 60;
   };
 
+  const handleCancelBooking = async (booking: Booking) => {
+    try {
+      setCancellingBookingId(booking.id);
+      await deleteBooking(booking.id);
+      await queryClient.invalidateQueries({ queryKey: queryKeys.bookings.all });
+      setSelectedBookingDetail(null);
+      showToast({
+        message: bookingContent.detailModal.cancelSuccess,
+        severity: "success",
+      });
+    } catch (e) {
+      const msg =
+        e instanceof Error ? e.message : bookingContent.detailModal.cancelError;
+      showToast({ message: msg, severity: "error" });
+      throw e;
+    } finally {
+      setCancellingBookingId(null);
+    }
+  };
+
   const handleSaveBooking = async (
     bookingId: string | null,
     values: BookingFormValues,
@@ -275,6 +299,8 @@ export default function BookingsPage() {
           clearAllFieldErrors();
           setBookingModal({ open: true, booking: null });
         }}
+        onCancelBooking={handleCancelBooking}
+        cancellingBookingId={cancellingBookingId}
         activeTransfersToday={activeTransfersToday}
       />
 
@@ -300,6 +326,11 @@ export default function BookingsPage() {
         open={!!selectedBookingDetail}
         booking={selectedBookingDetail}
         onClose={() => setSelectedBookingDetail(null)}
+        onCancel={handleCancelBooking}
+        cancelling={Boolean(
+          selectedBookingDetail &&
+            cancellingBookingId === selectedBookingDetail.id,
+        )}
       />
       <BookingManagementModal
         open={bookingModal.open}

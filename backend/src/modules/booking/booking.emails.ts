@@ -192,6 +192,34 @@ export async function sendBookingAllRejectedEmail(
   });
 }
 
+export async function sendBookingAdminCancelledEmail(
+  booking: BookingEmailData,
+): Promise<void> {
+  if (!booking.clientEmail) {
+    console.warn(
+      `[booking-email] No client email for booking ${booking.bookingId} — skipping admin-cancelled email`,
+    );
+    return;
+  }
+
+  const locale = parseEmailLocale(booking.locale);
+  const copy = getBookingEmailCopy(locale);
+
+  const html = wrapEmailLayout(`
+    ${emailHeading(copy.adminCancelled.heading)}
+    ${emailParagraph(`${copy.adminCancelled.greeting(escapeHtml(booking.clientName))}<br>${copy.adminCancelled.body}`)}
+    ${tripSummaryHtml(booking, locale)}
+    ${emailParagraph(copy.adminCancelled.followUp)}
+    ${emailButton(SITE_ORIGIN, copy.adminCancelled.cta, "dark")}
+  `);
+
+  await sendEmail({
+    to: booking.clientEmail,
+    subject: copy.adminCancelled.subject,
+    html,
+  });
+}
+
 export async function sendBookingPaymentReceiptEmail(
   booking: BookingPaymentReceiptEmailData,
 ): Promise<void> {

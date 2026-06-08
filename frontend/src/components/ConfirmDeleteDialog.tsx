@@ -8,6 +8,7 @@ type Props = {
   title?: string;
   message?: string;
   confirmLabel?: string;
+  cancelLabel?: string;
 };
 
 const defaultTitle = "Delete record?";
@@ -22,6 +23,7 @@ export default function ConfirmDeleteDialog({
   title = defaultTitle,
   message = defaultMessage,
   confirmLabel = defaultConfirmLabel,
+  cancelLabel = "Cancel",
 }: Props) {
   return (
     <BaseModal
@@ -44,7 +46,7 @@ export default function ConfirmDeleteDialog({
             onClick={onClose}
             sx={{ borderRadius: 2, textTransform: "none" }}
           >
-            Cancel
+            {cancelLabel}
           </Button>
           <Button
             variant="contained"

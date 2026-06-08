@@ -18,7 +18,10 @@ import {
   notifyDriversNewBooking,
   notifyDriverBookingPaidIfNeeded,
 } from "../whatsapp/whatsapp.bookingPaid.js";
-import { sendBookingPendingEmail } from "./booking.emails.js";
+import {
+  sendBookingAdminCancelledEmail,
+  sendBookingPendingEmail,
+} from "./booking.emails.js";
 import { toBookingEmailData } from "./booking.emailData.js";
 import { parseEmailLocale, type EmailLocale } from "../../emails/locale.js";
 import {
@@ -77,6 +80,7 @@ export type PublicBooking = {
   paymentStatus: PublicPaymentStatus;
   driverResponseDeadline: Date | null;
   clientLocale: EmailLocale;
+  totalPrice: number | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -127,6 +131,12 @@ function toPublicBooking(row: BookingPricingRow): PublicBooking {
     paymentStatus: toPublicPaymentStatus(row.paymentStatus),
     driverResponseDeadline: row.driverResponseDeadline ?? null,
     clientLocale: parseEmailLocale(row.clientLocale),
+    totalPrice:
+      row.finalCustomerPrice != null
+        ? Number(row.finalCustomerPrice)
+        : row.totalAmount != null
+          ? Number(row.totalAmount)
+          : null,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
@@ -587,6 +597,11 @@ export async function updateBookingService(
 export async function deleteBookingService(id: string) {
   const existing = await findBookingById(id);
   if (!existing) return null;
+
+  if (existing.clientEmail?.trim()) {
+    void sendBookingAdminCancelledEmail(toBookingEmailData(existing));
+  }
+
   await deleteBookingById(id);
   return true;
 }

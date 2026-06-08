@@ -7,18 +7,29 @@ export type Booking = {
   date: string; // YYYY-MM-DD
   startTime: string; // HH:mm
   duration: string;
+  durationMin?: number;
+  tripType?: string;
   clientName: string;
+  clientEmail?: string;
+  clientPhone?: string;
+  notesForDriver?: string;
   from: string;
   to: string;
   car?: string;
   vehicleId?: string;
   vehicleClass?: "comfort" | "business" | "van";
+  totalPrice?: number | null;
   status?: BookingStatus;
   driverId?: string;
   driverName?: string;
   paymentStatus?: PaymentStatus;
   driverResponseDeadline?: string;
 };
+
+export function isHourlyTrip(tripType?: string): boolean {
+  const t = (tripType ?? "").toLowerCase();
+  return t === "hourly" || t === "hour";
+}
 
 /** Single-line label for lists and calendar (e.g. "A → B"). */
 export function bookingRouteLabel(b: { from: string; to: string }): string {

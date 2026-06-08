@@ -4,7 +4,7 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import type { EventClickArg } from "@fullcalendar/core";
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useMemo, useState, useRef, useEffect, useCallback } from "react";
 import { DUMMY_BOOKINGS } from "./data/dummyBookings";
 import type { Booking } from "./data/dummyBookings";
 import { CustomEventCard } from "./components/CustomEventCard";
@@ -16,9 +16,15 @@ import { bookingContent } from "../../../../content/booking";
 
 type Props = {
   bookings?: Booking[];
+  onCancelBooking?: (booking: Booking) => Promise<void>;
+  cancellingBookingId?: string | null;
 };
 
-export default function BookingsCalendar({ bookings: bookingsProp }: Props) {
+export default function BookingsCalendar({
+  bookings: bookingsProp,
+  onCancelBooking,
+  cancellingBookingId = null,
+}: Props) {
   const [selectedEvent, setSelectedEvent] = useState<EventClickArg | null>(null);
   const scrollPositionRef = useRef({ x: 0, y: 0 });
 
@@ -57,6 +63,22 @@ export default function BookingsCalendar({ bookings: bookingsProp }: Props) {
     requestAnimationFrame(restoreScroll);
     setTimeout(restoreScroll, 0);
   };
+
+  const bookingsList = bookingsProp ?? DUMMY_BOOKINGS;
+
+  const selectedBooking = useMemo(() => {
+    if (!selectedEvent) return null;
+    return bookingsList.find((b) => b.id === selectedEvent.event.id) ?? null;
+  }, [selectedEvent, bookingsList]);
+
+  const handleCancelBooking = useCallback(
+    async (booking: Booking) => {
+      if (!onCancelBooking) return;
+      await onCancelBooking(booking);
+      setSelectedEvent(null);
+    },
+    [onCancelBooking],
+  );
 
   return (
     <Paper
@@ -132,8 +154,12 @@ export default function BookingsCalendar({ bookings: bookingsProp }: Props) {
 
       <BookingDetailModal
         open={!!selectedEvent}
-        selectedEvent={selectedEvent}
+        booking={selectedBooking}
         onClose={handleCloseDetailModal}
+        onCancel={onCancelBooking ? handleCancelBooking : undefined}
+        cancelling={Boolean(
+          selectedBooking && cancellingBookingId === selectedBooking.id,
+        )}
       />
     </Paper>
   );

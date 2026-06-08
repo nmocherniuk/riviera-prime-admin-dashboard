@@ -46,6 +46,14 @@ export type BookingEmailCopy = {
     body: string;
     thanks: string;
   };
+  adminCancelled: {
+    subject: string;
+    heading: string;
+    greeting: (name: string) => string;
+    body: string;
+    followUp: string;
+    cta: string;
+  };
 };
 
 const COPY: Record<EmailLocale, BookingEmailCopy> = {
@@ -98,6 +106,15 @@ const COPY: Record<EmailLocale, BookingEmailCopy> = {
       body: "Your payment has been received and your reservation is confirmed.",
       thanks: "Thank you for choosing Riviera Prime.",
     },
+    adminCancelled: {
+      subject: "Aurevia — your trip has been cancelled",
+      heading: "Your trip has been cancelled",
+      greeting: (name) => `Hello <strong>${name}</strong>,`,
+      body: "We are writing to let you know that your booking has been cancelled by our team.",
+      followUp:
+        "If this was a mistake or you would like to rebook, please contact us as soon as possible.",
+      cta: "Contact us",
+    },
   },
   fr: {
     common: {
@@ -147,6 +164,15 @@ const COPY: Record<EmailLocale, BookingEmailCopy> = {
       greeting: (name) => `Bonjour <strong>${name}</strong>,`,
       body: "Votre paiement a bien été reçu et votre réservation est confirmée.",
       thanks: "Merci d'avoir choisi Riviera Prime.",
+    },
+    adminCancelled: {
+      subject: "Aurevia — votre trajet a été annulé",
+      heading: "Votre trajet a été annulé",
+      greeting: (name) => `Bonjour <strong>${name}</strong>,`,
+      body: "Nous vous informons que votre réservation a été annulée par notre équipe.",
+      followUp:
+        "S'il s'agit d'une erreur ou si vous souhaitez réserver à nouveau, veuillez nous contacter dès que possible.",
+      cta: "Nous contacter",
     },
   },
 };

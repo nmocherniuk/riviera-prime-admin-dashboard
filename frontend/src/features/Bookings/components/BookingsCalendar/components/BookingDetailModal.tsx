@@ -1,18 +1,26 @@
-import { Box, Typography, Button } from "@mui/material";
-import type { EventClickArg } from "@fullcalendar/core";
-import { bookingRouteLabel, type Booking, type BookingStatus } from "../data/dummyBookings";
+import { useState } from "react";
+import { Box, Typography, Button, Stack } from "@mui/material";
+import {
+  bookingRouteLabel,
+  isHourlyTrip,
+  type Booking,
+  type BookingStatus,
+  type PaymentStatus,
+} from "../data/dummyBookings";
 import { STATUS_LABELS } from "../constants";
-import { formatEventTime } from "../utils/utils";
 import { parseDurationToMinutes, addMinutesToTime } from "../../../utils/dateUtils";
 import BaseModal from "../../../../../components/BaseModal";
+import ConfirmDeleteDialog from "../../../../../components/ConfirmDeleteDialog";
 import { bookingContent } from "../../../../../content/booking";
+import { commonContent } from "../../../../../content/common";
+import { vehicleClassLabelFr } from "../../../../../api/bookings";
 
 type BookingDetailModalProps = {
   open: boolean;
-  selectedEvent?: EventClickArg | null;
-  /** Альтернатива selectedEvent — показувати деталі з об'єкта Booking (наприклад з мобільного списку) */
   booking?: Booking | null;
   onClose: () => void;
+  onCancel?: (booking: Booking) => Promise<void>;
+  cancelling?: boolean;
 };
 
 function formatDateFromBooking(b: Booking): string {
@@ -26,135 +34,154 @@ function formatDateFromBooking(b: Booking): string {
   });
 }
 
+function formatPriceEur(price: number | null | undefined): string {
+  if (price == null) return "—";
+  return new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency: "EUR",
+  }).format(price);
+}
+
+function paymentStatusLabel(status: PaymentStatus | undefined): string {
+  if (status === "paid") return commonContent.paymentStatus.paid;
+  if (status === "unpaid") return commonContent.paymentStatus.unpaid;
+  return "—";
+}
+
+function DetailRow({ label, value }: { label: string; value: string }) {
+  return (
+    <Box>
+      <Typography variant="caption" color="text.secondary">
+        {label}
+      </Typography>
+      <Typography variant="body1" fontWeight={600}>
+        {value}
+      </Typography>
+    </Box>
+  );
+}
+
 export function BookingDetailModal({
   open,
-  selectedEvent = null,
-  booking: bookingProp = null,
+  booking = null,
   onClose,
+  onCancel,
+  cancelling = false,
 }: BookingDetailModalProps) {
-  const fromEvent = selectedEvent != null;
-  const fromBooking = bookingProp != null;
-  const hasContent = fromEvent || fromBooking;
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const content = fromEvent
-    ? (() => {
-      const e = selectedEvent!.event;
-      const start = e.start!;
-      const end = e.end!;
-      const clientName = (e.extendedProps?.clientName ?? e.title) as string;
-      const ep = e.extendedProps as { from?: string; to?: string };
-      const route = bookingRouteLabel({
-        from: typeof ep.from === "string" ? ep.from : "",
-        to: typeof ep.to === "string" ? ep.to : "",
-      });
-      const car = (e.extendedProps?.car ?? "—") as string;
-      const status = (e.extendedProps?.status ?? "assigned") as BookingStatus;
-      const duration = (e.extendedProps?.duration ?? "") as string;
-      const dateStr = start.toLocaleDateString("fr-FR", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      });
-      const timeStr = `${formatEventTime(start)} – ${formatEventTime(end)}`;
-      return { dateStr, timeStr, duration, clientName, route, car, status };
-    })()
-    : fromBooking
-      ? (() => {
-        const b = bookingProp!;
-        const endTime = addMinutesToTime(b.startTime, parseDurationToMinutes(b.duration));
-        const timeStr = `${b.startTime} – ${endTime}`;
-        return {
-          dateStr: formatDateFromBooking(b),
-          timeStr,
-          duration: b.duration,
-          clientName: b.clientName,
-          route: bookingRouteLabel(b),
-          car: b.car || "—",
-          status: (b.status ?? "assigned") as BookingStatus,
-        };
-      })()
+  const hourly = booking ? isHourlyTrip(booking.tripType) : false;
+  const endTime =
+    booking && hourly
+      ? addMinutesToTime(
+          booking.startTime,
+          booking.durationMin ?? parseDurationToMinutes(booking.duration),
+        )
       : null;
+  const timeStr = booking
+    ? hourly && endTime
+      ? `${booking.startTime} – ${endTime}`
+      : booking.startTime
+    : "";
+  const canCancel =
+    Boolean(onCancel && booking) &&
+    booking?.status !== "cancelled" &&
+    booking?.status !== "completed";
+
+  const handleConfirmCancel = async () => {
+    if (!booking || !onCancel) return;
+    await onCancel(booking);
+    setConfirmOpen(false);
+    onClose();
+  };
 
   return (
-    <BaseModal
-      open={open}
-      onClose={onClose}
-      maxWidth="sm"
-      disableAutoFocus
-      title={
-        <Typography component="span" variant="h6" sx={{ fontWeight: 700, fontSize: 18 }}>
-          {bookingContent.detailModal.title}
-        </Typography>
-      }
-      actions={
-        <Button onClick={onClose} variant="contained" color="primary">
-          {bookingContent.detailModal.close}
-        </Button>
-      }
-    >
-      {hasContent && content && (
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <Box>
-            <Typography variant="caption" color="text.secondary">
-              {bookingContent.detailModal.date}
-            </Typography>
-            <Typography variant="body1" fontWeight={600}>
-              {content.dateStr}
-            </Typography>
+    <>
+      <BaseModal
+        open={open}
+        onClose={onClose}
+        maxWidth="sm"
+        disableAutoFocus
+        title={
+          <Typography component="span" variant="h6" sx={{ fontWeight: 700, fontSize: 18 }}>
+            {bookingContent.detailModal.title}
+          </Typography>
+        }
+        actions={
+          <Stack direction="row" spacing={1} justifyContent="flex-end" width="100%">
+            {canCancel ? (
+              <Button
+                onClick={() => setConfirmOpen(true)}
+                variant="outlined"
+                color="error"
+                disabled={cancelling}
+              >
+                {bookingContent.detailModal.cancelTrip}
+              </Button>
+            ) : null}
+            <Button onClick={onClose} variant="contained" color="primary">
+              {bookingContent.detailModal.close}
+            </Button>
+          </Stack>
+        }
+      >
+        {booking ? (
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <DetailRow label={bookingContent.detailModal.date} value={formatDateFromBooking(booking)} />
+            <DetailRow label={bookingContent.detailModal.time} value={timeStr} />
+            {hourly && booking.duration ? (
+              <DetailRow label={bookingContent.detailModal.duration} value={booking.duration} />
+            ) : null}
+            <DetailRow label={bookingContent.detailModal.client} value={booking.clientName} />
+            {booking.clientPhone ? (
+              <DetailRow label={bookingContent.detailModal.phone} value={booking.clientPhone} />
+            ) : null}
+            {booking.clientEmail ? (
+              <DetailRow label={bookingContent.detailModal.email} value={booking.clientEmail} />
+            ) : null}
+            <DetailRow
+              label={bookingContent.detailModal.route}
+              value={bookingRouteLabel(booking)}
+            />
+            <DetailRow label={bookingContent.detailModal.vehicle} value={booking.car || "—"} />
+            {booking.vehicleClass ? (
+              <DetailRow
+                label={bookingContent.detailModal.vehicleClass}
+                value={vehicleClassLabelFr(booking.vehicleClass)}
+              />
+            ) : null}
+            <DetailRow
+              label={bookingContent.detailModal.price}
+              value={formatPriceEur(booking.totalPrice)}
+            />
+            {booking.notesForDriver ? (
+              <DetailRow label={bookingContent.detailModal.notes} value={booking.notesForDriver} />
+            ) : null}
+            <DetailRow
+              label={bookingContent.detailModal.paymentStatus}
+              value={paymentStatusLabel(booking.paymentStatus)}
+            />
+            <DetailRow
+              label={bookingContent.detailModal.driver}
+              value={booking.driverName || bookingContent.detailModal.noDriver}
+            />
+            <DetailRow
+              label={bookingContent.detailModal.status}
+              value={STATUS_LABELS[(booking.status ?? "assigned") as BookingStatus] ?? booking.status ?? "—"}
+            />
           </Box>
-          <Box>
-            <Typography variant="caption" color="text.secondary">
-              {bookingContent.detailModal.time}
-            </Typography>
-            <Typography variant="body1" fontWeight={600}>
-              {content.timeStr}
-            </Typography>
-          </Box>
-          {content.duration && (
-            <Box>
-              <Typography variant="caption" color="text.secondary">
-                {bookingContent.detailModal.duration}
-              </Typography>
-              <Typography variant="body1" fontWeight={600}>
-                {content.duration}
-              </Typography>
-            </Box>
-          )}
-          <Box>
-            <Typography variant="caption" color="text.secondary">
-              {bookingContent.detailModal.client}
-            </Typography>
-            <Typography variant="body1" fontWeight={600}>
-              {content.clientName}
-            </Typography>
-          </Box>
-          <Box>
-            <Typography variant="caption" color="text.secondary">
-              {bookingContent.detailModal.route}
-            </Typography>
-            <Typography variant="body1" fontWeight={600}>
-              {content.route}
-            </Typography>
-          </Box>
-          <Box>
-            <Typography variant="caption" color="text.secondary">
-              {bookingContent.detailModal.vehicle}
-            </Typography>
-            <Typography variant="body1" fontWeight={600}>
-              {content.car}
-            </Typography>
-          </Box>
-          <Box>
-            <Typography variant="caption" color="text.secondary">
-              {bookingContent.detailModal.status}
-            </Typography>
-            <Typography variant="body1" fontWeight={600}>
-              {STATUS_LABELS[content.status] ?? content.status}
-            </Typography>
-          </Box>
-        </Box>
-      )}
-    </BaseModal>
+        ) : null}
+      </BaseModal>
+
+      <ConfirmDeleteDialog
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleConfirmCancel}
+        title={bookingContent.detailModal.cancelConfirmTitle}
+        message={bookingContent.detailModal.cancelConfirmMessage}
+        confirmLabel={bookingContent.detailModal.cancelConfirmAction}
+        cancelLabel={bookingContent.detailModal.cancelDismiss}
+      />
+    </>
   );
 }

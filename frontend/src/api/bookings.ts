@@ -26,6 +26,7 @@ export type BookingDto = {
   status: BookingStatus;
   paymentStatus: PaymentStatus;
   driverResponseDeadline: string | null;
+  totalPrice: number | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -63,42 +64,61 @@ function minutesToDurationLabel(minutes: number): string {
   return `${hours}hr ${mins}min`;
 }
 
-function vehicleClassLabel(c: PublicVehicleClass): string {
-  const m: Record<PublicVehicleClass, string> = {
-    comfort: "Comfort",
-    business: "Business",
-    van: "Van",
-  };
-  return m[c];
+const VEHICLE_CLASS_LABELS_FR: Record<PublicVehicleClass, string> = {
+  comfort: "Confort",
+  business: "Affaires",
+  van: "Van",
+};
+
+const PARIS_TZ = "Europe/Paris";
+
+function formatBookingAtParis(iso: string): { date: string; startTime: string } {
+  const dateObj = new Date(iso);
+  const date = new Intl.DateTimeFormat("en-CA", {
+    timeZone: PARIS_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(dateObj);
+  const startTime = new Intl.DateTimeFormat("en-GB", {
+    timeZone: PARIS_TZ,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(dateObj);
+  return { date, startTime };
 }
 
 export function dtoToBooking(dto: BookingDto): Booking {
-  const dateObj = new Date(dto.bookingAt);
-  const date = dateObj.toISOString().slice(0, 10);
-  const startTime = dateObj.toISOString().slice(11, 16);
-
-  const carFromClass =
-    dto.vehicleClass != null
-      ? `${vehicleClassLabel(dto.vehicleClass)} (class)`
-      : undefined;
+  const { date, startTime } = formatBookingAtParis(dto.bookingAt);
 
   return {
     id: dto.id,
     date,
     startTime,
     duration: minutesToDurationLabel(dto.durationMin),
+    durationMin: dto.durationMin,
+    tripType: dto.tripType,
     clientName: dto.clientName,
+    clientEmail: dto.clientEmail || undefined,
+    clientPhone: dto.clientPhone || undefined,
+    notesForDriver: dto.notesForDriver || undefined,
     from: dto.from ?? "",
     to: dto.to ?? "",
-    car: dto.vehicleName ?? carFromClass,
+    car: dto.vehicleName ?? undefined,
     vehicleId: dto.vehicleId ?? undefined,
     vehicleClass: dto.vehicleClass ?? undefined,
+    totalPrice: dto.totalPrice,
     status: dto.status,
     driverId: dto.driverId ?? undefined,
     driverName: dto.driverName ?? undefined,
     paymentStatus: dto.paymentStatus,
     driverResponseDeadline: dto.driverResponseDeadline ?? undefined,
   };
+}
+
+export function vehicleClassLabelFr(c: PublicVehicleClass): string {
+  return VEHICLE_CLASS_LABELS_FR[c];
 }
 
 export async function listBookings(filters?: { driverId?: string; vehicleId?: string }) {

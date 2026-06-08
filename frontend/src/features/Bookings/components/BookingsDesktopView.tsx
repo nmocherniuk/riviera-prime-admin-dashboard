@@ -24,6 +24,8 @@ type BookingsDesktopViewProps = {
   ) => void;
   filteredBookings: Booking[];
   onNewBooking: () => void;
+  onCancelBooking?: (booking: Booking) => Promise<void>;
+  cancellingBookingId?: string | null;
   activeTransfersToday: number;
 };
 
@@ -33,6 +35,8 @@ export default function BookingsDesktopView({
   onFilterChange,
   filteredBookings,
   onNewBooking,
+  onCancelBooking,
+  cancellingBookingId,
   activeTransfersToday,
 }: BookingsDesktopViewProps) {
   return (
@@ -58,7 +62,11 @@ export default function BookingsDesktopView({
       </Box> */}
 
       <Box sx={{ mt: 2 }}>
-        <BookingsCalendar bookings={filteredBookings} />
+        <BookingsCalendar
+          bookings={filteredBookings}
+          onCancelBooking={onCancelBooking}
+          cancellingBookingId={cancellingBookingId}
+        />
       </Box>
     </Container>
   );
