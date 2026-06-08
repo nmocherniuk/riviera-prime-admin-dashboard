@@ -4,7 +4,8 @@ node_modules
 
 /src/generated/prisma
 
-# User-uploaded files (keep directory structure)
+# User-uploaded files (keep directory structure, not uploaded images)
 /uploads/*
 !/uploads/vehicles/
+/uploads/vehicles/*
 !/uploads/vehicles/.gitkeep
