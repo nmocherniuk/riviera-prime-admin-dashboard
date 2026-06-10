@@ -33,6 +33,7 @@ export default function SecurityOrganizationCard({
   onViewBodyguards,
 }: Props) {
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+  const menuOpen = Boolean(menuAnchor);
 
   const openMenu = (e: React.MouseEvent<HTMLElement>) => {
     e.stopPropagation();
@@ -43,7 +44,10 @@ export default function SecurityOrganizationCard({
   return (
     <Paper
       elevation={0}
-      onClick={onView}
+      onClick={() => {
+        if (menuOpen) return;
+        onView?.();
+      }}
       sx={{
         p: 2,
         borderRadius: 2,

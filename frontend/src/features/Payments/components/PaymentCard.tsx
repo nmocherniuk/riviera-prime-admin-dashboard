@@ -29,7 +29,7 @@ export default function PaymentCard({ payment: p, onView, onOpenMenu }: Props) {
   return (
     <Paper
       elevation={0}
-      onClick={onView}
+      onClick={() => onView?.()}
       sx={{
         p: 2,
         borderRadius: 2,

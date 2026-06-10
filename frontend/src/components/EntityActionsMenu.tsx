@@ -7,6 +7,7 @@ import {
   type SxProps,
   type Theme,
 } from "@mui/material";
+import { runMenuItemAction } from "../utils/touchUi";
 
 export type EntityActionsMenuAction = {
   label: string;
@@ -39,16 +40,21 @@ export default function EntityActionsMenu({
       onClose={onClose}
       anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       transformOrigin={{ vertical: "top", horizontal: "right" }}
-      slotProps={{ paper: { sx: menuPaperSx } }}
+      slotProps={{
+        paper: { sx: menuPaperSx },
+        backdrop: { sx: { touchAction: "none" } },
+      }}
+      MenuListProps={{
+        onClick: (e) => e.stopPropagation(),
+      }}
     >
       {actions.map((a) => (
         <MenuItem
           key={a.label}
           disabled={a.disabled}
-          onClick={() => {
+          onClick={(e) => {
             if (a.disabled) return;
-            a.onClick();
-            onClose();
+            runMenuItemAction(e, a.onClick, onClose);
           }}
           sx={{
             ...(a.color ? { color: a.color } : {}),
@@ -62,4 +68,3 @@ export default function EntityActionsMenu({
     </Menu>
   );
 }
-

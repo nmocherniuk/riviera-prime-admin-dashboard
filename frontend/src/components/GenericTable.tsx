@@ -142,6 +142,7 @@ export function GenericTable<T>({
                       sx={{ color: "text.secondary", marginLeft: "12px" }}
                       aria-label={commonContent.aria.actions}
                       onClick={(e) => {
+                        e.stopPropagation();
                         actions(e, item);
                       }}
                     >

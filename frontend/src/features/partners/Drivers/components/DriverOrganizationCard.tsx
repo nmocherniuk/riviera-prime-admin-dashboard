@@ -38,6 +38,7 @@ export default function DriverOrganizationCard({
 }: Props) {
   const statusStyle = o.status ? activeChip : inactiveChip;
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+  const menuOpen = Boolean(menuAnchor);
 
   const openMenu = (e: React.MouseEvent<HTMLElement>) => {
     e.stopPropagation();
@@ -48,7 +49,10 @@ export default function DriverOrganizationCard({
   return (
     <Paper
       elevation={0}
-      onClick={onViewDrivers}
+      onClick={() => {
+        if (menuOpen) return;
+        onViewDrivers?.();
+      }}
       sx={{
         p: 2,
         borderRadius: 2,

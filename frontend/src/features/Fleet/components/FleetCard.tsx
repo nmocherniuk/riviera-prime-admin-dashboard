@@ -22,6 +22,7 @@ import {
 import type { FleetVehicle } from "./ModalManagement/fleetManagementForm.types";
 import { commonContent } from "../../../content/common";
 import { fleetClassLabel, vehiclesContent } from "../../../content/vehicles";
+import { runMenuItemAction } from "../../../utils/touchUi";
 
 const classColors: Record<FleetClass, { bg: string; color: string }> = {
   Comfort: { bg: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.9)" },
@@ -45,25 +46,21 @@ export default function FleetCard({ vehicle: v, onView, onEdit, onDelete }: Prop
   const classStyle = classColors[v.class];
   const statusStyle = statusColors[v.status];
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+  const menuOpen = Boolean(menuAnchor);
 
   const openMenu = (e: React.MouseEvent<HTMLElement>) => {
     e.stopPropagation();
     setMenuAnchor(e.currentTarget);
   };
   const closeMenu = () => setMenuAnchor(null);
-  const handleEdit = () => {
-    onEdit?.();
-    closeMenu();
-  };
-  const handleDelete = () => {
-    onDelete?.();
-    closeMenu();
-  };
 
   return (
     <Paper
       elevation={0}
-      onClick={onView}
+      onClick={() => {
+        if (menuOpen) return;
+        onView?.();
+      }}
       sx={{
         p: 2,
         borderRadius: 2,
@@ -117,19 +114,32 @@ export default function FleetCard({ vehicle: v, onView, onEdit, onDelete }: Prop
       </Box>
       <Menu
         anchorEl={menuAnchor}
-        open={Boolean(menuAnchor)}
+        open={menuOpen}
         onClose={closeMenu}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
-        slotProps={{ paper: { sx: { minWidth: 160, borderRadius: 2 } } }}
+        slotProps={{
+          paper: { sx: { minWidth: 160, borderRadius: 2 } },
+          backdrop: { sx: { touchAction: "none" } },
+        }}
+        MenuListProps={{ onClick: (e) => e.stopPropagation() }}
       >
-        <MenuItem onClick={handleEdit}>
+        <MenuItem
+          onClick={(e) =>
+            runMenuItemAction(e, () => onEdit?.(), closeMenu)
+          }
+        >
           <ListItemIcon>
             <EditIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText>{vehiclesContent.rowMenu.edit}</ListItemText>
         </MenuItem>
-        <MenuItem onClick={handleDelete} sx={{ color: "error.main" }}>
+        <MenuItem
+          onClick={(e) =>
+            runMenuItemAction(e, () => onDelete?.(), closeMenu)
+          }
+          sx={{ color: "error.main" }}
+        >
           <ListItemIcon sx={{ color: "error.main" }}>
             <DeleteIcon fontSize="small" />
           </ListItemIcon>

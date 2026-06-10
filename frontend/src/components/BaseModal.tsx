@@ -6,7 +6,9 @@ import {
   Box,
 } from "@mui/material";
 import type { ReactNode } from "react";
+import { useEffect, useRef } from "react";
 import ModalTitleBar from "./ModalTitleBar";
+import { BACKDROP_CLICK_GUARD_MS } from "../utils/touchUi";
 
 type Props = {
   open: boolean;
@@ -29,15 +31,40 @@ export default function BaseModal({
 }: Props) {
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const openedAtRef = useRef(0);
+
+  useEffect(() => {
+    if (open) {
+      openedAtRef.current = Date.now();
+    }
+  }, [open]);
+
+  const handleDialogClose = (
+    _event: object,
+    reason?: "backdropClick" | "escapeKeyDown",
+  ) => {
+    if (
+      reason === "backdropClick" &&
+      Date.now() - openedAtRef.current < BACKDROP_CLICK_GUARD_MS
+    ) {
+      return;
+    }
+    onClose();
+  };
 
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={handleDialogClose}
       fullScreen={fullScreen}
       fullWidth
       maxWidth={maxWidth}
       disableAutoFocus={disableAutoFocus}
+      slotProps={{
+        backdrop: {
+          sx: { touchAction: "none" },
+        },
+      }}
       PaperProps={{
         sx: {
           bgcolor: "background.paper",
@@ -45,6 +72,7 @@ export default function BaseModal({
           borderColor: "divider",
           borderRadius: fullScreen ? 0 : 3,
           maxHeight: fullScreen ? "100%" : "90vh",
+          touchAction: "manipulation",
         },
       }}
     >

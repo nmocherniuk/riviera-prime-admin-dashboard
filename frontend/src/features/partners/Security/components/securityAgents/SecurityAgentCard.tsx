@@ -9,6 +9,7 @@ import PersonIcon from "@mui/icons-material/Person";
 import type { SecurityAgent } from "./ModalManagement/securityAgentForm.types";
 import { securityAgentContent } from "../../../../../content/securityAgent";
 import { commonContent } from "../../../../../content/common";
+import { runMenuItemAction } from "../../../../../utils/touchUi";
 
 
 const statusStyle = (active: boolean) =>
@@ -62,13 +63,18 @@ type Props = {
 export default function SecurityAgentCard({ securityAgent: a, onView, onEdit, onDelete }: Props) {
   const chip = statusStyle(a.status ?? true);
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+  const menuOpen = Boolean(menuAnchor);
+  const closeMenu = () => setMenuAnchor(null);
   const exp = displayExperienceYears(a);
   const langs = displayLanguages(a);
 
   return (
     <Paper
       elevation={0}
-      onClick={() => onView(a)}
+      onClick={() => {
+        if (menuOpen) return;
+        onView(a);
+      }}
       sx={{
         p: 2,
         borderRadius: 2,
@@ -99,18 +105,42 @@ export default function SecurityAgentCard({ securityAgent: a, onView, onEdit, on
           <MoreVertIcon />
         </IconButton>
       </Box>
-      <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={() => setMenuAnchor(null)} anchorOrigin={{ vertical: "bottom", horizontal: "right" }} transformOrigin={{ vertical: "top", horizontal: "right" }} slotProps={{ paper: { sx: { minWidth: 160, borderRadius: 2 } } }}>
-        <MenuItem onClick={() => { onView(a); setMenuAnchor(null); }}>
+      <Menu
+        anchorEl={menuAnchor}
+        open={menuOpen}
+        onClose={closeMenu}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        slotProps={{
+          paper: { sx: { minWidth: 160, borderRadius: 2 } },
+          backdrop: { sx: { touchAction: "none" } },
+        }}
+        MenuListProps={{ onClick: (e) => e.stopPropagation() }}
+      >
+        <MenuItem
+          onClick={(e) =>
+            runMenuItemAction(e, () => onView(a), closeMenu)
+          }
+        >
           <ListItemIcon><VisibilityIcon fontSize="small" /></ListItemIcon>
           <ListItemText>{securityAgentContent.rowMenu.viewDetails}</ListItemText>
         </MenuItem>
 
-        <MenuItem onClick={() => { onEdit(a); setMenuAnchor(null); }}>
+        <MenuItem
+          onClick={(e) =>
+            runMenuItemAction(e, () => onEdit(a), closeMenu)
+          }
+        >
           <ListItemIcon><EditIcon fontSize="small" /></ListItemIcon>
           <ListItemText>{securityAgentContent.rowMenu.edit}</ListItemText>
         </MenuItem>
 
-        <MenuItem onClick={() => { onDelete(a); setMenuAnchor(null); }} sx={{ color: "error.main" }}>
+        <MenuItem
+          onClick={(e) =>
+            runMenuItemAction(e, () => onDelete(a), closeMenu)
+          }
+          sx={{ color: "error.main" }}
+        >
           <ListItemIcon sx={{ color: "error.main" }}><DeleteIcon fontSize="small" /></ListItemIcon>
           <ListItemText>{securityAgentContent.rowMenu.delete}</ListItemText>
         </MenuItem>

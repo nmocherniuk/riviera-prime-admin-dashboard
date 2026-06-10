@@ -24,6 +24,7 @@ import {
 } from "./driverVehicleDisplay";
 import { commonContent } from "../../../../../content/common";
 import { driverAgentsContent } from "../../../../../content/driverAgents";
+import { runMenuItemAction } from "../../../../../utils/touchUi";
 
 const t = driverAgentsContent.table;
 const rm = driverAgentsContent.rowMenu;
@@ -54,29 +55,21 @@ export default function DriverCard({
 }: Props) {
   const chip = statusStyle(d.status ?? true);
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
+  const menuOpen = Boolean(menuAnchor);
 
   const openMenu = (e: React.MouseEvent<HTMLElement>) => {
     e.stopPropagation();
     setMenuAnchor(e.currentTarget);
   };
   const closeMenu = () => setMenuAnchor(null);
-  const handleEdit = () => {
-    onEdit?.();
-    closeMenu();
-  };
-  const handleDelete = () => {
-    onDelete?.();
-    closeMenu();
-  };
-  const handleSendTestMessage = () => {
-    onSendTestMessage?.();
-    closeMenu();
-  };
 
   return (
     <Paper
       elevation={0}
-      onClick={onView}
+      onClick={() => {
+        if (menuOpen) return;
+        onView?.();
+      }}
       sx={{
         p: 2,
         borderRadius: 2,
@@ -144,25 +137,42 @@ export default function DriverCard({
       </Box>
       <Menu
         anchorEl={menuAnchor}
-        open={Boolean(menuAnchor)}
+        open={menuOpen}
         onClose={closeMenu}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
-        slotProps={{ paper: { sx: { minWidth: 160, borderRadius: 2 } } }}
+        slotProps={{
+          paper: { sx: { minWidth: 160, borderRadius: 2 } },
+          backdrop: { sx: { touchAction: "none" } },
+        }}
+        MenuListProps={{ onClick: (e) => e.stopPropagation() }}
       >
-        <MenuItem onClick={handleEdit}>
+        <MenuItem
+          onClick={(e) =>
+            runMenuItemAction(e, () => onEdit?.(), closeMenu)
+          }
+        >
           <ListItemIcon>
             <EditIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText>{rm.edit}</ListItemText>
         </MenuItem>
-        <MenuItem onClick={handleSendTestMessage}>
+        <MenuItem
+          onClick={(e) =>
+            runMenuItemAction(e, () => onSendTestMessage?.(), closeMenu)
+          }
+        >
           <ListItemIcon>
             <WhatsAppIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText>{rm.sendTestWhatsApp}</ListItemText>
         </MenuItem>
-        <MenuItem onClick={handleDelete} sx={{ color: "error.main" }}>
+        <MenuItem
+          onClick={(e) =>
+            runMenuItemAction(e, () => onDelete?.(), closeMenu)
+          }
+          sx={{ color: "error.main" }}
+        >
           <ListItemIcon sx={{ color: "error.main" }}>
             <DeleteIcon fontSize="small" />
           </ListItemIcon>

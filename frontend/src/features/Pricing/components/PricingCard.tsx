@@ -7,6 +7,7 @@ import type { FleetClass } from "../../Fleet/data/dummyFleet";
 import { commonContent } from "../../../content/common";
 import { fleetClassLabel } from "../../../content/vehicles";
 import { pricingContent } from "../../../content/pricing";
+import { consumePointerEvent, deferUserAction } from "../../../utils/touchUi";
 
 const classColors: Record<FleetClass, { bg: string; color: string }> = {
   Comfort: { bg: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.9)" },
@@ -81,7 +82,10 @@ export default function PricingCard({ row, onEditRow }: Props) {
             size="small"
             sx={{ color: "text.secondary" }}
             aria-label={commonContent.dataTable.actionsColumn}
-            onClick={() => onEditRow(row)}
+            onClick={(e) => {
+              consumePointerEvent(e);
+              deferUserAction(() => onEditRow(row));
+            }}
           >
             <MoreVertIcon />
           </IconButton>
