@@ -4,7 +4,11 @@ import { getStripe } from "../../lib/stripe.js";
 import { prisma } from "../../lib/prisma.js";
 import { getApiPublicOrigin } from "../../lib/uploads.js";
 import { signStripeOnboardingToken } from "../../lib/stripeOnboardingToken.js";
-import { buildDriverStripeOnboardingEmailHtml } from "./stripeDriverOnboarding.email.js";
+import {
+  buildDriverStripeOnboardingEmailHtml,
+  STRIPE_ONBOARDING_EMAIL_LOCALE,
+} from "./stripeDriverOnboarding.email.js";
+import { getStripeOnboardingEmailCopy } from "../../emails/index.js";
 
 function normalizeBaseUrl(raw: string): string {
   return raw.trim().replace(/\/$/, "");
@@ -164,14 +168,16 @@ export async function sendDriverStripeOnboardingEmail(
   }
 
   const portalUrl = buildDriverOnboardingPortalUrl(driverId);
+  const copy = getStripeOnboardingEmailCopy(STRIPE_ONBOARDING_EMAIL_LOCALE);
   const html = buildDriverStripeOnboardingEmailHtml({
     driverName: driver.name,
     onboardingUrl: portalUrl,
+    locale: STRIPE_ONBOARDING_EMAIL_LOCALE,
   });
 
   await sendEmailOrThrow({
     to: email,
-    subject: "Aurevia — connect your Stripe account for payouts",
+    subject: copy.subject,
     html,
   });
 }
