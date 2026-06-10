@@ -15,6 +15,9 @@ import BasicInfoSection from "./components/BasicInfoSection";
 import type { DriverOrganizationFormValues } from "../../data/types";
 import { FormFieldErrorsProvider } from "../../../../../components/form/FormFieldErrorsProvider";
 import type { FieldErrors } from "../../../../../utils/formErrors";
+import { driversContent } from "../../../../../content/drivers";
+
+const om = driversContent.organizationModal;
 
 type Props = {
   open: boolean;
@@ -74,10 +77,10 @@ export default function DriverOrganizationManagementModal({
             sx={{ fontWeight: 700, color: "text.primary" }}
           >
             {readOnly
-              ? "Organization details"
+              ? om.titles.readOnly
               : organization
-                ? "Edit organization"
-                : "Add organization"}
+                ? om.titles.edit
+                : om.titles.create}
           </Typography>
         </>
       }
@@ -100,7 +103,7 @@ export default function DriverOrganizationManagementModal({
                 },
               }}
             >
-              Cancel
+              {om.cancel}
             </Button>
             <Button
               variant="contained"
@@ -114,7 +117,7 @@ export default function DriverOrganizationManagementModal({
                 px: 2,
               }}
             >
-              Save changes
+              {om.save}
             </Button>
           </>
         ) : undefined

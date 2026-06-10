@@ -2,6 +2,8 @@ import { Box, Button } from "@mui/material";
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import SearchField from "../../../../components/SearchField";
 import FilterPaper from "../../../../components/FilterPaper";
+import { commonContent } from "../../../../content/common";
+import { driversContent } from "../../../../content/drivers";
 
 const outlineButtonSx = {
   flex: 1,
@@ -25,7 +27,7 @@ export default function DriversToolbar() {
         }}
       >
         <SearchField
-          placeholder="Search client, ID, or location..."
+          placeholder={driversContent.toolbar.searchPlaceholder}
           sx={{
             flex: { xs: "1 1 auto", sm: "1 1 280px" },
             minWidth: 0,
@@ -39,7 +41,7 @@ export default function DriversToolbar() {
             startIcon={<FileDownloadIcon />}
             sx={outlineButtonSx}
           >
-            Export
+            {commonContent.dataTable.export}
           </Button>
         </Box>
       </Box>

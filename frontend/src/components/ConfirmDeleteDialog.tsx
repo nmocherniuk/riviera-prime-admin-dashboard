@@ -1,5 +1,6 @@
 import { Button, Typography } from "@mui/material";
 import BaseModal from "./BaseModal";
+import { commonContent } from "../content/common";
 
 type Props = {
   open: boolean;
@@ -11,10 +12,9 @@ type Props = {
   cancelLabel?: string;
 };
 
-const defaultTitle = "Delete record?";
-const defaultMessage =
-  "This action cannot be undone. The record will be deleted permanently.";
-const defaultConfirmLabel = "Delete";
+const defaultTitle = commonContent.deleteDialog.title;
+const defaultMessage = commonContent.deleteDialog.message;
+const defaultConfirmLabel = commonContent.deleteDialog.confirm;
 
 export default function ConfirmDeleteDialog({
   open,
@@ -23,7 +23,7 @@ export default function ConfirmDeleteDialog({
   title = defaultTitle,
   message = defaultMessage,
   confirmLabel = defaultConfirmLabel,
-  cancelLabel = "Cancel",
+  cancelLabel = commonContent.deleteDialog.cancel,
 }: Props) {
   return (
     <BaseModal

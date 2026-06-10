@@ -1,35 +1,40 @@
 import type { DriverModalBooleanField } from "../types";
+import { driverAgentsContent } from "../../../../../../content/driverAgents";
+
+const prof = driverAgentsContent.modal.professional.flags;
+const docs = driverAgentsContent.modal.documents.flags;
+const ops = driverAgentsContent.modal.operations.flags;
 
 export const PROFESSIONAL_BOOLEAN_FIELDS: Array<{
     key: DriverModalBooleanField;
     label: string;
 }> = [
-        { key: "hasVipExperience", label: "VIP experience" },
-        { key: "hasEventExperience", label: "Event experience" },
-        { key: "dressCodeReady", label: "Dress code ready" },
+        { key: "hasVipExperience", label: prof.hasVipExperience },
+        { key: "hasEventExperience", label: prof.hasEventExperience },
+        { key: "dressCodeReady", label: prof.dressCodeReady },
     ];
 
 export const DOCUMENT_FIELDS: Array<{
     key: DriverModalBooleanField;
     label: string;
 }> = [
-        { key: "passportProvided", label: "Passport" },
-        { key: "driverLicenseProvided", label: "Driver license" },
-        { key: "vtcCardProvided", label: "VTC card" },
-        { key: "criminalRecordProvided", label: "Criminal record" },
-        { key: "medicalCertificateProvided", label: "Medical certificate" },
-        { key: "insuranceProofProvided", label: "Insurance proof" },
-        { key: "profilePhotoProvided", label: "Profile photo" },
-        { key: "signedContractProvided", label: "Signed contract" },
+        { key: "passportProvided", label: docs.passportProvided },
+        { key: "driverLicenseProvided", label: docs.driverLicenseProvided },
+        { key: "vtcCardProvided", label: docs.vtcCardProvided },
+        { key: "criminalRecordProvided", label: docs.criminalRecordProvided },
+        { key: "medicalCertificateProvided", label: docs.medicalCertificateProvided },
+        { key: "insuranceProofProvided", label: docs.insuranceProofProvided },
+        { key: "profilePhotoProvided", label: docs.profilePhotoProvided },
+        { key: "signedContractProvided", label: docs.signedContractProvided },
     ];
 
 export const OPERATION_BOOLEAN_FIELDS: Array<{
     key: DriverModalBooleanField;
     label: string;
 }> = [
-        { key: "acceptsLongDistance", label: "Accepts long distance" },
-        { key: "acceptsNightTrips", label: "Accepts night trips" },
-        { key: "acceptsAirportTransfers", label: "Accepts airport transfers" },
-        { key: "acceptsVipClients", label: "Accepts VIP clients" },
-        { key: "hasOwnVehicle", label: "Has own vehicle" },
+        { key: "acceptsLongDistance", label: ops.acceptsLongDistance },
+        { key: "acceptsNightTrips", label: ops.acceptsNightTrips },
+        { key: "acceptsAirportTransfers", label: ops.acceptsAirportTransfers },
+        { key: "acceptsVipClients", label: ops.acceptsVipClients },
+        { key: "hasOwnVehicle", label: ops.hasOwnVehicle },
     ];

@@ -11,6 +11,11 @@ import {
   sectionLabelSx,
 } from "../../../../../../components/ui/modalStyles";
 import type { DriverOrganizationFormValues } from "../../../data/types";
+import { commonContent } from "../../../../../../content/common";
+import { driversContent } from "../../../../../../content/drivers";
+
+const om = driversContent.organizationModal;
+const cd = om.companyDetails;
 
 type Props = {
   readOnly: boolean;
@@ -23,17 +28,17 @@ type Props = {
 function CompanySection({ readOnly, formValues, handleChange }: Props) {
   return (
     <>
-      <Typography sx={sectionLabelSx}>Company information</Typography>
+      <Typography sx={sectionLabelSx}>{om.sections.companyDetails}</Typography>
       <Grid container spacing={2}>
         <Grid size={{ xs: 12 }}>
           {readOnly ? (
-            <DetailField label="Legal form" value={formValues.legalForm} />
+            <DetailField label={cd.legalForm.label} value={formValues.legalForm} />
           ) : (
             <FormTextField
               field="legalForm"
               fullWidth
               size="small"
-              label="Legal form"
+              label={cd.legalForm.label}
               value={formValues.legalForm}
               onChange={handleChange("legalForm")}
               sx={modalTextFieldSx}
@@ -44,7 +49,7 @@ function CompanySection({ readOnly, formValues, handleChange }: Props) {
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
             <DetailField
-              label="SIREN / SIRET"
+              label={cd.sirenOrSiret.label}
               value={formValues.sirenOrSiret}
             />
           ) : (
@@ -52,10 +57,10 @@ function CompanySection({ readOnly, formValues, handleChange }: Props) {
               field="sirenOrSiret"
               fullWidth
               size="small"
-              label="SIREN / SIRET"
+              label={cd.sirenOrSiret.label}
               value={formValues.sirenOrSiret}
               onChange={handleChange("sirenOrSiret")}
-              hint="Digits only (if applicable)"
+              hint={cd.sirenOrSiret.helperEdit}
               sx={modalTextFieldSx}
             />
           )}
@@ -63,16 +68,16 @@ function CompanySection({ readOnly, formValues, handleChange }: Props) {
 
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
-            <DetailField label="VAT number" value={formValues.vatNumber} />
+            <DetailField label={cd.vatNumber.label} value={formValues.vatNumber} />
           ) : (
             <FormTextField
               field="vatNumber"
               fullWidth
               size="small"
-              label="VAT number"
+              label={cd.vatNumber.label}
               value={formValues.vatNumber}
               onChange={handleChange("vatNumber")}
-              hint="EU VAT (optional)"
+              hint={cd.vatNumber.helperEdit}
               sx={modalTextFieldSx}
             />
           )}
@@ -81,7 +86,7 @@ function CompanySection({ readOnly, formValues, handleChange }: Props) {
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
             <DetailField
-              label="Registration date"
+              label={cd.registrationDate.label}
               value={formValues.registrationDate}
             />
           ) : (
@@ -90,7 +95,7 @@ function CompanySection({ readOnly, formValues, handleChange }: Props) {
               fullWidth
               size="small"
               type="date"
-              label="Registration date"
+              label={cd.registrationDate.label}
               value={formValues.registrationDate}
               onChange={handleChange("registrationDate")}
               InputLabelProps={{ shrink: true }}
@@ -102,7 +107,7 @@ function CompanySection({ readOnly, formValues, handleChange }: Props) {
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
             <DetailField
-              label="Registration country"
+              label={cd.registrationCountry.label}
               value={formValues.registrationCountry}
             />
           ) : (
@@ -110,7 +115,7 @@ function CompanySection({ readOnly, formValues, handleChange }: Props) {
               field="registrationCountry"
               fullWidth
               size="small"
-              label="Registration country"
+              label={cd.registrationCountry.label}
               value={formValues.registrationCountry}
               onChange={handleChange("registrationCountry")}
               sx={modalTextFieldSx}
@@ -121,7 +126,7 @@ function CompanySection({ readOnly, formValues, handleChange }: Props) {
         <Grid size={{ xs: 12 }}>
           {readOnly ? (
             <DetailField
-              label="Registered address"
+              label={cd.registeredAddress.label}
               value={formValues.registeredAddress}
             />
           ) : (
@@ -129,7 +134,7 @@ function CompanySection({ readOnly, formValues, handleChange }: Props) {
               field="registeredAddress"
               fullWidth
               size="small"
-              label="Registered address"
+              label={cd.registeredAddress.label}
               value={formValues.registeredAddress}
               onChange={handleChange("registeredAddress")}
               multiline
@@ -142,8 +147,8 @@ function CompanySection({ readOnly, formValues, handleChange }: Props) {
         <Grid size={{ xs: 12 }}>
           {readOnly ? (
             <DetailField
-              label="Mailing address same as registered"
-              value={formValues.sameAsRegisteredAddress ? "Yes" : "No"}
+              label={cd.sameAsRegisteredReadOnly}
+              value={formValues.sameAsRegisteredAddress ? commonContent.boolean.yes : commonContent.boolean.no}
             />
           ) : (
             <FormControlLabel
@@ -153,7 +158,7 @@ function CompanySection({ readOnly, formValues, handleChange }: Props) {
                   onChange={handleChange("sameAsRegisteredAddress")}
                 />
               }
-              label="Mailing address is the same as registered address"
+              label={cd.sameAsRegistered}
             />
           )}
         </Grid>
@@ -161,7 +166,7 @@ function CompanySection({ readOnly, formValues, handleChange }: Props) {
         <Grid size={{ xs: 12 }}>
           {readOnly ? (
             <DetailField
-              label="Mailing address"
+              label={cd.mailingAddress.label}
               value={formValues.mailingAddress}
             />
           ) : (
@@ -169,7 +174,7 @@ function CompanySection({ readOnly, formValues, handleChange }: Props) {
               field="mailingAddress"
               fullWidth
               size="small"
-              label="Mailing address"
+              label={cd.mailingAddress.label}
               value={formValues.mailingAddress}
               onChange={handleChange("mailingAddress")}
               multiline
@@ -182,13 +187,13 @@ function CompanySection({ readOnly, formValues, handleChange }: Props) {
 
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
-            <DetailField label="Website URL" value={formValues.websiteUrl} />
+            <DetailField label={cd.websiteUrl.label} value={formValues.websiteUrl} />
           ) : (
             <FormTextField
               field="websiteUrl"
               fullWidth
               size="small"
-              label="Website URL"
+              label={cd.websiteUrl.label}
               value={formValues.websiteUrl}
               onChange={handleChange("websiteUrl")}
               sx={modalTextFieldSx}
@@ -199,7 +204,7 @@ function CompanySection({ readOnly, formValues, handleChange }: Props) {
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
             <DetailField
-              label="Director full name"
+              label={cd.directorFullName.label}
               value={formValues.directorFullName}
             />
           ) : (
@@ -207,7 +212,7 @@ function CompanySection({ readOnly, formValues, handleChange }: Props) {
               field="directorFullName"
               fullWidth
               size="small"
-              label="Director full name"
+              label={cd.directorFullName.label}
               value={formValues.directorFullName}
               onChange={handleChange("directorFullName")}
               sx={modalTextFieldSx}
@@ -218,7 +223,7 @@ function CompanySection({ readOnly, formValues, handleChange }: Props) {
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
             <DetailField
-              label="Director position"
+              label={cd.directorPosition.label}
               value={formValues.directorPosition}
             />
           ) : (
@@ -226,7 +231,7 @@ function CompanySection({ readOnly, formValues, handleChange }: Props) {
               field="directorPosition"
               fullWidth
               size="small"
-              label="Director position"
+              label={cd.directorPosition.label}
               value={formValues.directorPosition}
               onChange={handleChange("directorPosition")}
               sx={modalTextFieldSx}

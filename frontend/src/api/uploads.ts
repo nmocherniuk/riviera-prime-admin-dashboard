@@ -1,5 +1,6 @@
 import { api } from "./api";
 import { getApiErrorMessage } from "./organizations";
+import { commonContent } from "../content/common";
 
 export type VehiclePhotoUploadResult = {
   url: string;
@@ -23,7 +24,7 @@ export async function uploadVehiclePhoto(
     return data;
   } catch (error) {
     throw new Error(
-      getApiErrorMessage(error, "Failed to upload vehicle image"),
+      getApiErrorMessage(error, commonContent.errors.uploadVehicleImage),
     );
   }
 }

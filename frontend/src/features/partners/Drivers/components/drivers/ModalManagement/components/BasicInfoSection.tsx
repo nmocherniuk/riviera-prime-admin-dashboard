@@ -9,6 +9,11 @@ import {
 } from "../../../../../../../components/ui/modalStyles";
 import { LANGUAGE_OPTIONS } from "../../../ModalManagement/constants";
 import type { DriverFormValues } from "../../types";
+import { commonContent } from "../../../../../../../content/common";
+import { driverAgentsContent } from "../../../../../../../content/driverAgents";
+
+const m = driverAgentsContent.modal;
+const b = m.basic;
 
 type Props = {
   readOnly: boolean;
@@ -22,23 +27,23 @@ type Props = {
 function BasicInfoSection({ readOnly, driverId, formValues, onChange }: Props) {
   return (
     <>
-      <Typography sx={sectionLabelSx}>Driver ID</Typography>
+      <Typography sx={sectionLabelSx}>{m.driverIdSection}</Typography>
       <Typography variant="body1" sx={valueBoxSx}>
         #{driverId ?? "—"}
       </Typography>
 
-      <Typography sx={sectionLabelSx}>Basic Information</Typography>
+      <Typography sx={sectionLabelSx}>{b.sectionTitle}</Typography>
       <Grid container spacing={1.5}>
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
-            <DetailField label="Name" value={formValues.name} />
+            <DetailField label={b.name.label} value={formValues.name} />
           ) : (
             <FormTextField
               field="name"
               fullWidth
               size="small"
-              label="Name"
-              placeholder="Enter name"
+              label={b.name.label}
+              placeholder={b.name.placeholder}
               value={formValues.name}
               onChange={onChange("name")}
               sx={modalTextFieldSx}
@@ -47,14 +52,14 @@ function BasicInfoSection({ readOnly, driverId, formValues, onChange }: Props) {
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
-            <DetailField label="Phone" value={formValues.phone} />
+            <DetailField label={b.phone.label} value={formValues.phone} />
           ) : (
             <FormTextField
               field="phone"
               fullWidth
               size="small"
-              label="Phone"
-              placeholder="Enter phone number"
+              label={b.phone.label}
+              placeholder={b.phone.placeholder}
               value={formValues.phone}
               onChange={onChange("phone")}
               sx={modalTextFieldSx}
@@ -63,14 +68,14 @@ function BasicInfoSection({ readOnly, driverId, formValues, onChange }: Props) {
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
-            <DetailField label="Email" value={formValues.email} />
+            <DetailField label={b.email.label} value={formValues.email} />
           ) : (
             <FormTextField
               field="email"
               fullWidth
               size="small"
-              label="Email"
-              placeholder="Enter email address"
+              label={b.email.label}
+              placeholder={b.email.placeholder}
               value={formValues.email}
               onChange={onChange("email")}
               sx={modalTextFieldSx}
@@ -79,13 +84,13 @@ function BasicInfoSection({ readOnly, driverId, formValues, onChange }: Props) {
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
-            <DetailField label="Address" value={formValues.address} />
+            <DetailField label={b.address.label} value={formValues.address} />
           ) : (
             <FormTextField
               field="address"
               fullWidth
               size="small"
-              label="Address"
+              label={b.address.label}
               value={formValues.address}
               onChange={onChange("address")}
               sx={modalTextFieldSx}
@@ -94,13 +99,13 @@ function BasicInfoSection({ readOnly, driverId, formValues, onChange }: Props) {
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
-            <DetailField label="Nationality" value={formValues.nationality} />
+            <DetailField label={b.nationality.label} value={formValues.nationality} />
           ) : (
             <FormTextField
               field="nationality"
               fullWidth
               size="small"
-              label="Nationality"
+              label={b.nationality.label}
               value={formValues.nationality}
               onChange={onChange("nationality")}
               sx={modalTextFieldSx}
@@ -109,14 +114,14 @@ function BasicInfoSection({ readOnly, driverId, formValues, onChange }: Props) {
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
-            <DetailField label="Birth Date" value={formValues.birthDate} />
+            <DetailField label={b.birthDate.label} value={formValues.birthDate} />
           ) : (
             <FormTextField
               field="birthDate"
               fullWidth
               size="small"
               type="date"
-              label="Birth date"
+              label={b.birthDate.label}
               InputLabelProps={{ shrink: true }}
               value={formValues.birthDate}
               onChange={onChange("birthDate")}
@@ -127,7 +132,7 @@ function BasicInfoSection({ readOnly, driverId, formValues, onChange }: Props) {
         <Grid size={{ xs: 12 }}>
           {readOnly ? (
             <DetailField
-              label="Languages spoken"
+              label={b.languagesSpoken.label}
               value={(formValues.languages ?? []).join(", ")}
             />
           ) : (
@@ -136,7 +141,7 @@ function BasicInfoSection({ readOnly, driverId, formValues, onChange }: Props) {
               fullWidth
               size="small"
               select
-              label="Languages spoken"
+              label={b.languagesSpoken.label}
               value={formValues.languages ?? []}
               SelectProps={{ multiple: true }}
               onChange={(e) =>
@@ -157,7 +162,7 @@ function BasicInfoSection({ readOnly, driverId, formValues, onChange }: Props) {
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
             <DetailField
-              label="Emergency contact"
+              label={b.emergencyContact.label}
               value={formValues.emergencyContact}
             />
           ) : (
@@ -165,7 +170,7 @@ function BasicInfoSection({ readOnly, driverId, formValues, onChange }: Props) {
               field="emergencyContact"
               fullWidth
               size="small"
-              label="Emergency contact"
+              label={b.emergencyContact.label}
               value={formValues.emergencyContact}
               onChange={onChange("emergencyContact")}
               sx={modalTextFieldSx}
@@ -175,8 +180,8 @@ function BasicInfoSection({ readOnly, driverId, formValues, onChange }: Props) {
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
             <DetailField
-              label="Employment status"
-              value={formValues.status ? "Active" : "Inactive"}
+              label={b.status.label}
+              value={formValues.status ? commonContent.status.active : commonContent.status.inactive}
             />
           ) : (
             <FormTextField
@@ -184,7 +189,7 @@ function BasicInfoSection({ readOnly, driverId, formValues, onChange }: Props) {
               select
               fullWidth
               size="small"
-              label="Employment status"
+              label={b.status.label}
               value={formValues.status ? "active" : "inactive"}
               onChange={(e) => {
                 const checked = e.target.value === "active";
@@ -199,8 +204,8 @@ function BasicInfoSection({ readOnly, driverId, formValues, onChange }: Props) {
               }}
               sx={modalTextFieldSx}
             >
-              <MenuItem value="active">Active</MenuItem>
-              <MenuItem value="inactive">Inactive</MenuItem>
+              <MenuItem value="active">{commonContent.status.active}</MenuItem>
+              <MenuItem value="inactive">{commonContent.status.inactive}</MenuItem>
             </FormTextField>
           )}
         </Grid>

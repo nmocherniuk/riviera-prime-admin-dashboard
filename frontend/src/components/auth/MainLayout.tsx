@@ -3,6 +3,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import { useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "../Sidebar/Sidebar";
+import { commonContent } from "../../content/common";
 import WeekStrip from "../../features/Bookings/components/WeekStrip";
 import {
   BookingsDateProvider,
@@ -43,7 +44,7 @@ function MainLayoutInner() {
         <Toolbar>
           <IconButton
             color="inherit"
-            aria-label="open menu"
+            aria-label={commonContent.aria.openMenu}
             edge="start"
             onClick={() => setMobileOpen(true)}
             sx={{ mr: 2 }}

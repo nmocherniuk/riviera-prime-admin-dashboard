@@ -9,6 +9,10 @@ import {
 
 import { OPERATION_BOOLEAN_FIELDS } from "../constants";
 import type { DriverFormValues } from "../../types";
+import { commonContent } from "../../../../../../../content/common";
+import { driverAgentsContent } from "../../../../../../../content/driverAgents";
+
+const o = driverAgentsContent.modal.operations;
 
 type Props = {
   readOnly: boolean;
@@ -32,18 +36,18 @@ function OperationsVehicleSection({
 }: Props) {
   return (
     <>
-      <Typography sx={sectionLabelSx}>Operations & Vehicle</Typography>
+      <Typography sx={sectionLabelSx}>{o.sectionTitle}</Typography>
       <Grid container spacing={1.5}>
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
-            <DetailField label="Vehicle ID" value={vehicleIdValue} />
+            <DetailField label={o.vehicleId.label} value={vehicleIdValue} />
           ) : (
             <FormTextField
               field="vehicle"
               fullWidth
               size="small"
-              label="Vehicle ID (optional)"
-              placeholder="UUID vehicle id"
+              label={o.vehicleIdOptional.label}
+              placeholder={o.vehicleIdOptional.placeholder}
               value={formValues.vehicle}
               onChange={onChange("vehicle")}
               sx={modalTextFieldSx}
@@ -52,14 +56,14 @@ function OperationsVehicleSection({
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
-            <DetailField label="Vehicle" value={vehicleNameValue} />
+            <DetailField label={o.vehicle.label} value={vehicleNameValue} />
           ) : (
             <FormTextField
               field="vehicle"
               fullWidth
               size="small"
-              label="Vehicle"
-              placeholder="Enter vehicle model"
+              label={o.vehicle.label}
+              placeholder={o.vehicle.placeholder}
               value={formValues.vehicle}
               onChange={onChange("vehicle")}
               sx={modalTextFieldSx}
@@ -68,13 +72,13 @@ function OperationsVehicleSection({
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
-            <DetailField label="Vehicle plate" value={formValues.vehiclePlate} />
+            <DetailField label={o.vehiclePlate.label} value={formValues.vehiclePlate} />
           ) : (
             <FormTextField
               field="vehiclePlate"
               fullWidth
               size="small"
-              label="Vehicle plate"
+              label={o.vehiclePlate.label}
               value={formValues.vehiclePlate}
               onChange={onChange("vehiclePlate")}
               sx={modalTextFieldSx}
@@ -83,13 +87,13 @@ function OperationsVehicleSection({
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
-            <DetailField label="Vehicle color" value={formValues.vehicleColor} />
+            <DetailField label={o.vehicleColor.label} value={formValues.vehicleColor} />
           ) : (
             <FormTextField
               field="vehicleColor"
               fullWidth
               size="small"
-              label="Vehicle color"
+              label={o.vehicleColor.label}
               value={formValues.vehicleColor}
               onChange={onChange("vehicleColor")}
               sx={modalTextFieldSx}
@@ -98,13 +102,13 @@ function OperationsVehicleSection({
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
-            <DetailField label="Base city" value={formValues.baseCity} />
+            <DetailField label={o.baseCity.label} value={formValues.baseCity} />
           ) : (
             <FormTextField
               field="baseCity"
               fullWidth
               size="small"
-              label="Base city"
+              label={o.baseCity.label}
               value={formValues.baseCity}
               onChange={onChange("baseCity")}
               sx={modalTextFieldSx}
@@ -113,14 +117,14 @@ function OperationsVehicleSection({
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
-            <DetailField label="Working radius (km)" value={formValues.workingRadiusKm} />
+            <DetailField label={o.workingRadiusKm.label} value={formValues.workingRadiusKm} />
           ) : (
             <FormTextField
               field="workingRadiusKm"
               fullWidth
               size="small"
               type="number"
-              label="Working radius (km)"
+              label={o.workingRadiusKm.label}
               value={formValues.workingRadiusKm}
               onChange={onChange("workingRadiusKm")}
               sx={modalTextFieldSx}
@@ -130,7 +134,7 @@ function OperationsVehicleSection({
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
             <DetailField
-              label="Availability days (comma separated)"
+              label={o.availabilityDays.label}
               value={formValues.availabilityDays}
             />
           ) : (
@@ -138,7 +142,7 @@ function OperationsVehicleSection({
               field="availabilityDays"
               fullWidth
               size="small"
-              label="Availability days (comma separated)"
+              label={o.availabilityDays.label}
               value={formValues.availabilityDays}
               onChange={onChange("availabilityDays")}
               sx={modalTextFieldSx}
@@ -147,13 +151,13 @@ function OperationsVehicleSection({
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
-            <DetailField label="Availability hours" value={formValues.availabilityHours} />
+            <DetailField label={o.availabilityHours.label} value={formValues.availabilityHours} />
           ) : (
             <FormTextField
               field="availabilityHours"
               fullWidth
               size="small"
-              label="Availability hours"
+              label={o.availabilityHours.label}
               value={formValues.availabilityHours}
               onChange={onChange("availabilityHours")}
               sx={modalTextFieldSx}
@@ -163,8 +167,8 @@ function OperationsVehicleSection({
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
             <DetailField
-              label="Status"
-              value={formValues.status ? "Active" : "Inactive"}
+              label={o.status.label}
+              value={formValues.status ? commonContent.status.active : commonContent.status.inactive}
             />
           ) : (
             <FormTextField
@@ -172,7 +176,7 @@ function OperationsVehicleSection({
               select
               fullWidth
               size="small"
-              label="Status"
+              label={o.status.label}
               value={formValues.status ? "active" : "inactive"}
               onChange={(e) => {
                 const active = e.target.value === "active";
@@ -187,21 +191,21 @@ function OperationsVehicleSection({
               }}
               sx={modalTextFieldSx}
             >
-              <MenuItem value="active">Active</MenuItem>
-              <MenuItem value="inactive">Inactive</MenuItem>
+              <MenuItem value="active">{commonContent.status.active}</MenuItem>
+              <MenuItem value="inactive">{commonContent.status.inactive}</MenuItem>
             </FormTextField>
           )}
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
-            <DetailField label="Rides" value={formValues.rides} />
+            <DetailField label={o.rides.label} value={formValues.rides} />
           ) : (
             <FormTextField
               field="rides"
               fullWidth
               size="small"
               type="number"
-              label="Rides"
+              label={o.rides.label}
               value={formValues.rides}
               onChange={onChange("rides")}
               sx={modalTextFieldSx}
@@ -210,13 +214,13 @@ function OperationsVehicleSection({
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
-            <DetailField label="Today shift" value={formValues.todayShift} />
+            <DetailField label={o.todayShift.label} value={formValues.todayShift} />
           ) : (
             <FormTextField
               field="todayShift"
               fullWidth
               size="small"
-              label="Today shift"
+              label={o.todayShift.label}
               value={formValues.todayShift}
               onChange={onChange("todayShift")}
               sx={modalTextFieldSx}
@@ -227,7 +231,10 @@ function OperationsVehicleSection({
         {OPERATION_BOOLEAN_FIELDS.map((f) => (
           <Grid key={f.key} size={{ xs: 12, md: 4 }}>
             {readOnly ? (
-              <DetailField label={f.label} value={formValues[f.key] ? "Yes" : "No"} />
+              <DetailField
+                label={f.label}
+                value={formValues[f.key] ? commonContent.boolean.yes : commonContent.boolean.no}
+              />
             ) : (
               <FormControlLabel
                 control={

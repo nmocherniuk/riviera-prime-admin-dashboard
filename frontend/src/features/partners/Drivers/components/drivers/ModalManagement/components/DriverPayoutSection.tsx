@@ -6,6 +6,9 @@ import { useToast } from "../../../../../../../providers/ToastProvider";
 import { getApiErrorMessage } from "../../../../../../../api/organizations";
 import { getDriverEarnings } from "../../../../../../../api/drivers";
 import { useQuery } from "@tanstack/react-query";
+import { driverAgentsContent } from "../../../../../../../content/driverAgents";
+
+const p = driverAgentsContent.modal.payout;
 
 type PayoutBadge = "not_connected" | "pending" | "active";
 
@@ -22,9 +25,9 @@ const badgeProps: Record<
   PayoutBadge,
   { label: string; color: "default" | "warning" | "success" }
 > = {
-  not_connected: { label: "Not connected", color: "default" },
-  pending: { label: "Pending", color: "warning" },
-  active: { label: "Active", color: "success" },
+  not_connected: { label: p.badges.notConnected, color: "default" },
+  pending: { label: p.badges.pending, color: "warning" },
+  active: { label: p.badges.active, color: "success" },
 };
 
 type Props = {
@@ -62,12 +65,12 @@ function DriverPayoutSection({
     try {
       await sendDriverStripeOnboardingEmail(driverId);
       showToast({
-        message: "Onboarding link sent to the driver’s email.",
+        message: p.toastSuccess,
         severity: "success",
       });
     } catch (e) {
       showToast({
-        message: getApiErrorMessage(e, "Could not send email"),
+        message: getApiErrorMessage(e, p.toastError),
         severity: "error",
       });
     } finally {
@@ -77,10 +80,9 @@ function DriverPayoutSection({
 
   return (
     <>
-      <Typography sx={sectionLabelSx}>Payouts (Stripe)</Typography>
+      <Typography sx={sectionLabelSx}>{p.sectionTitle}</Typography>
       <Typography variant="body2" sx={{ mb: 1.5, color: "text.secondary" }}>
-        Email the driver a one-time link to Stripe onboarding — no admin app or JWT,
-        they open it on phone or desktop. Bank details stay in Stripe only.
+        {p.description}
       </Typography>
 
       <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
@@ -95,13 +97,13 @@ function DriverPayoutSection({
       {earnings ? (
         <Box sx={{ mb: 2 }}>
           <Typography variant="body2" sx={{ color: "text.secondary" }}>
-            Total earned: <strong>{earnings.totalEarned.toFixed(2)} {earnings.currency}</strong>
+            {p.totalEarned} <strong>{earnings.totalEarned.toFixed(2)} {earnings.currency}</strong>
           </Typography>
           <Typography variant="body2" sx={{ color: "text.secondary" }}>
-            Available to withdraw: <strong>{earnings.availableBalance.toFixed(2)} {earnings.currency}</strong>
+            {p.availableToWithdraw} <strong>{earnings.availableBalance.toFixed(2)} {earnings.currency}</strong>
           </Typography>
           <Typography variant="body2" sx={{ color: "text.secondary" }}>
-            Pending trips: <strong>{earnings.pending.toFixed(2)} {earnings.currency}</strong>
+            {p.pendingTrips} <strong>{earnings.pending.toFixed(2)} {earnings.currency}</strong>
           </Typography>
         </Box>
       ) : null}
@@ -111,14 +113,13 @@ function DriverPayoutSection({
           variant="body2"
           sx={{ color: "success.main", fontWeight: 600 }}
         >
-          ✔ Stripe account connected — payouts enabled
+          {p.connectedMessage}
         </Typography>
       ) : null}
 
       {!stripeOnboardingCompleted && driverId && !hasEmail ? (
         <Typography variant="body2" color="warning.main" sx={{ mb: 1 }}>
-          Add an email address for this driver before sending the Stripe setup
-          link.
+          {p.addEmailWarning}
         </Typography>
       ) : null}
 
@@ -143,15 +144,15 @@ function DriverPayoutSection({
             },
           }}
         >
-          {loading ? "Sending…" : "Send Stripe onboarding email"}
+          {loading ? p.sending : p.sendButton}
         </Button>
       ) : null}
 
       {readOnly && !stripeOnboardingCompleted ? (
         <Typography variant="body2" color="text.secondary">
           {stripeAccountId
-            ? "Onboarding not finished yet — the driver can use the link from the email."
-            : "Stripe Connect is not set up for this driver yet."}
+            ? p.readOnlyPending
+            : p.readOnlyNotSetup}
         </Typography>
       ) : null}
     </>

@@ -4,6 +4,11 @@ import { modalTextFieldSx, sectionLabelSx } from "../../../../../../components/u
 import type { DriverOrganizationFormValues } from "../../../data/types";
 import DetailField from "../../../../../../components/DetailField";
 import FormTextField from "../../../../../../components/form/FormTextField";
+import { commonContent } from "../../../../../../content/common";
+import { driversContent } from "../../../../../../content/drivers";
+
+const om = driversContent.organizationModal;
+const bi = om.basicInfo;
 
 type Props = {
   formValues: DriverOrganizationFormValues;
@@ -16,14 +21,14 @@ type Props = {
 function BasicInfoSection({ formValues, readOnly, handleChange }: Props) {
   return (
     <>
-      <Typography sx={sectionLabelSx}>Organization ID</Typography>
+      <Typography sx={sectionLabelSx}>{om.sections.organizationId}</Typography>
       <Typography variant="body2" sx={{ mb: 2, color: "text.primary" }}>
         #{formValues.id ?? "—"}
       </Typography>
       <Grid size={{ xs: 12, md: 6 }}>
         {readOnly ? (
           <DetailField
-            label="Organization Name"
+            label={bi.organizationName.label}
             value={formValues.organizationName}
           />
         ) : (
@@ -31,10 +36,10 @@ function BasicInfoSection({ formValues, readOnly, handleChange }: Props) {
             field="organizationName"
             fullWidth
             size="small"
-            label="Organization Name"
+            label={bi.organizationName.label}
             value={formValues.organizationName}
             onChange={handleChange("organizationName")}
-            hint="Digits only (if applicable)"
+            hint={bi.organizationName.helperEdit}
             sx={modalTextFieldSx}
           />
         )}
@@ -42,7 +47,7 @@ function BasicInfoSection({ formValues, readOnly, handleChange }: Props) {
       <Grid size={{ xs: 12, md: 6 }}>
         {readOnly ? (
           <DetailField
-            label="Email"
+            label={bi.email.label}
             value={formValues.email}
           />
         ) : (
@@ -50,10 +55,10 @@ function BasicInfoSection({ formValues, readOnly, handleChange }: Props) {
             field="email"
             fullWidth
             size="small"
-            label="Email"
+            label={bi.email.label}
             value={formValues.email}
             onChange={handleChange("email")}
-            hint="Enter a valid email address"
+            hint={bi.email.helperEdit}
             sx={modalTextFieldSx}
           />
         )}
@@ -61,7 +66,7 @@ function BasicInfoSection({ formValues, readOnly, handleChange }: Props) {
       <Grid size={{ xs: 12, md: 6 }}>
         {readOnly ? (
           <DetailField
-            label="Phone"
+            label={bi.phone.label}
             value={formValues.phone}
           />
         ) : (
@@ -69,10 +74,10 @@ function BasicInfoSection({ formValues, readOnly, handleChange }: Props) {
             field="phone"
             fullWidth
             size="small"
-            label="Phone"
+            label={bi.phone.label}
             value={formValues.phone}
             onChange={handleChange("phone")}
-            hint="Enter a valid phone number"
+            hint={bi.phone.helperEdit}
             sx={modalTextFieldSx}
           />
         )}
@@ -80,7 +85,7 @@ function BasicInfoSection({ formValues, readOnly, handleChange }: Props) {
       <Grid size={{ xs: 12, md: 6 }}>
         {readOnly ? (
           <DetailField
-            label="Contact Person"
+            label={bi.contactPerson.label}
             value={formValues.contactPerson}
           />
         ) : (
@@ -88,10 +93,10 @@ function BasicInfoSection({ formValues, readOnly, handleChange }: Props) {
             field="contactPerson"
             fullWidth
             size="small"
-            label="Contact Person"
+            label={bi.contactPerson.label}
             value={formValues.contactPerson}
             onChange={handleChange("contactPerson")}
-            hint="Enter a valid contact person name"
+            hint={bi.contactPerson.helperEdit}
             sx={modalTextFieldSx}
           />
         )}
@@ -99,7 +104,7 @@ function BasicInfoSection({ formValues, readOnly, handleChange }: Props) {
       <Grid size={{ xs: 12, md: 6 }}>
         {readOnly ? (
           <DetailField
-            label="Service Areas"
+            label={bi.serviceAreas.label}
             value={formValues.serviceAreas}
           />
         ) : (
@@ -107,10 +112,10 @@ function BasicInfoSection({ formValues, readOnly, handleChange }: Props) {
             field="serviceAreas"
             fullWidth
             size="small"
-            label="Service Areas"
+            label={bi.serviceAreas.label}
             value={formValues.serviceAreas}
             onChange={handleChange("serviceAreas")}
-            hint="Enter the service areas separated by commas"
+            hint={bi.serviceAreas.helperEdit}
             sx={modalTextFieldSx}
           />
         )}
@@ -118,8 +123,8 @@ function BasicInfoSection({ formValues, readOnly, handleChange }: Props) {
       <Grid size={{ xs: 12, md: 6 }}>
         {readOnly ? (
           <DetailField
-            label="Status"
-            value={formValues.status ? "Active" : "Inactive"}
+            label={bi.status.label}
+            value={formValues.status ? commonContent.status.active : commonContent.status.inactive}
           />
         ) : (
           <FormTextField
@@ -127,7 +132,7 @@ function BasicInfoSection({ formValues, readOnly, handleChange }: Props) {
             select
             fullWidth
             size="small"
-            label="Status"
+            label={bi.status.label}
             value={formValues.status ? "active" : "inactive"}
             onChange={(e) => {
               const checked = e.target.value === "active";
@@ -142,8 +147,8 @@ function BasicInfoSection({ formValues, readOnly, handleChange }: Props) {
             }}
             sx={modalTextFieldSx}
           >
-            <MenuItem value="active">Active</MenuItem>
-            <MenuItem value="inactive">Inactive</MenuItem>
+            <MenuItem value="active">{commonContent.status.active}</MenuItem>
+            <MenuItem value="inactive">{commonContent.status.inactive}</MenuItem>
           </FormTextField>
         )}
       </Grid>

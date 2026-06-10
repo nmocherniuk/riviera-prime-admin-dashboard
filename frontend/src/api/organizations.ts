@@ -1,5 +1,6 @@
 import axios from "axios";
 import { api } from "./api";
+import { commonContent } from "../content/common";
 import type {
   DriverOrganization,
 } from "../features/partners/Drivers/data/types";
@@ -50,7 +51,7 @@ export async function deleteOrganization(id: string) {
 
 export function getApiErrorMessage(
   error: unknown,
-  fallback = "Request failed",
+  fallback = commonContent.errors.requestFailed,
 ): string {
   if (axios.isAxiosError(error)) {
     const msg = error.response?.data?.message;

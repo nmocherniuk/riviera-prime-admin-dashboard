@@ -15,6 +15,9 @@ import DriverPayoutSection from "./components/DriverPayoutSection";
 import type { Driver, DriverFormValues } from "../types";
 import { FormFieldErrorsProvider } from "../../../../../../components/form/FormFieldErrorsProvider";
 import type { FieldErrors } from "../../../../../../utils/formErrors";
+import { driverAgentsContent } from "../../../../../../content/driverAgents";
+
+const m = driverAgentsContent.modal;
 
 type DriverManagementModalProps = {
   open: boolean;
@@ -57,24 +60,6 @@ export default function DriverManagementModal({
         setFormValues((prev: DriverFormValues) => ({ ...prev, [field]: nextValue }));
       };
 
-  // const primaryVehicle = managedVehicles[0];
-  // const extraVehicles = Math.max(0, managedVehicles.length - 1);
-  // const vehicleIdValue = primaryVehicle
-  //   ? extraVehicles > 0
-  //     ? `${primaryVehicle.id} (+${extraVehicles})`
-  //     : primaryVehicle.id
-  //   : formValues.vehicleId || "—";
-  // const vehicleTypeValue = primaryVehicle
-  //   ? extraVehicles > 0
-  //     ? `${primaryVehicle.vehicleClass} (+${extraVehicles})`
-  //     : primaryVehicle.vehicleClass
-  //   : formValues.vehicleType || "—";
-  // const vehicleNameValue = primaryVehicle
-  //   ? extraVehicles > 0
-  //     ? `${primaryVehicle.label} (+${extraVehicles})`
-  //     : primaryVehicle.label
-  //   : formValues.vehicle || "—";
-
   return (
     <BaseModal
       open={open}
@@ -88,7 +73,7 @@ export default function DriverManagementModal({
             variant="h6"
             sx={{ fontWeight: 700, color: "text.primary" }}
           >
-            {readOnly ? "Driver details" : "Driver Management"}
+            {readOnly ? m.titles.readOnly : m.titles.edit}
           </Typography>
         </>
       }
@@ -111,7 +96,7 @@ export default function DriverManagementModal({
                 },
               }}
             >
-              Cancel
+              {m.cancel}
             </Button>
             <Button
               variant="contained"
@@ -125,7 +110,7 @@ export default function DriverManagementModal({
                 px: 2,
               }}
             >
-              Save changes
+              {m.save}
             </Button>
           </>
         ) : undefined
@@ -162,15 +147,6 @@ export default function DriverManagementModal({
         stripeAccountId={driver?.stripeAccountId}
         stripeOnboardingCompleted={driver?.stripeOnboardingCompleted}
       />
-      <Divider sx={{ my: 2 }} />
-      {/* <OperationsVehicleSection
-        readOnly={readOnly}
-        formValues={formValues}
-        onChange={handleChange}
-        vehicleIdValue={vehicleIdValue}
-        vehicleTypeValue={vehicleTypeValue}
-        vehicleNameValue={vehicleNameValue}
-      /> */}
     </BaseModal>
   );
 }

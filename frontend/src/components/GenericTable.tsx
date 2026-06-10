@@ -140,7 +140,7 @@ export function GenericTable<T>({
                     <IconButton
                       size="small"
                       sx={{ color: "text.secondary", marginLeft: "12px" }}
-                      aria-label="actions"
+                      aria-label={commonContent.aria.actions}
                       onClick={(e) => {
                         actions(e, item);
                       }}

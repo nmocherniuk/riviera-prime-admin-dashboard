@@ -3,6 +3,8 @@ import type { Driver, DriverFormValues } from "../types";
 import {
   defaultFormValues,
 } from "./driverManagementForm.types";
+import { commonContent } from "../../../../../../content/common";
+import { driverAgentsContent } from "../../../../../../content/driverAgents";
 
 export function driverToFormValues(driver: Driver | null): DriverFormValues {
   if (!driver) return defaultFormValues;
@@ -64,7 +66,7 @@ export function FormValuesToDriver(
   return {
     organizationId,
     organizationName: "",
-    name: values.name.trim() || "Unnamed driver",
+    name: values.name.trim() || driverAgentsContent.vehicle.unnamedDriver,
     phone: values.phone?.trim() || undefined,
     email: values.email?.trim() || undefined,
     address: values.address?.trim() || undefined,
@@ -102,9 +104,9 @@ export function FormValuesToDriver(
     availabilityDays: values.availabilityDays,
     availabilityHours: values.availabilityHours?.trim() || undefined,
     hasOwnVehicle: values.hasOwnVehicle,
-    vehicle: values.vehicle?.trim() || "Unknown vehicle",
-    vehiclePlate: values.vehiclePlate?.trim() || "N/A",
-    vehicleColor: values.vehicleColor?.trim() || "N/A",
+    vehicle: values.vehicle?.trim() || driverAgentsContent.vehicle.unknown,
+    vehiclePlate: values.vehiclePlate?.trim() || commonContent.notApplicable,
+    vehicleColor: values.vehicleColor?.trim() || commonContent.notApplicable,
     status: values.status ?? true,
     rides: toNumber(values.rides),
     todayShift: values.todayShift?.trim() || undefined,

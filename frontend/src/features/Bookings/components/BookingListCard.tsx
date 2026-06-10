@@ -1,6 +1,7 @@
 import { Box, Typography } from "@mui/material";
 import { bookingRouteLabel, type Booking } from "./BookingsCalendar/data/dummyBookings";
 import { colors } from "../../../theme/colors";
+import { bookingContent } from "../../../content/booking";
 
 type BookingListCardProps = {
   booking: Booking;
@@ -20,12 +21,12 @@ export default function BookingListCard({ booking, onClick }: BookingListCardPro
         ? { borderColor: "#9CA3AF", accentColor: "#9CA3AF", bgColor: "rgba(156, 163, 175, 0.08)" }
         : { borderColor: "#3B82F6", accentColor: "#3B82F6", bgColor: "rgba(59, 130, 246, 0.08)" };
   const statusLabel = isAssignedPaid
-    ? "Confirmed"
+    ? bookingContent.tripState.confirmed
     : isAssignedUnpaid
-      ? "Waiting for payment"
+      ? bookingContent.tripState.waitingForPayment
       : isPending
-        ? "Awaiting driver action"
-        : booking.status ?? "Unknown";
+        ? bookingContent.tripState.awaitingDriverAction
+        : booking.status ?? bookingContent.tripState.unknown;
 
   return (
     <Box

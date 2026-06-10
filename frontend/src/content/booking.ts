@@ -89,6 +89,40 @@ export const bookingContent = {
     loadBookings: "Échec du chargement des réservations.",
     save: "Échec de l'enregistrement de la réservation.",
   },
+
+  managementModal: {
+    titles: {
+      edit: "Modifier la réservation",
+      create: "Nouvelle réservation",
+    },
+    cancel: "Annuler",
+    submitEdit: "Enregistrer la réservation",
+    submitCreate: "Créer la réservation",
+    bookingId: "Identifiant réservation",
+    sections: {
+      details: "Détails de la réservation",
+      route: "Départ / Arrivée",
+    },
+    fields: {
+      clientName: { label: "Nom du client", placeholder: "Saisir le nom du client" },
+      vehicleId: {
+        label: "Identifiant véhicule",
+        placeholder: "UUID véhicule (facultatif si classe ci-dessous)",
+      },
+      vehicleClass: { label: "Classe de véhicule" },
+      driverId: { label: "Identifiant chauffeur", placeholder: "UUID chauffeur" },
+      date: { label: "Date", placeholder: "AAAA-MM-JJ" },
+      startTime: { label: "Heure de départ", placeholder: "HH:mm" },
+      duration: { label: "Durée", placeholder: "ex. 1 h, 1 h 30 min" },
+      from: { label: "Départ", placeholder: "Lieu de prise en charge" },
+      to: { label: "Arrivée", placeholder: "Destination" },
+    },
+    vehicleClasses: {
+      comfort: "Confort",
+      business: "Affaires",
+      van: "Van",
+    },
+  },
 } as const;
 
 export type BookingContent = typeof bookingContent;

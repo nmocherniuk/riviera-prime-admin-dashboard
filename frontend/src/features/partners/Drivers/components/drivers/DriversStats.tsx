@@ -2,6 +2,7 @@ import { Box } from "@mui/material";
 import PeopleIcon from "@mui/icons-material/People";
 import PersonOffIcon from "@mui/icons-material/PersonOff";
 import CardStat from "../../../../../components/CardStat";
+import { driverAgentsContent } from "../../../../../content/driverAgents";
 
 type Props = {
   activeCount: number;
@@ -13,8 +14,8 @@ export default function DriversStats({
   inactiveCount,
 }: Props) {
   const stats = [
-    { label: "Active", value: String(activeCount), icon: PeopleIcon },
-    { label: "Inactive", value: String(inactiveCount), icon: PersonOffIcon },
+    { label: driverAgentsContent.stats.active, value: String(activeCount), icon: PeopleIcon },
+    { label: driverAgentsContent.stats.inactive, value: String(inactiveCount), icon: PersonOffIcon },
   ];
 
   return (

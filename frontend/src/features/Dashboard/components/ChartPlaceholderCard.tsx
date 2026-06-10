@@ -1,4 +1,5 @@
 import { Box, Paper, Typography } from "@mui/material";
+import { commonContent } from "../../../content/common";
 
 type Props = {
   title: string;
@@ -47,7 +48,7 @@ export default function ChartPlaceholderCard({ title, chartId, ariaLabel, childr
           border: "1px dashed",
           borderColor: "divider",
         }}
-        aria-label={ariaLabel ?? `Chart area: ${title}`}
+        aria-label={ariaLabel ?? commonContent.aria.chartArea.replace("{title}", title)}
         id={chartId}
       >
         {children}

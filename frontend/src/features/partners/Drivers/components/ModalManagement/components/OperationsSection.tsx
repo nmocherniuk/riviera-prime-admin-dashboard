@@ -14,6 +14,11 @@ import DetailField from "../../../../../../components/DetailField";
 import FormTextField from "../../../../../../components/form/FormTextField";
 import { LANGUAGE_OPTIONS, SERVICE_TYPES } from "../constants";
 import type { DriverOrganizationFormValues } from "../../../data/types";
+import { commonContent } from "../../../../../../content/common";
+import { driversContent, driverServiceTypeLabel } from "../../../../../../content/drivers";
+
+const om = driversContent.organizationModal;
+const op = om.operations;
 
 type Props = {
   readOnly: boolean;
@@ -26,13 +31,15 @@ type Props = {
 const OperationsSection = ({ readOnly, formValues, handleChange }: Props) => {
   return (
     <>
-      <Typography sx={sectionLabelSx}>Operations</Typography>
+      <Typography sx={sectionLabelSx}>{om.sections.operations}</Typography>
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12 }}>
           {readOnly ? (
             <DetailField
-              label="Service types"
-              value={(formValues.serviceTypes ?? []).join(", ")}
+              label={op.serviceTypes.label}
+              value={(formValues.serviceTypes ?? [])
+                .map(driverServiceTypeLabel)
+                .join(", ")}
             />
           ) : (
             <FormTextField
@@ -40,7 +47,7 @@ const OperationsSection = ({ readOnly, formValues, handleChange }: Props) => {
               fullWidth
               size="small"
               select
-              label="Service types"
+              label={op.serviceTypes.label}
               value={formValues.serviceTypes ?? []}
               SelectProps={{ multiple: true }}
               onChange={(e) =>
@@ -50,7 +57,7 @@ const OperationsSection = ({ readOnly, formValues, handleChange }: Props) => {
             >
               {SERVICE_TYPES.map((t) => (
                 <MenuItem key={t} value={t}>
-                  {t}
+                  {driverServiceTypeLabel(t)}
                 </MenuItem>
               ))}
             </FormTextField>
@@ -60,7 +67,7 @@ const OperationsSection = ({ readOnly, formValues, handleChange }: Props) => {
         <Grid size={{ xs: 12 }}>
           {readOnly ? (
             <DetailField
-              label="Working hours"
+              label={op.workingHours.label}
               value={formValues.workingHours}
             />
           ) : (
@@ -68,10 +75,10 @@ const OperationsSection = ({ readOnly, formValues, handleChange }: Props) => {
               field="workingHours"
               fullWidth
               size="small"
-              label="Working hours"
+              label={op.workingHours.label}
               value={formValues.workingHours}
               onChange={handleChange("workingHours")}
-              hint="Example: 08:00-22:00"
+              hint={op.workingHours.helperEdit}
               sx={modalTextFieldSx}
             />
           )}
@@ -80,7 +87,7 @@ const OperationsSection = ({ readOnly, formValues, handleChange }: Props) => {
         <Grid size={{ xs: 12 }}>
           {readOnly ? (
             <DetailField
-              label="Languages spoken"
+              label={op.languagesSpoken.label}
               value={(formValues.languagesSpoken ?? []).join(", ")}
             />
           ) : (
@@ -89,7 +96,7 @@ const OperationsSection = ({ readOnly, formValues, handleChange }: Props) => {
               fullWidth
               size="small"
               select
-              label="Languages spoken"
+              label={op.languagesSpoken.label}
               value={formValues.languagesSpoken ?? []}
               SelectProps={{ multiple: true }}
               onChange={(e) =>
@@ -111,7 +118,7 @@ const OperationsSection = ({ readOnly, formValues, handleChange }: Props) => {
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
             <DetailField
-              label="Max concurrent bookings"
+              label={op.maxConcurrentBookings.label}
               value={formValues.maxConcurrentBookings}
             />
           ) : (
@@ -120,7 +127,7 @@ const OperationsSection = ({ readOnly, formValues, handleChange }: Props) => {
               fullWidth
               size="small"
               type="number"
-              label="Max concurrent bookings"
+              label={op.maxConcurrentBookings.label}
               value={formValues.maxConcurrentBookings}
               onChange={handleChange("maxConcurrentBookings")}
               sx={modalTextFieldSx}
@@ -131,7 +138,7 @@ const OperationsSection = ({ readOnly, formValues, handleChange }: Props) => {
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
             <DetailField
-              label="Min advance booking (hours)"
+              label={op.minAdvanceBookingHours.label}
               value={formValues.minAdvanceBookingHours}
             />
           ) : (
@@ -140,7 +147,7 @@ const OperationsSection = ({ readOnly, formValues, handleChange }: Props) => {
               fullWidth
               size="small"
               type="number"
-              label="Min advance booking (hours)"
+              label={op.minAdvanceBookingHours.label}
               value={formValues.minAdvanceBookingHours}
               onChange={handleChange("minAdvanceBookingHours")}
               sx={modalTextFieldSx}
@@ -151,8 +158,8 @@ const OperationsSection = ({ readOnly, formValues, handleChange }: Props) => {
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
             <DetailField
-              label="Accept urgent bookings"
-              value={formValues.acceptsUrgentBookings ? "Yes" : "No"}
+              label={op.acceptsUrgentBookings}
+              value={formValues.acceptsUrgentBookings ? commonContent.boolean.yes : commonContent.boolean.no}
             />
           ) : (
             <FormControlLabel
@@ -166,7 +173,7 @@ const OperationsSection = ({ readOnly, formValues, handleChange }: Props) => {
                   }
                 />
               }
-              label="Accept urgent bookings"
+              label={op.acceptsUrgentBookings}
             />
           )}
         </Grid>
@@ -174,8 +181,8 @@ const OperationsSection = ({ readOnly, formValues, handleChange }: Props) => {
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
             <DetailField
-              label="Support 24/7"
-              value={formValues.support24_7 ? "Yes" : "No"}
+              label={op.support247}
+              value={formValues.support24_7 ? commonContent.boolean.yes : commonContent.boolean.no}
             />
           ) : (
             <FormControlLabel
@@ -189,7 +196,7 @@ const OperationsSection = ({ readOnly, formValues, handleChange }: Props) => {
                   }
                 />
               }
-              label="Support 24/7"
+              label={op.support247}
             />
           )}
         </Grid>
@@ -197,7 +204,7 @@ const OperationsSection = ({ readOnly, formValues, handleChange }: Props) => {
         <Grid size={{ xs: 12 }}>
           {readOnly ? (
             <DetailField
-              label="Cancellation policy"
+              label={op.cancellationPolicy.label}
               value={formValues.cancellationPolicy}
             />
           ) : (
@@ -205,7 +212,7 @@ const OperationsSection = ({ readOnly, formValues, handleChange }: Props) => {
               field="cancellationPolicy"
               fullWidth
               size="small"
-              label="Cancellation policy"
+              label={op.cancellationPolicy.label}
               value={formValues.cancellationPolicy}
               onChange={handleChange("cancellationPolicy")}
               multiline
@@ -218,7 +225,7 @@ const OperationsSection = ({ readOnly, formValues, handleChange }: Props) => {
         <Grid size={{ xs: 12 }}>
           {readOnly ? (
             <DetailField
-              label="Special conditions notes"
+              label={op.specialConditionsNotes.label}
               value={formValues.specialConditionsNotes}
             />
           ) : (
@@ -226,7 +233,7 @@ const OperationsSection = ({ readOnly, formValues, handleChange }: Props) => {
               field="specialConditionsNotes"
               fullWidth
               size="small"
-              label="Special conditions notes"
+              label={op.specialConditionsNotes.label}
               value={formValues.specialConditionsNotes}
               onChange={handleChange("specialConditionsNotes")}
               multiline

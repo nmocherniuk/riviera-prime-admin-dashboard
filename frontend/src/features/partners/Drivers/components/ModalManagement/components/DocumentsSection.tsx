@@ -13,6 +13,11 @@ import {
 } from "@mui/material";
 import { DOCUMENTS_OPTIONS } from "../constants";
 import type { DriverOrganizationFormValues } from "../../../data/types";
+import { commonContent } from "../../../../../../content/common";
+import { driversContent } from "../../../../../../content/drivers";
+
+const om = driversContent.organizationModal;
+const doc = om.documents;
 
 type Props = {
   readOnly: boolean;
@@ -25,7 +30,7 @@ type Props = {
 const DocumentsSection = ({ readOnly, formValues, handleChange }: Props) => {
   return (
     <>
-      <Typography sx={sectionLabelSx}>Documents</Typography>
+      <Typography sx={sectionLabelSx}>{om.sections.documents}</Typography>
       <Grid container spacing={2} sx={{ mb: 2 }}>
         {DOCUMENTS_OPTIONS.map((d, index) => {
           const val = formValues[d.key as keyof DriverOrganizationFormValues];
@@ -36,7 +41,10 @@ const DocumentsSection = ({ readOnly, formValues, handleChange }: Props) => {
           if (readOnly) {
             return (
               <Grid key={d.key} size={{ xs: 12, md: isLastOdd ? 12 : 6 }}>
-                <DetailField label={d.label} value={val ? "Yes" : "No"} />
+                <DetailField
+                  label={d.label}
+                  value={val ? commonContent.boolean.yes : commonContent.boolean.no}
+                />
               </Grid>
             );
           }
@@ -59,7 +67,7 @@ const DocumentsSection = ({ readOnly, formValues, handleChange }: Props) => {
         <Grid size={{ xs: 12 }}>
           {readOnly ? (
             <DetailField
-              label="Additional certifications"
+              label={doc.additionalCertifications.label}
               value={formValues.additionalCertifications}
             />
           ) : (
@@ -67,7 +75,7 @@ const DocumentsSection = ({ readOnly, formValues, handleChange }: Props) => {
               field="additionalCertifications"
               fullWidth
               size="small"
-              label="Additional certifications"
+              label={doc.additionalCertifications.label}
               value={formValues.additionalCertifications}
               onChange={handleChange("additionalCertifications")}
               multiline
@@ -80,7 +88,7 @@ const DocumentsSection = ({ readOnly, formValues, handleChange }: Props) => {
         <Grid size={{ xs: 12 }}>
           {readOnly ? (
             <DetailField
-              label="Document notes"
+              label={doc.documentNotes.label}
               value={formValues.documentNotes}
             />
           ) : (
@@ -88,7 +96,7 @@ const DocumentsSection = ({ readOnly, formValues, handleChange }: Props) => {
               field="documentNotes"
               fullWidth
               size="small"
-              label="Document notes"
+              label={doc.documentNotes.label}
               value={formValues.documentNotes}
               onChange={handleChange("documentNotes")}
               multiline

@@ -1,6 +1,7 @@
 import { Button } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import PageHeader from "../../../../../components/PageHeader";
+import { driverAgentsContent } from "../../../../../content/driverAgents";
 
 type Props = { organizationName: string; onAddDriver: () => void };
 
@@ -8,11 +9,11 @@ export default function DriversHeader({ organizationName, onAddDriver }: Props) 
   return (
     <PageHeader
       title={organizationName}
-      subtitle="Manage drivers"
+      subtitle={driverAgentsContent.page.subtitle}
       titleSx={{ fontWeight: 800, letterSpacing: "-0.02em" }}
       subtitleSx={{ fontSize: { xs: "0.875rem", md: "1rem" } }}
       withBack={{
-        label: "Back to organizations",
+        label: driverAgentsContent.page.backToOrganizations,
         path: "/drivers-partners",
       }}
       action={
@@ -31,7 +32,7 @@ export default function DriversHeader({ organizationName, onAddDriver }: Props) 
             "&:hover": { bgcolor: "primary.dark" },
           }}
         >
-          Add driver
+          {driverAgentsContent.page.addDriver}
         </Button>
       }
     />

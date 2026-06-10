@@ -1,4 +1,5 @@
 import type { DriverOrganizationFormValues } from "../../data/types";
+import { driversContent } from "../../../../../content/drivers";
 
 export type DriverOrganizationDocumentKey = keyof Pick<
   DriverOrganizationFormValues,
@@ -22,14 +23,17 @@ export const SERVICE_TYPES = [
 
 export const LANGUAGE_OPTIONS = ["FR", "EN", "ES", "DE", "IT", "NL"];
 
+const fin = driversContent.organizationModal.financial;
+const doc = driversContent.organizationModal.documents;
+
 export const COOPERATION_OPTIONS: Array<{
   value: "" | "COMMISSION" | "FIXED_RATE" | "CUSTOM";
   label: string;
 }> = [
     { value: "", label: "—" },
-    { value: "COMMISSION", label: "Commission" },
-    { value: "FIXED_RATE", label: "Fixed rate" },
-    { value: "CUSTOM", label: "Custom" },
+    { value: "COMMISSION", label: fin.cooperationOptions.commission },
+    { value: "FIXED_RATE", label: fin.cooperationOptions.fixedRate },
+    { value: "CUSTOM", label: fin.cooperationOptions.custom },
   ];
 
 export const CURRENCY_OPTIONS: Array<"EUR" | "USD" | "GBP"> = [
@@ -42,20 +46,20 @@ export const DOCUMENTS_OPTIONS: Array<{
   key: DriverOrganizationDocumentKey;
   label: string;
 }> = [
-    { key: "kbisUploaded", label: "KBIS uploaded" },
-    { key: "rcProInsuranceUploaded", label: "RC Pro insurance uploaded" },
+    { key: "kbisUploaded", label: doc.kbisUploaded },
+    { key: "rcProInsuranceUploaded", label: doc.rcProInsuranceUploaded },
     {
       key: "transportInsuranceUploaded",
-      label: "Transport insurance uploaded",
+      label: doc.transportInsuranceUploaded,
     },
     {
       key: "operatingLicenseProvided",
-      label: "Operating license provided",
+      label: doc.operatingLicenseProvided,
     },
-    { key: "bankDetailsProvided", label: "Bank details provided" },
-    { key: "directorIdCopyProvided", label: "Director ID copy provided" },
+    { key: "bankDetailsProvided", label: doc.bankDetailsProvided },
+    { key: "directorIdCopyProvided", label: doc.directorIdCopyProvided },
     {
       key: "signedPartnershipAgreement",
-      label: "Signed partnership agreement",
+      label: doc.signedPartnershipAgreement,
     },
   ];

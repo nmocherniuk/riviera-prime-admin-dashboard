@@ -14,14 +14,19 @@ import {
   driverVehicleSubtitle,
   hasAssignedVehicle,
 } from "./driverVehicleDisplay";
+import { commonContent } from "../../../../../content/common";
+import { driverAgentsContent } from "../../../../../content/driverAgents";
+
+const t = driverAgentsContent.table;
+const rm = driverAgentsContent.rowMenu;
 
 const statusStyle = (active: boolean) =>
   active
-    ? { bg: "rgba(34, 197, 94, 0.2)", color: "#22c55e", label: "Active" as const }
+    ? { bg: "rgba(34, 197, 94, 0.2)", color: "#22c55e", label: commonContent.status.active }
     : {
         bg: "rgba(255,255,255,0.08)",
         color: "rgba(255,255,255,0.6)",
-        label: "Inactive" as const,
+        label: commonContent.status.inactive,
       };
 
 type Props = {
@@ -59,7 +64,7 @@ export default function DriversTable({
   const columns = [
     {
       key: "name",
-      label: "Driver Name",
+      label: t.columnName,
       render: (d: Driver) => (
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
           <Avatar
@@ -80,7 +85,7 @@ export default function DriversTable({
               {d.name}
             </Typography>
             <Typography variant="caption" sx={{ color: "text.secondary" }}>
-              ID: {d.id}
+              {t.idPrefix}: {d.id}
             </Typography>
           </Box>
         </Box>
@@ -88,7 +93,7 @@ export default function DriversTable({
     },
     {
       key: "vehicle",
-      label: "Vehicle",
+      label: t.columnVehicle,
       render: (d: Driver) => {
         const subtitle = driverVehicleSubtitle(d);
         return (
@@ -102,7 +107,7 @@ export default function DriversTable({
               </Typography>
             ) : !hasAssignedVehicle(d) ? (
               <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                No vehicle assigned
+                {t.noVehicleAssigned}
               </Typography>
             ) : null}
           </>
@@ -111,7 +116,7 @@ export default function DriversTable({
     },
     {
       key: "status",
-      label: "Status",
+      label: t.columnStatus,
       render: (d: Driver) => {
         const s = statusStyle(d.status ?? true);
         return (
@@ -131,7 +136,7 @@ export default function DriversTable({
     },
     {
       key: "rides",
-      label: "Rides",
+      label: t.columnRides,
       render: (d: Driver) => (
         <Typography variant="body2" sx={{ color: "text.primary" }}>
           {d.rides}
@@ -140,7 +145,7 @@ export default function DriversTable({
     },
     {
       key: "earning",
-      label: "Earning",
+      label: t.columnEarning,
       render: (d: Driver) => (
         <Typography variant="body2" sx={{ color: "text.primary" }}>
           {d.earning}
@@ -152,7 +157,7 @@ export default function DriversTable({
   return (
     <>
       <GenericTable
-        title="Drivers"
+        title={t.title}
         withPagination={{
           pageSize: 6,
         }}
@@ -180,7 +185,7 @@ export default function DriversTable({
         menuPaperSx={{ sx: { minWidth: 160, borderRadius: 2 } }}
         actions={[
           {
-            label: "Edit",
+            label: rm.edit,
             icon: <EditIcon fontSize="small" />,
             onClick: () => {
               if (selected) onDriverEdit?.(selected);
@@ -188,7 +193,7 @@ export default function DriversTable({
             },
           },
           {
-            label: "Send test WhatsApp",
+            label: rm.sendTestWhatsApp,
             icon: <WhatsAppIcon fontSize="small" />,
             onClick: () => {
               if (selected) onSendTestMessage?.(selected);
@@ -196,7 +201,7 @@ export default function DriversTable({
             },
           },
           {
-            label: "Delete",
+            label: rm.delete,
             color: "error.main",
             icon: <DeleteIcon fontSize="small" />,
             onClick: () => {

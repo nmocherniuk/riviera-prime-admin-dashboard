@@ -82,6 +82,26 @@ export const commonContent = {
     active: "Actif",
     inactive: "Inactif",
   },
+
+  deleteDialog: {
+    title: "Supprimer l’enregistrement ?",
+    message:
+      "Cette action est irréversible. L’enregistrement sera supprimé définitivement.",
+    confirm: "Supprimer",
+    cancel: "Annuler",
+  },
+
+  aria: {
+    openMenu: "Ouvrir le menu",
+    close: "Fermer",
+    actions: "Actions",
+    chartArea: "Zone graphique : {title}",
+  },
+
+  errors: {
+    requestFailed: "Échec de la requête",
+    uploadVehicleImage: "Échec du téléversement de l’image du véhicule",
+  },
 } as const;
 
 export type CommonContent = typeof commonContent;

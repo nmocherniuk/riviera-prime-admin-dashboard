@@ -1,7 +1,9 @@
 import type { Driver } from "./types";
+import { commonContent } from "../../../../../content/common";
+import { driverAgentsContent } from "../../../../../content/driverAgents";
 
-const PLACEHOLDER_VEHICLE = "Unknown vehicle";
-const PLACEHOLDER_FIELD = "N/A";
+const PLACEHOLDER_VEHICLE = driverAgentsContent.vehicle.unknown;
+const PLACEHOLDER_FIELD = commonContent.notApplicable;
 
 function isPlaceholder(value: string | null | undefined): boolean {
   const v = value?.trim();

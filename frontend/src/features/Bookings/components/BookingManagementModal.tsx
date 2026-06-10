@@ -14,6 +14,9 @@ import DetailField from "../../../components/DetailField";
 import BaseModal from "../../../components/BaseModal";
 import { FormFieldErrorsProvider } from "../../../components/form/FormFieldErrorsProvider";
 import type { FieldErrors } from "../../../utils/formErrors";
+import { bookingContent } from "../../../content/booking";
+
+const mm = bookingContent.managementModal;
 
 export type BookingFormValues = {
   clientName: string;
@@ -101,7 +104,7 @@ export default function BookingManagementModal({
         <>
           <InfoOutlinedIcon sx={{ color: "text.secondary", fontSize: 20 }} />
           <Typography variant="h6" sx={{ fontWeight: 700, color: "text.primary" }}>
-            {booking ? "Edit Booking" : "New Booking"}
+            {booking ? mm.titles.edit : mm.titles.create}
           </Typography>
         </>
       }
@@ -123,7 +126,7 @@ export default function BookingManagementModal({
               },
             }}
           >
-            Cancel
+            {mm.cancel}
           </Button>
           <Button
             variant="contained"
@@ -137,26 +140,26 @@ export default function BookingManagementModal({
               px: 2,
             }}
           >
-            {booking ? "Save Booking" : "Create Booking"}
+            {booking ? mm.submitEdit : mm.submitCreate}
           </Button>
         </>
       }
     >
-      <DetailField label="Booking ID" value={booking ? `#${booking.id}` : "—"} emptyAsDash={false} />
+      <DetailField label={mm.bookingId} value={booking ? `#${booking.id}` : "—"} emptyAsDash={false} />
 
       <FormFieldErrorsProvider
         fieldErrors={fieldErrors}
         onClearField={onClearFieldError}
       >
-      <Typography sx={sectionLabelSx}>Booking Details</Typography>
+      <Typography sx={sectionLabelSx}>{mm.sections.details}</Typography>
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 6 }}>
           <FormTextField
             field="clientName"
             fullWidth
             size="small"
-            label="Client name"
-            placeholder="Enter client name"
+            label={mm.fields.clientName.label}
+            placeholder={mm.fields.clientName.placeholder}
             value={formValues.clientName}
             onChange={handleChange("clientName")}
             sx={modalTextFieldSx}
@@ -167,8 +170,8 @@ export default function BookingManagementModal({
             field="vehicleId"
             fullWidth
             size="small"
-            label="Vehicle ID"
-            placeholder="Vehicle UUID (optional if class below)"
+            label={mm.fields.vehicleId.label}
+            placeholder={mm.fields.vehicleId.placeholder}
             value={formValues.vehicleId}
             onChange={handleChange("vehicleId")}
             sx={modalTextFieldSx}
@@ -180,16 +183,16 @@ export default function BookingManagementModal({
             fullWidth
             select
             size="small"
-            label="Vehicle class"
+            label={mm.fields.vehicleClass.label}
             value={formValues.vehicleClass}
             onChange={handleChange("vehicleClass")}
             SelectProps={{ native: true }}
             sx={modalTextFieldSx}
           >
             <option value="">—</option>
-            <option value="comfort">Comfort</option>
-            <option value="business">Business</option>
-            <option value="van">Van</option>
+            <option value="comfort">{mm.vehicleClasses.comfort}</option>
+            <option value="business">{mm.vehicleClasses.business}</option>
+            <option value="van">{mm.vehicleClasses.van}</option>
           </FormTextField>
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
@@ -197,8 +200,8 @@ export default function BookingManagementModal({
             field="driverId"
             fullWidth
             size="small"
-            label="Driver ID"
-            placeholder="Driver UUID"
+            label={mm.fields.driverId.label}
+            placeholder={mm.fields.driverId.placeholder}
             value={formValues.driverId}
             onChange={handleChange("driverId")}
             sx={modalTextFieldSx}
@@ -209,8 +212,8 @@ export default function BookingManagementModal({
             field="date"
             fullWidth
             size="small"
-            label="Date"
-            placeholder="YYYY-MM-DD"
+            label={mm.fields.date.label}
+            placeholder={mm.fields.date.placeholder}
             type="date"
             value={formValues.date}
             onChange={handleChange("date")}
@@ -223,8 +226,8 @@ export default function BookingManagementModal({
             field="startTime"
             fullWidth
             size="small"
-            label="Start time"
-            placeholder="HH:mm"
+            label={mm.fields.startTime.label}
+            placeholder={mm.fields.startTime.placeholder}
             type="time"
             value={formValues.startTime}
             onChange={handleChange("startTime")}
@@ -237,8 +240,8 @@ export default function BookingManagementModal({
             field="duration"
             fullWidth
             size="small"
-            label="Duration"
-            placeholder="e.g. 1hr, 1hr 30min"
+            label={mm.fields.duration.label}
+            placeholder={mm.fields.duration.placeholder}
             value={formValues.duration}
             onChange={handleChange("duration")}
             sx={modalTextFieldSx}
@@ -246,15 +249,15 @@ export default function BookingManagementModal({
         </Grid>
       </Grid>
 
-      <Typography sx={sectionLabelSx}>From / To</Typography>
+      <Typography sx={sectionLabelSx}>{mm.sections.route}</Typography>
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 6 }}>
           <FormTextField
             field="from"
             fullWidth
             size="small"
-            label="From"
-            placeholder="Pickup location"
+            label={mm.fields.from.label}
+            placeholder={mm.fields.from.placeholder}
             value={formValues.from}
             onChange={handleChange("from")}
             sx={modalTextFieldSx}
@@ -265,8 +268,8 @@ export default function BookingManagementModal({
             field="to"
             fullWidth
             size="small"
-            label="To"
-            placeholder="Destination"
+            label={mm.fields.to.label}
+            placeholder={mm.fields.to.placeholder}
             value={formValues.to}
             onChange={handleChange("to")}
             sx={modalTextFieldSx}

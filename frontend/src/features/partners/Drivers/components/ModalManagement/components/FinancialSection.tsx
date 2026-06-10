@@ -9,6 +9,10 @@ import DetailField from "../../../../../../components/DetailField";
 import FormTextField from "../../../../../../components/form/FormTextField";
 import { COOPERATION_OPTIONS, CURRENCY_OPTIONS } from "../constants";
 import type { DriverOrganizationFormValues } from "../../../data/types";
+import { driversContent } from "../../../../../../content/drivers";
+
+const om = driversContent.organizationModal;
+const fin = om.financial;
 
 type Props = {
   readOnly: boolean;
@@ -21,12 +25,12 @@ type Props = {
 const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
   return (
     <>
-      <Typography sx={sectionLabelSx}>Commercial & financial</Typography>
+      <Typography sx={sectionLabelSx}>{om.sections.financial}</Typography>
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 6 }}>
           {readOnly ? (
             <DetailField
-              label="Cooperation type"
+              label={fin.cooperationType.label}
               value={formValues.cooperationType}
             />
           ) : (
@@ -35,7 +39,7 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
               fullWidth
               size="small"
               select
-              label="Cooperation type"
+              label={fin.cooperationType.label}
               value={formValues.cooperationType}
               onChange={handleChange("cooperationType")}
               sx={modalTextFieldSx}
@@ -51,20 +55,17 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
 
         <Grid size={{ xs: 12 }}>
           <Typography variant="body2" sx={{ color: "text.secondary", mb: 1 }}>
-            Public customer rates are set per vehicle in Pricing. Partner
-            settlement (commission, partner minimum, partner surcharges) applies
-            to payouts after the client pays the platform.
+            {fin.ratesNote}
           </Typography>
           <Typography variant="body2" sx={{ color: "text.secondary", mb: 0 }}>
-            Payout bank details are not collected here — use Stripe Connect
-            onboarding per driver from the driver profile.
+            {fin.payoutNote}
           </Typography>
         </Grid>
 
         <Grid size={{ xs: 12 }}>
           {readOnly ? (
             <DetailField
-              label="Payment terms"
+              label={fin.paymentTerms.label}
               value={formValues.paymentTerms}
             />
           ) : (
@@ -72,7 +73,7 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
               field="paymentTerms"
               fullWidth
               size="small"
-              label="Payment terms"
+              label={fin.paymentTerms.label}
               value={formValues.paymentTerms}
               onChange={handleChange("paymentTerms")}
               multiline
@@ -84,14 +85,14 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
 
         <Grid size={{ xs: 12, md: 4 }}>
           {readOnly ? (
-            <DetailField label="Currency" value={formValues.currency} />
+            <DetailField label={fin.currency.label} value={formValues.currency} />
           ) : (
             <FormTextField
               field="currency"
               fullWidth
               size="small"
               select
-              label="Currency"
+              label={fin.currency.label}
               value={formValues.currency}
               onChange={handleChange("currency")}
               sx={modalTextFieldSx}
@@ -109,7 +110,7 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
           <Grid size={{ xs: 12, md: 4 }}>
             {readOnly ? (
               <DetailField
-                label="Commission (%)"
+                label={fin.commissionPercent.label}
                 value={formValues.commissionPercent}
               />
             ) : (
@@ -118,7 +119,7 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
                 fullWidth
                 size="small"
                 type="number"
-                label="Commission (%)"
+                label={fin.commissionPercent.label}
                 value={formValues.commissionPercent}
                 onChange={handleChange("commissionPercent")}
                 sx={modalTextFieldSx}
@@ -130,7 +131,7 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
         <Grid size={{ xs: 12, md: 4 }}>
           {readOnly ? (
             <DetailField
-              label="Minimum fare / partner floor (EUR)"
+              label={fin.minimumFare.label}
               value={formValues.minimumFare}
             />
           ) : (
@@ -139,7 +140,7 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
               fullWidth
               size="small"
               type="number"
-              label="Minimum fare / partner floor (EUR)"
+              label={fin.minimumFare.label}
               value={formValues.minimumFare}
               onChange={handleChange("minimumFare")}
               sx={modalTextFieldSx}
@@ -150,7 +151,7 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
         <Grid size={{ xs: 12, md: 4 }}>
           {readOnly ? (
             <DetailField
-              label="Holiday surcharge — settlement (%)"
+              label={fin.holidaySurchargePercent.label}
               value={formValues.holidaySurchargePercent}
             />
           ) : (
@@ -159,7 +160,7 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
               fullWidth
               size="small"
               type="number"
-              label="Holiday surcharge — settlement (%)"
+              label={fin.holidaySurchargePercent.label}
               value={formValues.holidaySurchargePercent}
               onChange={handleChange("holidaySurchargePercent")}
               sx={modalTextFieldSx}
@@ -170,7 +171,7 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
         <Grid size={{ xs: 12, md: 4 }}>
           {readOnly ? (
             <DetailField
-              label="Night surcharge — settlement (%)"
+              label={fin.nightSurchargePercent.label}
               value={formValues.nightSurchargePercent}
             />
           ) : (
@@ -179,7 +180,7 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
               fullWidth
               size="small"
               type="number"
-              label="Night surcharge — settlement (%)"
+              label={fin.nightSurchargePercent.label}
               value={formValues.nightSurchargePercent}
               onChange={handleChange("nightSurchargePercent")}
               sx={modalTextFieldSx}
@@ -189,14 +190,14 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
 
         <Grid size={{ xs: 12, md: 4 }}>
           {readOnly ? (
-            <DetailField label="Hourly rate (org ref.)" value={formValues.hourlyRate} />
+            <DetailField label={fin.hourlyRate.label} value={formValues.hourlyRate} />
           ) : (
             <FormTextField
               field="hourlyRate"
               fullWidth
               size="small"
               type="number"
-              label="Hourly rate (org ref.)"
+              label={fin.hourlyRate.label}
               value={formValues.hourlyRate}
               onChange={handleChange("hourlyRate")}
               sx={modalTextFieldSx}
@@ -207,7 +208,7 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
         <Grid size={{ xs: 12, md: 4 }}>
           {readOnly ? (
             <DetailField
-              label="Transfer base rate (org ref.)"
+              label={fin.transferBaseRate.label}
               value={formValues.transferBaseRate}
             />
           ) : (
@@ -216,7 +217,7 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
               fullWidth
               size="small"
               type="number"
-              label="Transfer base rate (org ref.)"
+              label={fin.transferBaseRate.label}
               value={formValues.transferBaseRate}
               onChange={handleChange("transferBaseRate")}
               sx={modalTextFieldSx}
@@ -227,7 +228,7 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
         <Grid size={{ xs: 12, md: 4 }}>
           {readOnly ? (
             <DetailField
-              label="Waiting time fee"
+              label={fin.waitingTimeFee.label}
               value={formValues.waitingTimeFee}
             />
           ) : (
@@ -236,7 +237,7 @@ const FinancialSection = ({ readOnly, formValues, handleChange }: Props) => {
               fullWidth
               size="small"
               type="number"
-              label="Waiting time fee"
+              label={fin.waitingTimeFee.label}
               value={formValues.waitingTimeFee}
               onChange={handleChange("waitingTimeFee")}
               sx={modalTextFieldSx}

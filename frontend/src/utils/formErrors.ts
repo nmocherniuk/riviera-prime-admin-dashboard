@@ -1,6 +1,7 @@
 import axios from "axios";
 import type { TextFieldProps } from "@mui/material";
 import { getApiErrorMessage } from "../api/organizations";
+import { commonContent } from "../content/common";
 
 export type FieldErrors = Record<string, string>;
 
@@ -69,7 +70,7 @@ export function mapApiErrorsToFormFields(apiErrors: FieldErrors): FieldErrors {
 
 export function parseSubmitError(
   error: unknown,
-  fallback = "Request failed",
+  fallback = commonContent.errors.requestFailed,
 ): { message: string; fieldErrors: FieldErrors } {
   const apiErrors = parseApiFieldErrors(error);
   const fieldErrors = mapApiErrorsToFormFields(apiErrors);

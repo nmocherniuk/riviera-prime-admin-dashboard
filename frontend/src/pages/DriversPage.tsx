@@ -33,6 +33,7 @@ import { FormValuesToDriver } from "../features/partners/Drivers/components/driv
 import { useToast } from "../providers/ToastProvider";
 import { useModalFormErrors } from "../hooks/useModalFormErrors";
 import type { DriverOrganization } from "../features/partners/Drivers/data/types";
+import { driverAgentsContent } from "../content/driverAgents";
 
 // type VehiclesByDriver = Record<
 //   string,
@@ -128,9 +129,9 @@ export default function DriversPage() {
 
   const isPending = organizationPending || driversPending;
   const listError = organizationError && !isNotFoundError(organizationError)
-    ? getApiErrorMessage(organizationError, "Failed to load organization")
+    ? getApiErrorMessage(organizationError, driverAgentsContent.errors.loadOrganization)
     : driversError && !isNotFoundError(driversError)
-      ? getApiErrorMessage(driversError, "Failed to load drivers")
+      ? getApiErrorMessage(driversError, driverAgentsContent.errors.loadDrivers)
       : null;
 
 
@@ -194,8 +195,8 @@ export default function DriversPage() {
 
         showToast({
           message: driverId
-            ? "Driver updated successfully."
-            : "Driver created successfully.",
+            ? driverAgentsContent.toasts.updated
+            : driverAgentsContent.toasts.created,
           severity: "success",
         });
 
@@ -205,7 +206,7 @@ export default function DriversPage() {
           driver: null,
         }));
       } catch (e) {
-        const msg = applySubmitError(e, "Failed to save driver");
+        const msg = applySubmitError(e, driverAgentsContent.errors.save);
         showToast({ message: msg, severity: "error" });
         throw e;
       }
@@ -221,17 +222,17 @@ export default function DriversPage() {
   const handleSendTestMessage = useCallback(
     async (driver: Driver) => {
       if (!driver.id) {
-        showToast({ message: "Driver ID is missing.", severity: "error" });
+        showToast({ message: driverAgentsContent.errors.missingDriverId, severity: "error" });
         return;
       }
       try {
         await sendDriverTestWhatsApp(driver.id);
         showToast({
-          message: "Test WhatsApp message sent successfully.",
+          message: driverAgentsContent.toasts.whatsAppSent,
           severity: "success",
         });
       } catch (e) {
-        const msg = getApiErrorMessage(e, "Failed to send test WhatsApp message");
+        const msg = getApiErrorMessage(e, driverAgentsContent.errors.sendWhatsApp);
         showToast({ message: msg, severity: "error" });
       }
     },
@@ -251,14 +252,14 @@ export default function DriversPage() {
     return (
       <Box sx={{ p: 3 }}>
         <Typography variant="body1" color="text.secondary">
-          No results
+          {driverAgentsContent.empty.noResults}
         </Typography>
         <Button
           startIcon={<ArrowBackIcon />}
           onClick={() => navigate("/drivers-partners")}
           sx={{ mt: 2, textTransform: "none" }}
         >
-          Back to organizations
+          {driverAgentsContent.page.backToOrganizations}
         </Button>
       </Box>
     );
@@ -283,14 +284,14 @@ export default function DriversPage() {
     return (
       <Box sx={{ p: 3 }}>
         <Typography variant="body1" color="text.secondary">
-          {listError ?? "No results"}
+          {listError ?? driverAgentsContent.empty.noResults}
         </Typography>
         <Button
           startIcon={<ArrowBackIcon />}
           onClick={() => navigate("/drivers-partners")}
           sx={{ mt: 2, textTransform: "none" }}
         >
-          Back to organizations
+          {driverAgentsContent.page.backToOrganizations}
         </Button>
       </Box>
     );
@@ -345,7 +346,7 @@ export default function DriversPage() {
             </Box>
           ) : drivers.length === 0 ? (
             <Box sx={{ py: 8, textAlign: "center", color: "text.secondary" }}>
-              No results
+              {driverAgentsContent.empty.noResults}
             </Box>
           ) : (
             <DriversTable
@@ -404,17 +405,17 @@ export default function DriversPage() {
               setDriverToDelete(null);
 
               showToast({
-                message: "Driver deleted successfully.",
+                message: driverAgentsContent.toasts.deleted,
                 severity: "success",
               });
             } catch (e) {
-              const msg = getApiErrorMessage(e, "Failed to delete driver");
+              const msg = getApiErrorMessage(e, driverAgentsContent.errors.delete);
               showToast({ message: msg, severity: "error" });
               throw e;
             }
           }}
-          title="Delete driver?"
-          message="This action cannot be undone. The driver will be deleted permanently."
+          title={driverAgentsContent.deleteDialog.title}
+          message={driverAgentsContent.deleteDialog.message}
         />
       </Container>
     </Box>

@@ -9,6 +9,8 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import GroupIcon from "@mui/icons-material/Group";
 import EntityActionsMenu from "../../../../components/EntityActionsMenu";
+import { commonContent } from "../../../../content/common";
+import { driversContent } from "../../../../content/drivers";
 
 const activeChip = {
   bg: "rgba(34, 197, 94, 0.2)",
@@ -95,13 +97,13 @@ export default function DriverOrganizationCard({
               {o.organizationName}
             </Typography>
             <Typography variant="caption" sx={{ color: "text.secondary" }}>
-              Contact: {o.contactPerson}
+              {driversContent.organizationCard.contactPrefix} {o.contactPerson}
             </Typography>
             <Typography
               variant="caption"
               sx={{ color: "text.secondary", display: "block" }}
             >
-              ID: {o.id}
+              {driversContent.organizationCard.idPrefix} {o.id}
             </Typography>
           </Box>
         </Box>
@@ -109,7 +111,7 @@ export default function DriverOrganizationCard({
         <IconButton
           size="small"
           sx={{ color: "text.secondary", flexShrink: 0 }}
-          aria-label="actions"
+          aria-label={commonContent.aria.actions}
           onClick={openMenu}
         >
           <MoreVertIcon />
@@ -123,26 +125,26 @@ export default function DriverOrganizationCard({
         menuPaperSx={{ minWidth: 200, borderRadius: 2 }}
         actions={[
           {
-            label: "View details",
+            label: driversContent.rowMenu.viewDetails,
             icon: <VisibilityIcon fontSize="small" />,
             disabled: !onViewDetails,
             onClick: () => onViewDetails?.(),
           },
           {
-            label: "Edit",
+            label: driversContent.rowMenu.edit,
             icon: <EditIcon fontSize="small" />,
             disabled: !onEdit,
             onClick: () => onEdit?.(),
           },
           {
-            label: "Delete",
+            label: driversContent.rowMenu.delete,
             icon: <DeleteIcon fontSize="small" />,
             disabled: !onDelete,
             color: "error.main",
             onClick: () => onDelete?.(),
           },
           {
-            label: "View drivers",
+            label: driversContent.rowMenuViewDrivers,
             icon: <GroupIcon fontSize="small" />,
             disabled: !onViewDrivers,
             onClick: () => onViewDrivers?.(),
@@ -163,14 +165,13 @@ export default function DriverOrganizationCard({
         }}
       >
         <Chip
-          label={o.status ? "active" : "inactive"}
+          label={o.status ? commonContent.status.active : commonContent.status.inactive}
           size="small"
           sx={{
             bgcolor: statusStyle.bg,
             color: statusStyle.color,
             fontWeight: 700,
             fontSize: "0.7rem",
-            textTransform: "capitalize",
           }}
         />
         <Typography variant="caption" sx={{ color: "text.secondary" }} noWrap>

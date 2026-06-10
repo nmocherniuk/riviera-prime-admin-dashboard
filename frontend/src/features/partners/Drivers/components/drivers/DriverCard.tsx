@@ -22,14 +22,19 @@ import {
   driverVehicleSubtitle,
   hasAssignedVehicle,
 } from "./driverVehicleDisplay";
+import { commonContent } from "../../../../../content/common";
+import { driverAgentsContent } from "../../../../../content/driverAgents";
+
+const t = driverAgentsContent.table;
+const rm = driverAgentsContent.rowMenu;
 
 const statusStyle = (active: boolean) =>
   active
-    ? { bg: "rgba(34, 197, 94, 0.2)", color: "#22c55e", label: "Active" as const }
+    ? { bg: "rgba(34, 197, 94, 0.2)", color: "#22c55e", label: commonContent.status.active }
     : {
         bg: "rgba(255,255,255,0.08)",
         color: "rgba(255,255,255,0.6)",
-        label: "Inactive" as const,
+        label: commonContent.status.inactive,
       };
 
 type Props = {
@@ -112,7 +117,7 @@ export default function DriverCard({
               {d.name}
             </Typography>
             <Typography variant="caption" sx={{ color: "text.secondary" }}>
-              ID: {d.id}
+              {t.idPrefix}: {d.id}
             </Typography>
             <Typography variant="body2" sx={{ color: "text.primary", mt: 0.5 }}>
               {driverVehicleName(d)}
@@ -123,7 +128,7 @@ export default function DriverCard({
               </Typography>
             ) : !hasAssignedVehicle(d) ? (
               <Typography variant="caption" sx={{ color: "text.secondary" }}>
-                No vehicle assigned
+                {t.noVehicleAssigned}
               </Typography>
             ) : null}
           </Box>
@@ -131,7 +136,7 @@ export default function DriverCard({
         <IconButton
           size="small"
           sx={{ color: "text.secondary", flexShrink: 0 }}
-          aria-label="actions"
+          aria-label={commonContent.aria.actions}
           onClick={openMenu}
         >
           <MoreVertIcon />
@@ -149,19 +154,19 @@ export default function DriverCard({
           <ListItemIcon>
             <EditIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Edit</ListItemText>
+          <ListItemText>{rm.edit}</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleSendTestMessage}>
           <ListItemIcon>
             <WhatsAppIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Send test WhatsApp</ListItemText>
+          <ListItemText>{rm.sendTestWhatsApp}</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleDelete} sx={{ color: "error.main" }}>
           <ListItemIcon sx={{ color: "error.main" }}>
             <DeleteIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Delete</ListItemText>
+          <ListItemText>{rm.delete}</ListItemText>
         </MenuItem>
       </Menu>
       <Box
@@ -188,7 +193,7 @@ export default function DriverCard({
           }}
         />
         <Typography variant="caption" sx={{ color: "text.secondary" }}>
-          Rides: {d.rides}
+          {t.ridesPrefix} {d.rides}
         </Typography>
         <Typography variant="caption" sx={{ color: "text.secondary" }}>
           {d.earning}
