@@ -1,7 +1,9 @@
-﻿import type Stripe from "stripe";
+import type Stripe from "stripe";
 import { sendEmailOrThrow } from "../../lib/email.js";
 import { getStripe } from "../../lib/stripe.js";
 import { prisma } from "../../lib/prisma.js";
+import { getApiPublicOrigin } from "../../lib/uploads.js";
+import { signStripeOnboardingToken } from "../../lib/stripeOnboardingToken.js";
 import { buildDriverStripeOnboardingEmailHtml } from "./stripeDriverOnboarding.email.js";
 
 function normalizeBaseUrl(raw: string): string {
@@ -21,7 +23,8 @@ function getStripeBusinessProfileUrl(): string {
   return "http://localhost:3000";
 }
 
-function getStripeConnectReturnUrl(): string {
+/** Where drivers land after finishing Stripe onboarding. */
+export function getStripeConnectReturnLandingUrl(): string {
   const explicit = process.env.STRIPE_CONNECT_RETURN_URL?.trim();
   if (explicit) return normalizeBaseUrl(explicit);
 
@@ -34,10 +37,16 @@ function getStripeConnectReturnUrl(): string {
   return "http://localhost:3000";
 }
 
-function getStripeConnectRefreshUrl(): string {
-  const explicit = process.env.STRIPE_CONNECT_REFRESH_URL?.trim();
-  if (explicit) return normalizeBaseUrl(explicit);
-  return getStripeConnectReturnUrl();
+function buildDriverOnboardingPortalUrl(driverId: string): string {
+  const token = signStripeOnboardingToken(driverId);
+  const origin = getApiPublicOrigin();
+  return `${origin}/api/public/stripe/onboarding?token=${encodeURIComponent(token)}`;
+}
+
+function buildDriverOnboardingReturnUrl(driverId: string): string {
+  const token = signStripeOnboardingToken(driverId);
+  const origin = getApiPublicOrigin();
+  return `${origin}/api/public/stripe/onboarding/return?token=${encodeURIComponent(token)}`;
 }
 
 export function isStripeOnboardingCompleted(account: Stripe.Account): boolean {
@@ -51,7 +60,13 @@ export function isStripeOnboardingCompleted(account: Stripe.Account): boolean {
   );
 }
 
-async function createDriverOnboardingLink(driverId: string): Promise<{ url: string }> {
+/**
+ * Creates a new Stripe Account Link (single-use) and returns the redirect URL.
+ * refresh_url points back to our portal so expired links can be reopened from email.
+ */
+export async function createFreshStripeOnboardingRedirect(
+  driverId: string,
+): Promise<string> {
   const driver = await prisma.drivers.findUnique({ where: { id: driverId } });
   if (!driver) {
     throw new Error("Driver not found");
@@ -90,10 +105,13 @@ async function createDriverOnboardingLink(driverId: string): Promise<{ url: stri
     });
   }
 
+  const portalUrl = buildDriverOnboardingPortalUrl(driverId);
+  const returnUrl = buildDriverOnboardingReturnUrl(driverId);
+
   const link = await stripe.accountLinks.create({
     account: accountId,
-    refresh_url: getStripeConnectRefreshUrl(),
-    return_url: getStripeConnectReturnUrl(),
+    refresh_url: portalUrl,
+    return_url: returnUrl,
     type: "account_onboarding",
   });
 
@@ -101,7 +119,7 @@ async function createDriverOnboardingLink(driverId: string): Promise<{ url: stri
     throw new Error("Stripe did not return an onboarding URL");
   }
 
-  return { url: link.url };
+  return link.url;
 }
 
 export async function syncDriverStripeOnboardingStatus(driver: {
@@ -145,10 +163,10 @@ export async function sendDriverStripeOnboardingEmail(
     throw new Error("Driver has no email address");
   }
 
-  const { url } = await createDriverOnboardingLink(driverId);
+  const portalUrl = buildDriverOnboardingPortalUrl(driverId);
   const html = buildDriverStripeOnboardingEmailHtml({
     driverName: driver.name,
-    onboardingUrl: url,
+    onboardingUrl: portalUrl,
   });
 
   await sendEmailOrThrow({

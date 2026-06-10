@@ -18,6 +18,7 @@ import {
   withdrawAdminBalanceController,
 } from "./modules/payments/controllers/admin/payments.controller.js";
 import stripeConnectRoutes from "./modules/stripe/stripeConnect.routes.js";
+import stripeConnectPublicRoutes from "./modules/stripe/stripeConnect.public.routes.js";
 import uploadRoutes from "./modules/upload/upload.routes.js";
 import { requireAuth } from "./middleware/requireAuth.js";
 import { validateQuery } from "./middleware/validateQuery.js";
@@ -33,6 +34,7 @@ routes.get("/", (_req, res) => {
 routes.use("/public", publicBookingRoutes);
 routes.use("/public", publicPaymentRoutes);
 routes.use("/public", publicVehicleRoutes);
+routes.use("/public", stripeConnectPublicRoutes);
 routes.use("/security-request", securityRequestRoutes);
 routes.use("/auth", authRoutes);
 routes.use("/organizations", organizationRoutes);
