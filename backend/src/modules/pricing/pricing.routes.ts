@@ -9,7 +9,7 @@ import {
 } from "./pricing.controller.js";
 import {
   pricingVehicleParamsSchema,
-  publicPricingQuoteQuerySchema,
+  adminPricingQuoteQuerySchema,
   savePricingBodySchema,
 } from "./pricing.schemas.js";
 import { validateQuery } from "../../middleware/validateQuery.js";
@@ -20,7 +20,7 @@ router.get("/", requireAuth, listPricingController);
 router.get(
   "/admin/quote",
   requireAuth,
-  validateQuery(publicPricingQuoteQuerySchema),
+  validateQuery(adminPricingQuoteQuerySchema),
   adminPricingQuoteController,
 );
 router.patch(

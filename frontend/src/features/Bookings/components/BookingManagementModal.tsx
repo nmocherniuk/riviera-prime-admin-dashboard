@@ -2,13 +2,17 @@ import {
   Typography,
   Grid,
   Button,
+  Alert,
+  Link,
 } from "@mui/material";
+import PlaceAutocompleteField from "../../../components/form/PlaceAutocompleteField";
+import { formatGeoPoint, googleMapsUrl, type GeoPoint, type SelectedPlace } from "../../../lib/geo";
 import FormTextField from "../../../components/form/FormTextField";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import EditIcon from "@mui/icons-material/Edit";
 import { useState, useEffect } from "react";
-import type { Booking } from "./BookingsCalendar/data/dummyBookings";
+import { isHourlyTrip, type Booking } from "./BookingsCalendar/data/dummyBookings";
 import { sectionLabelSx, modalTextFieldSx } from "../../../components/ui/modalStyles";
 import DetailField from "../../../components/DetailField";
 import BaseModal from "../../../components/BaseModal";
@@ -29,7 +33,29 @@ export type BookingFormValues = {
   duration: string;
   from: string;
   to: string;
+  /** Set only when the admin picked a suggestion in this session (else null = not re-selected). */
+  fromPlace: SelectedPlace | null;
+  toPlace: SelectedPlace | null;
 };
+
+/** Coordinates under an address field, with a Google Maps link (lat,lng order). */
+function PlaceLocationHint({ location, placeId }: { location?: GeoPoint | undefined; placeId?: string | undefined }) {
+  if (!location) {
+    return (
+      <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5, pl: 0.5 }}>
+        {mm.route.noCoordinates}
+      </Typography>
+    );
+  }
+  return (
+    <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5, pl: 0.5 }}>
+      {formatGeoPoint(location)} ·{" "}
+      <Link href={googleMapsUrl(location, placeId)} target="_blank" rel="noopener noreferrer">
+        {mm.route.openMap}
+      </Link>
+    </Typography>
+  );
+}
 
 const defaultFormValues: BookingFormValues = {
   clientName: "",
@@ -41,6 +67,8 @@ const defaultFormValues: BookingFormValues = {
   duration: "",
   from: "",
   to: "",
+  fromPlace: null,
+  toPlace: null,
 };
 
 function bookingToFormValues(booking: Booking | null): BookingFormValues {
@@ -55,6 +83,8 @@ function bookingToFormValues(booking: Booking | null): BookingFormValues {
     duration: booking.duration || "",
     from: booking.from || "",
     to: booking.to || "",
+    fromPlace: null,
+    toPlace: null,
   };
 }
 
@@ -85,6 +115,35 @@ export default function BookingManagementModal({
     onClearFieldError?.(field);
     setFormValues((prev) => ({ ...prev, [field]: e.target.value }));
   };
+
+  const handlePlaceText = (side: "from" | "to") => (text: string) => {
+    onClearFieldError?.(side);
+    setFormValues((prev) => ({ ...prev, [side]: text, [`${side}Place`]: null }));
+  };
+
+  const handlePlaceSelect = (side: "from" | "to") => (place: SelectedPlace) => {
+    onClearFieldError?.(side);
+    setFormValues((prev) => ({ ...prev, [side]: place.label, [`${side}Place`]: place }));
+  };
+
+  // Text edited by hand (no suggestion picked) → backend keeps distance & price.
+  const fromTextChanged =
+    !!booking && !formValues.fromPlace && formValues.from.trim() !== (booking.from ?? "").trim();
+  const toTextChanged =
+    !!booking && !formValues.toPlace && formValues.to.trim() !== (booking.to ?? "").trim();
+  const fromLocation =
+    formValues.fromPlace?.location ?? (fromTextChanged ? undefined : booking?.fromLocation);
+  const toLocation =
+    formValues.toPlace?.location ?? (toTextChanged ? undefined : booking?.toLocation);
+  const pickedNewPlace = !!(formValues.fromPlace || formValues.toPlace);
+  const routeWarning =
+    booking?.paymentStatus === "paid" && pickedNewPlace
+      ? mm.route.paidNoReprice
+      : fromTextChanged || toTextChanged
+        ? mm.route.textOnlyWarning
+        : pickedNewPlace && (!fromLocation || (!toLocation && !isHourlyTrip(booking?.tripType)))
+          ? mm.route.otherSideMissing
+          : null;
 
   const handleSave = async () => {
     try {
@@ -252,29 +311,47 @@ export default function BookingManagementModal({
       <Typography sx={sectionLabelSx}>{mm.sections.route}</Typography>
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 6 }}>
-          <FormTextField
+          <PlaceAutocompleteField
             field="from"
-            fullWidth
-            size="small"
             label={mm.fields.from.label}
             placeholder={mm.fields.from.placeholder}
             value={formValues.from}
-            onChange={handleChange("from")}
+            onTextChange={handlePlaceText("from")}
+            onSelect={handlePlaceSelect("from")}
             sx={modalTextFieldSx}
+          />
+          <PlaceLocationHint
+            location={fromLocation}
+            placeId={formValues.fromPlace?.placeId ?? (fromTextChanged ? undefined : booking?.fromPlaceId)}
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <FormTextField
+          <PlaceAutocompleteField
             field="to"
-            fullWidth
-            size="small"
             label={mm.fields.to.label}
             placeholder={mm.fields.to.placeholder}
             value={formValues.to}
-            onChange={handleChange("to")}
+            onTextChange={handlePlaceText("to")}
+            onSelect={handlePlaceSelect("to")}
             sx={modalTextFieldSx}
           />
+          <PlaceLocationHint
+            location={toLocation}
+            placeId={formValues.toPlace?.placeId ?? (toTextChanged ? undefined : booking?.toPlaceId)}
+          />
         </Grid>
+        {booking?.distanceKm != null ? (
+          <Grid size={{ xs: 12 }}>
+            <Typography variant="caption" color="text.secondary">
+              {mm.route.storedDistance.replace("{km}", booking.distanceKm.toFixed(1))}
+            </Typography>
+          </Grid>
+        ) : null}
+        {routeWarning ? (
+          <Grid size={{ xs: 12 }}>
+            <Alert severity="warning">{routeWarning}</Alert>
+          </Grid>
+        ) : null}
       </Grid>
       </FormFieldErrorsProvider>
     </BaseModal>

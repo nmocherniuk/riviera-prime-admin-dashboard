@@ -4,6 +4,7 @@ import {
   httpStatusForKnownBookingMutationError,
   lookupPublicBookingForPayment,
 } from "../../booking.service.js";
+import { sendGeoError } from "../../../places/places.http.js";
 
 export async function getPublicBookingByIdController(
   req: Request,
@@ -35,6 +36,7 @@ export async function createPublicBookingController(
     const booking = await createPublicBookingService(req.body);
     return res.status(201).json({ booking });
   } catch (error) {
+    if (sendGeoError(res, error)) return;
     const message = error instanceof Error ? error.message : "Create failed";
     return res
       .status(httpStatusForKnownBookingMutationError(message))

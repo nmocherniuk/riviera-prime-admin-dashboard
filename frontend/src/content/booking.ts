@@ -117,6 +117,16 @@ export const bookingContent = {
       from: { label: "Départ", placeholder: "Lieu de prise en charge" },
       to: { label: "Arrivée", placeholder: "Destination" },
     },
+    route: {
+      openMap: "Voir sur la carte",
+      noCoordinates: "Pas de coordonnées — sélectionnez une adresse dans les suggestions",
+      storedDistance: "Distance enregistrée : {km} km",
+      textOnlyWarning:
+        "Adresse modifiée sans sélection dans les suggestions : la distance et le prix ne seront pas recalculés.",
+      otherSideMissing:
+        "L’autre adresse n’a pas de coordonnées : sélectionnez-la aussi dans les suggestions pour recalculer la distance.",
+      paidNoReprice: "Réservation payée : le prix ne sera pas recalculé.",
+    },
     vehicleClasses: {
       comfort: "Confort",
       business: "Affaires",

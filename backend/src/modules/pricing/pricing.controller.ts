@@ -6,7 +6,15 @@ import {
   listVehiclePricing,
   saveVehiclePricing,
 } from "./pricing.service.js";
-import type { PublicPricingQuoteQuery } from "./pricing.schemas.js";
+import {
+  adminPricingQuoteQuerySchema,
+  publicPricingQuoteQuerySchema,
+  type AdminPricingQuoteQuery,
+  type PublicPricingQuoteQuery,
+} from "./pricing.schemas.js";
+import type { QuoteInput } from "./pricing.service.js";
+import { placeRefFromQuery } from "../places/places.schemas.js";
+import { sendGeoError } from "../places/places.http.js";
 
 export async function listPricingController(_req: AuthedRequest, res: Response) {
   try {
@@ -52,25 +60,27 @@ export async function savePricingController(req: AuthedRequest, res: Response) {
 }
 
 function quoteQueryToInput(
-  query: PublicPricingQuoteQuery,
-): Parameters<typeof getPublicVehiclePriceQuote>[0] {
-  const input: Parameters<typeof getPublicVehiclePriceQuote>[0] = {
+  query: PublicPricingQuoteQuery | AdminPricingQuoteQuery,
+): QuoteInput {
+  const input: QuoteInput = {
     vehicleId: query.vehicleId,
     tripType: query.tripType,
+    from: placeRefFromQuery(query, "from"),
+    to: placeRefFromQuery(query, "to"),
   };
-  if (query.distanceKm != null) input.distanceKm = query.distanceKm;
+  if ("distanceKm" in query && query.distanceKm != null) {
+    input.distanceKm = query.distanceKm;
+  }
   if (query.durationMin != null) input.durationMin = query.durationMin;
-  if (query.fromLat != null) input.fromLat = query.fromLat;
-  if (query.fromLon != null) input.fromLon = query.fromLon;
-  if (query.toLat != null) input.toLat = query.toLat;
-  if (query.toLon != null) input.toLon = query.toLon;
   if (query.bookingAt != null) input.bookingAt = new Date(query.bookingAt);
   return input;
 }
 
 export async function publicPricingQuoteController(req: Request, res: Response) {
   try {
-    const query = req.query as unknown as PublicPricingQuoteQuery;
+    // Express 5: `req.query` is re-parsed on every access, so values coerced by
+    // validateQuery are lost — parse again to get real numbers (lat/lng).
+    const query: PublicPricingQuoteQuery = publicPricingQuoteQuerySchema.parse(req.query);
 
     const quote = await getPublicVehiclePriceQuote(quoteQueryToInput(query));
 
@@ -80,6 +90,7 @@ export async function publicPricingQuoteController(req: Request, res: Response) 
 
     return res.json({ quote });
   } catch (error) {
+    if (sendGeoError(res, error)) return;
     const message = error instanceof Error ? error.message : "Quote failed";
     return res.status(500).json({ message });
   }
@@ -90,7 +101,7 @@ export async function adminPricingQuoteController(
   res: Response,
 ) {
   try {
-    const query = req.query as unknown as PublicPricingQuoteQuery;
+    const query: AdminPricingQuoteQuery = adminPricingQuoteQuerySchema.parse(req.query);
 
     const quote = await getAdminVehiclePriceQuote(quoteQueryToInput(query));
 
@@ -100,6 +111,7 @@ export async function adminPricingQuoteController(
 
     return res.json({ quote });
   } catch (error) {
+    if (sendGeoError(res, error)) return;
     const message = error instanceof Error ? error.message : "Quote failed";
     return res.status(500).json({ message });
   }

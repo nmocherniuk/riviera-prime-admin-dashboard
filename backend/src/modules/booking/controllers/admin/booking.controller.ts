@@ -9,6 +9,7 @@ import {
   listBookingsService,
   updateBookingService,
 } from "../../booking.service.js";
+import { sendGeoError } from "../../../places/places.http.js";
 
 export async function listBookingsController(req: AuthedRequest, res: Response) {
   try {
@@ -58,6 +59,7 @@ export async function createBookingController(req: AuthedRequest, res: Response)
     const booking = await createBookingService(req.body);
     return res.status(201).json({ booking });
   } catch (error) {
+    if (sendGeoError(res, error)) return;
     const message = error instanceof Error ? error.message : "Create failed";
     return res
       .status(httpStatusForKnownBookingMutationError(message))
@@ -72,6 +74,7 @@ export async function updateBookingController(req: AuthedRequest, res: Response)
     if (!booking) return res.status(404).json({ message: "Booking not found" });
     return res.json({ booking });
   } catch (error) {
+    if (sendGeoError(res, error)) return;
     const message = error instanceof Error ? error.message : "Update failed";
     return res
       .status(httpStatusForKnownBookingMutationError(message))

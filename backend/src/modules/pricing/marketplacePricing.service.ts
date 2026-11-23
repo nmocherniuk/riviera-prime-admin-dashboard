@@ -376,7 +376,7 @@ export async function buildMarketplaceQuote(params: {
   distanceKm: number | null;
   bookingAt: Date;
   includeSettlement: boolean;
-  /** Shown on quote (e.g. Mapbox route duration for one-way). */
+  /** Shown on quote (e.g. Google Routes duration for one-way). */
   displayDurationMin?: number | null;
 }): Promise<
   MarketplaceQuotePublic | MarketplaceQuoteAdmin | null

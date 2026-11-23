@@ -1,5 +1,6 @@
 import { prisma } from "../../lib/prisma.js";
-import { getRoute } from "../../integrations/mapbox/directions.js";
+import { getDrivingRoute, verifyPlace } from "../places/places.service.js";
+import type { PlaceRefInput } from "../places/places.schemas.js";
 import {
   findAllVehiclesWithPricing,
   upsertVehiclePricing,
@@ -85,15 +86,22 @@ export async function saveVehiclePricing(
 /** @deprecated Use MarketplaceQuotePublic — kept name for route handlers. */
 export type PublicPriceQuote = MarketplaceQuotePublic;
 
-async function resolveQuoteContext(input: {
+export type QuoteInput = {
+  vehicleId: string;
   tripType: PublicTripType;
+  /** Admin only — public quote schema does not accept it. */
   distanceKm?: number;
   durationMin?: number;
-  fromLat?: number;
-  fromLon?: number;
-  toLat?: number;
-  toLon?: number;
-}): Promise<{
+  from?: PlaceRefInput | null;
+  to?: PlaceRefInput | null;
+  bookingAt?: Date;
+};
+
+/**
+ * One-way distance source, shared with booking pricing:
+ * selected places → server-verified coordinates → Google Routes (cached).
+ */
+async function resolveQuoteContext(input: QuoteInput): Promise<{
   distanceKm: number | null;
   durationForApi: number | null;
   durationForEngine: number;
@@ -107,20 +115,15 @@ async function resolveQuoteContext(input: {
     };
   }
 
-  const hasAllCoords =
-    input.fromLat != null &&
-    input.fromLon != null &&
-    input.toLat != null &&
-    input.toLon != null;
-
   let distanceKm: number | null = null;
   let durationForApi: number | null = null;
 
-  if (hasAllCoords) {
-    const route = await getRoute(
-      { lat: input.fromLat!, lng: input.fromLon! },
-      { lat: input.toLat!, lng: input.toLon! },
-    );
+  if (input.from && input.to) {
+    const [from, to] = await Promise.all([
+      verifyPlace(input.from, "from"),
+      verifyPlace(input.to, "to"),
+    ]);
+    const route = await getDrivingRoute(from, to);
     distanceKm = route.distanceKm;
     durationForApi = route.durationMin;
   } else {
@@ -128,7 +131,7 @@ async function resolveQuoteContext(input: {
   }
 
   if (distanceKm == null) {
-    throw new Error("distanceKm or coordinates are required for one-way trip");
+    throw new Error("Both selected addresses are required for one-way trip");
   }
 
   const durationForEngine =
@@ -137,17 +140,7 @@ async function resolveQuoteContext(input: {
   return { distanceKm, durationForApi, durationForEngine };
 }
 
-export async function getPublicVehiclePriceQuote(input: {
-  vehicleId: string;
-  tripType: PublicTripType;
-  distanceKm?: number;
-  durationMin?: number;
-  fromLat?: number;
-  fromLon?: number;
-  toLat?: number;
-  toLon?: number;
-  bookingAt?: Date;
-}): Promise<MarketplaceQuotePublic | null> {
+export async function getPublicVehiclePriceQuote(input: QuoteInput): Promise<MarketplaceQuotePublic | null> {
   const bookingAt = input.bookingAt ?? new Date();
   const ctx = await resolveQuoteContext(input);
   const tripNormalized = isHourlyTripType(input.tripType)
@@ -172,17 +165,7 @@ export async function getPublicVehiclePriceQuote(input: {
   }
 }
 
-export async function getAdminVehiclePriceQuote(input: {
-  vehicleId: string;
-  tripType: PublicTripType;
-  distanceKm?: number;
-  durationMin?: number;
-  fromLat?: number;
-  fromLon?: number;
-  toLat?: number;
-  toLon?: number;
-  bookingAt?: Date;
-}): Promise<MarketplaceQuoteAdmin | null> {
+export async function getAdminVehiclePriceQuote(input: QuoteInput): Promise<MarketplaceQuoteAdmin | null> {
   const bookingAt = input.bookingAt ?? new Date();
   const ctx = await resolveQuoteContext(input);
   const tripNormalized = isHourlyTripType(input.tripType)
