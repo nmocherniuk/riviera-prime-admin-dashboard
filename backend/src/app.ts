@@ -4,7 +4,6 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import routes from "./routes.js";
 import stripeWebhookRoutes from "./modules/stripe/stripe.routes.js";
-import bcrypt from "bcryptjs";
 import { UPLOADS_ROOT, ensureUploadDirs } from "./lib/uploads.js";
 
 ensureUploadDirs();
@@ -27,8 +26,6 @@ function parseCorsOrigins(): string[] {
 }
 
 const corsOrigins = parseCorsOrigins();
-
-console.log("hash", bcrypt.hashSync("123456", 10));
 
 // app.use(
 //   cors({

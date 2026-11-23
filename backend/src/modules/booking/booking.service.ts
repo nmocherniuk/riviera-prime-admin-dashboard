@@ -388,7 +388,6 @@ export type CreateBookingServiceInput = {
 
 export async function createBookingService(input: CreateBookingServiceInput) {
   const vehicleId = input.vehicleId ?? null;
-  console.log("vehicleId", vehicleId);
 
   const vehicleClassDb =
     input.vehicleClass != null ? toDbVehicleClass(input.vehicleClass) : null;
