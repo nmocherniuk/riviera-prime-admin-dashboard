@@ -1,4 +1,5 @@
 import { api } from "./api";
+import type { GeoPoint } from "../lib/geo";
 import type {
   Booking,
   BookingStatus,
@@ -22,6 +23,12 @@ export type BookingDto = {
   bookingAt: string;
   from: string;
   to: string;
+  /** Google place id + server-verified coordinates; null for legacy / text-only edits. */
+  fromPlaceId: string | null;
+  fromLocation: GeoPoint | null;
+  toPlaceId: string | null;
+  toLocation: GeoPoint | null;
+  distanceKm: number | null;
   durationMin: number;
   status: BookingStatus;
   paymentStatus: PaymentStatus;
@@ -49,6 +56,9 @@ export type CreateBookingBody = {
   bookingAt: string;
   from?: string;
   to?: string;
+  /** Sent only when the admin picked a suggestion → backend verifies + recomputes distance. */
+  fromPlace?: { placeId: string; location: GeoPoint };
+  toPlace?: { placeId: string; location: GeoPoint };
   durationMin?: number;
   status?: BookingStatus;
   paymentStatus?: PaymentStatus;
@@ -105,6 +115,11 @@ export function dtoToBooking(dto: BookingDto): Booking {
     notesForDriver: dto.notesForDriver || undefined,
     from: dto.from ?? "",
     to: dto.to ?? "",
+    fromPlaceId: dto.fromPlaceId ?? undefined,
+    fromLocation: dto.fromLocation ?? undefined,
+    toPlaceId: dto.toPlaceId ?? undefined,
+    toLocation: dto.toLocation ?? undefined,
+    distanceKm: dto.distanceKm ?? undefined,
     car: dto.vehicleName ?? undefined,
     vehicleId: dto.vehicleId ?? undefined,
     vehicleClass: dto.vehicleClass ?? undefined,

@@ -25,6 +25,12 @@ export const bookingPayloadSelect = {
   bookingAt: true,
   from: true,
   to: true,
+  fromPlaceId: true,
+  fromLat: true,
+  fromLng: true,
+  toPlaceId: true,
+  toLat: true,
+  toLng: true,
   distanceKm: true,
   durationMin: true,
   status: true,
@@ -57,6 +63,12 @@ const bookingPayloadSelectWithoutDeadline = {
   ...bookingPayloadSelect,
   driverResponseDeadline: false,
   stripePaymentIntentId: false,
+  fromPlaceId: false,
+  fromLat: false,
+  fromLng: false,
+  toPlaceId: false,
+  toLat: false,
+  toLng: false,
   distanceKm: false,
   totalAmount: false,
   driverAmount: false,
@@ -89,6 +101,12 @@ function withNullDeadline(row: BookingRowWithoutDeadline): BookingRow {
     clientLocale: "clientLocale" in row ? String(row.clientLocale) : "en",
     driverResponseDeadline: null,
     stripePaymentIntentId: null,
+    fromPlaceId: null,
+    fromLat: null,
+    fromLng: null,
+    toPlaceId: null,
+    toLat: null,
+    toLng: null,
     distanceKm: null,
     totalAmount: null,
     driverAmount: null,
@@ -130,6 +148,12 @@ export type CreateBookingData = {
   bookingAt: Date;
   from: string;
   to: string;
+  fromPlaceId?: string | null;
+  fromLat?: number | null;
+  fromLng?: number | null;
+  toPlaceId?: string | null;
+  toLat?: number | null;
+  toLng?: number | null;
   distanceKm?: Prisma.Decimal | number | null;
   durationMin: number;
   status: BookingStatus;

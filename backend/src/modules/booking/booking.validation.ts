@@ -1,5 +1,11 @@
 import { z } from "zod";
 import { emailLocaleSchema } from "../../emails/locale.js";
+import { placeRefSchema } from "../places/places.schemas.js";
+
+function isOneWayTrip(tripType: string): boolean {
+  const t = tripType.trim().toLowerCase();
+  return t !== "hourly" && t !== "hour";
+}
 
 export const bookingIdParamsSchema = z.object({
   id: z.string().uuid(),
@@ -37,8 +43,15 @@ const baseBookingFields = {
   bookingAt: z.string().datetime(),
   from: z.string().default(""),
   to: z.string().default(""),
+  /**
+   * Address picked from Google autocomplete. When sent, coordinates are verified
+   * server-side and the one-way distance is (re)computed via Google Routes.
+   * Text-only change of `from`/`to` (no place) never triggers a distance recompute.
+   */
+  fromPlace: placeRefSchema.nullable().optional(),
+  toPlace: placeRefSchema.nullable().optional(),
   durationMin: z.number().int().positive().default(60),
-  /** Optional — used when trip is priced by distance (one-way). */
+  /** Admin override — explicit one-way distance; wins over the computed route. */
   distanceKm: z.number().positive().optional(),
   status: z
     .enum(["pending", "assigned", "completed", "cancelled"])
@@ -75,16 +88,23 @@ export const publicCreateBookingSchema = z
     bookingAt: z.string().datetime(),
     from: z.string().max(500).default(""),
     to: z.string().max(500).default(""),
+    /** Required: the landing only books addresses picked from suggestions. */
+    fromPlace: placeRefSchema,
+    toPlace: placeRefSchema.optional(),
     durationMin: z
       .number()
       .int()
       .positive()
       .max(24 * 60)
       .default(60),
-    distanceKm: z.number().positive().optional(),
+    // No `distanceKm` here: public distance always comes from Google Routes.
     locale: emailLocaleSchema,
   })
   .refine((d) => d.vehicleId != null || d.vehicleClass != null, {
     message: "Provide vehicleId or vehicleClass",
     path: ["vehicleId"],
+  })
+  .refine((d) => !isOneWayTrip(d.tripType) || d.toPlace != null, {
+    message: "Destination must be selected from suggestions for one-way trip",
+    path: ["toPlace"],
   });

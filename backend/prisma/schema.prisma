@@ -199,6 +199,14 @@ model Bookings {
   whatsappPaidTemplateSentAt DateTime?
   from                       String
   to                         String
+  /// Google place id + verified WGS84 coordinates of the pickup; null for legacy rows.
+  fromPlaceId                String?
+  fromLat                    Float?
+  fromLng                    Float?
+  /// Google place id + verified WGS84 coordinates of the drop-off; null for hourly / legacy rows.
+  toPlaceId                  String?
+  toLat                      Float?
+  toLng                      Float?
   distanceKm                 Decimal?      @db.Decimal(10, 2)
   vehicleClass               VehicleClass?
   clientEmail                String

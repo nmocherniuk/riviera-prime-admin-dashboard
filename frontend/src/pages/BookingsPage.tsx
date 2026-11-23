@@ -257,6 +257,20 @@ export default function BookingsPage() {
     } else if (vehicleClass) {
       body.vehicleClass = vehicleClass;
     }
+    // Only a suggestion pick sends coordinates → backend verifies them and
+    // recomputes the distance. Plain text edits keep distance & price.
+    if (values.fromPlace) {
+      body.fromPlace = {
+        placeId: values.fromPlace.placeId,
+        location: values.fromPlace.location,
+      };
+    }
+    if (values.toPlace) {
+      body.toPlace = {
+        placeId: values.toPlace.placeId,
+        location: values.toPlace.location,
+      };
+    }
 
     if (bookingId) {
       await updateBooking(bookingId, body);

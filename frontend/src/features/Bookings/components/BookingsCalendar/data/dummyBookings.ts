@@ -1,3 +1,4 @@
+import type { GeoPoint } from "../../../../../lib/geo";
 export type BookingStatus = "pending" | "assigned" | "completed" | "cancelled";
 
 export type PaymentStatus = "paid" | "unpaid";
@@ -15,6 +16,11 @@ export type Booking = {
   notesForDriver?: string;
   from: string;
   to: string;
+  fromPlaceId?: string;
+  fromLocation?: GeoPoint;
+  toPlaceId?: string;
+  toLocation?: GeoPoint;
+  distanceKm?: number;
   car?: string;
   vehicleId?: string;
   vehicleClass?: "comfort" | "business" | "van";

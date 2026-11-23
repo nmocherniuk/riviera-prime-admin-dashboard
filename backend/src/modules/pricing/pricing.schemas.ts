@@ -1,4 +1,9 @@
 import { z } from "zod";
+import {
+  hasAnyPlaceQuery,
+  hasCompletePlaceQuery,
+  placeQueryFields,
+} from "../places/places.schemas.js";
 
 export const pricingVehicleParamsSchema = z.object({
   vehicleId: z.string().uuid(),
@@ -18,55 +23,66 @@ const toNumber = (value: unknown) => {
   return value;
 };
 
-export const publicPricingQuoteQuerySchema = z
-  .object({
-    vehicleId: z.string().uuid(),
-    tripType: z.enum(["one-way", "one_way", "hourly"]),
-    distanceKm: z.preprocess(toNumber, z.number().positive()).optional(),
-    durationMin: z.preprocess(toNumber, z.number().positive()).optional(),
-    fromLat: z.preprocess(toNumber, z.number()).optional(),
-    fromLon: z.preprocess(toNumber, z.number()).optional(),
-    toLat: z.preprocess(toNumber, z.number()).optional(),
-    toLon: z.preprocess(toNumber, z.number()).optional(),
-    /** ISO datetime — used for holiday / night surcharges (default: now). */
-    bookingAt: z.string().datetime().optional(),
-  })
-  .superRefine((val, ctx) => {
-    const isOneWay = val.tripType === "one-way" || val.tripType === "one_way";
-    const hasAllCoords =
-      val.fromLat != null &&
-      val.fromLon != null &&
-      val.toLat != null &&
-      val.toLon != null;
+const baseQuoteFields = {
+  vehicleId: z.string().uuid(),
+  tripType: z.enum(["one-way", "one_way", "hourly"]),
+  durationMin: z.preprocess(toNumber, z.number().positive()).optional(),
+  ...placeQueryFields,
+  /** ISO datetime — used for holiday / night surcharges (default: now). */
+  bookingAt: z.string().datetime().optional(),
+};
 
-    if (isOneWay && val.distanceKm == null && !hasAllCoords) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "distanceKm or coordinates are required for one-way trip",
-        path: ["distanceKm"],
-      });
+type QuoteShape = {
+  tripType: string;
+  durationMin?: number | undefined;
+  distanceKm?: number | undefined;
+} & Parameters<typeof hasCompletePlaceQuery>[0];
+
+function refineQuote(allowDistanceKm: boolean) {
+  return (val: QuoteShape, ctx: z.RefinementCtx) => {
+    const isOneWay = val.tripType === "one-way" || val.tripType === "one_way";
+    for (const side of ["from", "to"] as const) {
+      if (hasAnyPlaceQuery(val, side) && !hasCompletePlaceQuery(val, side)) {
+        ctx.addIssue({
+          code: "custom",
+          message: `${side}PlaceId, ${side}Lat and ${side}Lng must be sent together`,
+          path: [`${side}PlaceId`],
+        });
+      }
     }
-    if (
-      isOneWay &&
-      (val.fromLat != null ||
-        val.fromLon != null ||
-        val.toLat != null ||
-        val.toLon != null) &&
-      !hasAllCoords
-    ) {
+    const hasPlaces =
+      hasCompletePlaceQuery(val, "from") && hasCompletePlaceQuery(val, "to");
+    if (isOneWay && !hasPlaces && !(allowDistanceKm && val.distanceKm != null)) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "All coordinates are required: fromLat, fromLon, toLat, toLon",
-        path: ["fromLat"],
+        code: "custom",
+        message: allowDistanceKm
+          ? "distanceKm or both selected addresses are required for one-way trip"
+          : "Both addresses must be selected from suggestions for one-way trip",
+        path: ["fromPlaceId"],
       });
     }
     if (val.tripType === "hourly" && val.durationMin == null) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "durationMin is required for hourly trip",
         path: ["durationMin"],
       });
     }
-  });
+  };
+}
+
+/** Public (landing): distance always comes from Google Routes, never from the client. */
+export const publicPricingQuoteQuerySchema = z
+  .object(baseQuoteFields)
+  .superRefine(refineQuote(false));
+
+/** Admin: may also price an explicit distanceKm. */
+export const adminPricingQuoteQuerySchema = z
+  .object({
+    ...baseQuoteFields,
+    distanceKm: z.preprocess(toNumber, z.number().positive()).optional(),
+  })
+  .superRefine(refineQuote(true));
 
 export type PublicPricingQuoteQuery = z.infer<typeof publicPricingQuoteQuerySchema>;
+export type AdminPricingQuoteQuery = z.infer<typeof adminPricingQuoteQuerySchema>;

@@ -37,6 +37,10 @@ import {
   buildPricingDataForBooking,
 } from "./booking.pricing.js";
 import { computeDriverResponseDeadline } from "./booking.deadlines.js";
+import { geoPointFromColumns, type GeoPoint } from "../../lib/geo.js";
+import { verifyPlace } from "../places/places.service.js";
+import type { PlaceRefInput } from "../places/places.schemas.js";
+import { isHourlyTripType } from "../pricing/marketplacePricing.service.js";
 
 export { computeDriverResponseDeadline } from "./booking.deadlines.js";
 
@@ -74,6 +78,11 @@ export type PublicBooking = {
   bookingAt: Date;
   from: string;
   to: string;
+  /** Google place id + verified coordinates; null for legacy rows / text-only admin edits. */
+  fromPlaceId: string | null;
+  fromLocation: GeoPoint | null;
+  toPlaceId: string | null;
+  toLocation: GeoPoint | null;
   distanceKm: number | null;
   durationMin: number;
   status: PublicBookingStatus;
@@ -125,6 +134,10 @@ function toPublicBooking(row: BookingPricingRow): PublicBooking {
     bookingAt: row.bookingAt,
     from: row.from,
     to: row.to,
+    fromPlaceId: row.fromPlaceId ?? null,
+    fromLocation: geoPointFromColumns(row.fromLat, row.fromLng),
+    toPlaceId: row.toPlaceId ?? null,
+    toLocation: geoPointFromColumns(row.toLat, row.toLng),
     distanceKm: row.distanceKm != null ? Number(row.distanceKm) : null,
     durationMin: row.durationMin,
     status: toPublicStatus(row.status),
@@ -325,8 +338,9 @@ export async function createPublicBookingService(body: {
   bookingAt: string;
   from: string;
   to: string;
+  fromPlace: PlaceRefInput;
+  toPlace?: PlaceRefInput | undefined;
   durationMin: number;
-  distanceKm?: number;
   locale?: string;
 }) {
   return createBookingService({
@@ -340,8 +354,9 @@ export async function createPublicBookingService(body: {
     bookingAt: body.bookingAt,
     from: body.from,
     to: body.to,
+    fromPlace: body.fromPlace,
+    toPlace: body.toPlace ?? null,
     durationMin: body.durationMin,
-    ...(body.distanceKm != null ? { distanceKm: body.distanceKm } : {}),
     ...(body.locale != null ? { locale: body.locale } : {}),
     status: "pending",
     paymentStatus: "unpaid",
@@ -360,8 +375,11 @@ export type CreateBookingServiceInput = {
   bookingAt: string;
   from: string;
   to: string;
+  /** Picked from Google autocomplete; verified server-side before pricing. */
+  fromPlace?: PlaceRefInput | null;
+  toPlace?: PlaceRefInput | null;
   durationMin: number;
-  /** When known (e.g. from routing on the client), improves one-way pricing. */
+  /** Admin override only (public schema does not accept it). Wins over the computed route. */
   distanceKm?: number;
   status: PublicBookingStatus;
   paymentStatus: PublicPaymentStatus;
@@ -386,14 +404,22 @@ export async function createBookingService(input: CreateBookingServiceInput) {
   //   driverId: input.driverId,
   // });
 
+  const tripType = input.tripType ?? "one-way";
+  const isHourly = isHourlyTripType(tripType);
+  const fromLocation = input.fromPlace
+    ? await verifyPlace(input.fromPlace, "from")
+    : null;
+  const toLocation =
+    !isHourly && input.toPlace ? await verifyPlace(input.toPlace, "to") : null;
+
   const pricingData = await buildPricingDataForBooking({
     vehicleId,
-    tripType: input.tripType ?? "one-way",
+    tripType,
     bookingAt: new Date(input.bookingAt),
     durationMin: input.durationMin,
     distanceKm: input.distanceKm ?? null,
-    from: input.from,
-    to: input.to,
+    fromLocation,
+    toLocation,
   });
 
   const { resolvedDistanceKm, ...pricingScalars } = pricingData;
@@ -414,6 +440,12 @@ export async function createBookingService(input: CreateBookingServiceInput) {
     bookingAt: new Date(input.bookingAt),
     from: input.from,
     to: input.to,
+    fromPlaceId: fromLocation ? input.fromPlace!.placeId : null,
+    fromLat: fromLocation?.lat ?? null,
+    fromLng: fromLocation?.lng ?? null,
+    toPlaceId: toLocation ? input.toPlace!.placeId : null,
+    toLat: toLocation?.lat ?? null,
+    toLng: toLocation?.lng ?? null,
     distanceKm: distanceKmToStore,
     durationMin: input.durationMin,
     status: toDbStatus(input.status),
@@ -450,6 +482,9 @@ export async function updateBookingService(
       vehicleClass?: PublicVehicleClass | null;
       /** Bumps one-way quote when set (admin / API). */
       distanceKm?: number | null;
+      /** Address picked from autocomplete → verified coords + route recompute. */
+      fromPlace?: PlaceRefInput | null;
+      toPlace?: PlaceRefInput | null;
     }
   >,
 ) {
@@ -500,6 +535,47 @@ export async function updateBookingService(
   if (nextDriverId !== existing.driverId) {
     updateData.driverId = nextDriverId;
   }
+  // --- Addresses -------------------------------------------------------------
+  // Picked from suggestions → verify, store place + coords, recompute distance.
+  // Text changed without picking → clear that side's coords (they no longer
+  // describe the text); distance and price are NOT recomputed.
+  const nextTripType = input.tripType ?? existing.tripType;
+  const nextIsHourly = isHourlyTripType(nextTripType);
+  let fromLocation = geoPointFromColumns(existing.fromLat, existing.fromLng);
+  let toLocation = nextIsHourly
+    ? null
+    : geoPointFromColumns(existing.toLat, existing.toLng);
+  let placesChanged = false;
+
+  if (input.fromPlace) {
+    fromLocation = await verifyPlace(input.fromPlace, "from");
+    updateData.fromPlaceId = input.fromPlace.placeId;
+    updateData.fromLat = fromLocation.lat;
+    updateData.fromLng = fromLocation.lng;
+    placesChanged = true;
+  } else if (
+    input.from !== undefined &&
+    input.from.trim() !== existing.from.trim()
+  ) {
+    fromLocation = null;
+    updateData.fromPlaceId = null;
+    updateData.fromLat = null;
+    updateData.fromLng = null;
+  }
+
+  if (input.toPlace && !nextIsHourly) {
+    toLocation = await verifyPlace(input.toPlace, "to");
+    updateData.toPlaceId = input.toPlace.placeId;
+    updateData.toLat = toLocation.lat;
+    updateData.toLng = toLocation.lng;
+    placesChanged = true;
+  } else if (input.to !== undefined && input.to.trim() !== existing.to.trim()) {
+    toLocation = null;
+    updateData.toPlaceId = null;
+    updateData.toLat = null;
+    updateData.toLng = null;
+  }
+
   if (input.from !== undefined) updateData.from = input.from;
   if (input.to !== undefined) updateData.to = input.to;
   if (input.distanceKm !== undefined) updateData.distanceKm = input.distanceKm;
@@ -538,10 +614,11 @@ export async function updateBookingService(
     input.bookingAt !== undefined ||
     input.vehicleId !== undefined ||
     input.tripType !== undefined ||
-    input.distanceKm !== undefined;
+    input.distanceKm !== undefined ||
+    placesChanged;
 
   if (unpaid && pricingTouched) {
-    const nextTrip = input.tripType ?? existing.tripType;
+    const nextTrip = nextTripType;
     const nextDur = input.durationMin ?? existing.durationMin;
     const nextAt =
       input.bookingAt !== undefined
@@ -549,22 +626,26 @@ export async function updateBookingService(
         : existing.bookingAt;
     const vid =
       input.vehicleId !== undefined ? input.vehicleId : existing.vehicleId;
+    // New address picked and both ends have coordinates → drop the stored
+    // distance so the route is recomputed. Otherwise keep the stored distance.
+    const recomputeRoute =
+      placesChanged && fromLocation != null && toLocation != null;
     const dist =
       input.distanceKm !== undefined
         ? input.distanceKm ?? null
-        : existing.distanceKm != null
-          ? Number(existing.distanceKm)
-          : null;
-    const nextFrom = input.from ?? existing.from;
-    const nextTo = input.to ?? existing.to;
+        : recomputeRoute
+          ? null
+          : existing.distanceKm != null
+            ? Number(existing.distanceKm)
+            : null;
     const patch = await buildPricingDataForBooking({
       vehicleId: vid && String(vid).trim() !== "" ? vid : null,
       tripType: nextTrip,
       bookingAt: nextAt,
       durationMin: nextDur,
       distanceKm: dist,
-      from: nextFrom,
-      to: nextTo,
+      fromLocation,
+      toLocation,
     });
     const { resolvedDistanceKm, ...patchScalars } = patch;
     Object.assign(updateData, patchScalars);
